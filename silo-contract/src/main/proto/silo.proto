@@ -14,7 +14,8 @@ option java_multiple_files = true;
 
 message CamJoinRequest {
     string camName = 1;
-    google.type.LatLng coordinates = 2;
+    double latitude = 2;
+    double longitude = 3;
 
 }
 
