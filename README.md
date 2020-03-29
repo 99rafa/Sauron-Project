@@ -5,7 +5,7 @@ Distributed Systems 2019-2020, 2nd semester project
 
 ## Authors
 
-*(fill-in line below with group identifier e.g. A07 or T22; and then delete this line)*  
+*(fill-in line below with group identifier e.g. A08 or T22; and then delete this line)*  
 **Group CXX**
 
 ### Code identification
