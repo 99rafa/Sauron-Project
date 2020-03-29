@@ -6,7 +6,7 @@ Distributed Systems 2019-2020, 2nd semester project
 ## Authors
 
 *(fill-in line below with group identifier e.g. A08 or T22; and then delete this line)*  
-**Group CXX**
+**Group A31**
 
 ### Code identification
 
@@ -18,11 +18,11 @@ This change is important for code dependency management, to make sure that your 
 
 *(fill-in table below with team members; and then delete this line)*  
 
-| Number | Name              | User                             | Email                               |
-| -------|-------------------|----------------------------------| ------------------------------------|
-| 11111  | Alice Distributed | <https://github.com/AliceUser>   | <mailto:alice@tecnico.ulisboa.pt>   |
-| 22222  | Bob Systems       | <https://github.com/BobUser>     | <mailto:bob@tecnico.ulisboa.pt>     |
-| 33333  | Charlie Rules     | <https://github.com/CharlieUser> | <mailto:charlie@tecnico.ulisboa.pt> |
+| Number | Name              | User                                 | Email                                        |
+| -------|-------------------|--------------------------------------| ---------------------------------------------|
+| 89401  | Afonso Paredes    | <https://github.com/afonsoparedes>   | <mailto:afonsoparedes@tecnico.ulisboa.pt>    |
+| 89535  | Pedro Nunes       | <https://github.com/pedronunes99>    | <mailto:bob@tecnico.ulisboa.pt>              |
+| 89538  | Rafael Alexandre  | <https://github.com/99rafa>          | <mailto:rafael.alexandre@tecnico.ulisboa.pt> |
 
 ### Task leaders
 
@@ -31,12 +31,12 @@ This change is important for code dependency management, to make sure that your 
 | Task set | To-Do                         | Leader              |
 | ---------|-------------------------------| --------------------|
 | core     | protocol buffers, silo-client | _(whole team)_      |
-| T1       | cam_join, cam_info, eye       | _Alice Distributed_ |
-| T2       | report, spotter               | _Bob Systems_       |
-| T3       | track, trackMatch, trace      | _Charlie Rules_     |
-| T4       | test T1                       | _Charlie Rules_     |
-| T5       | test T2                       | _Alice Distributed_ |
-| T6       | test T3                       | _Bob Systems_       |
+| T1       | cam_join, cam_info, eye       | _Rafael Alexandre_  |
+| T2       | report, spotter               | _Pedro Nunes_       |
+| T3       | track, trackMatch, trace      | _Afonso Paredes_    |
+| T4       | test T1                       | _Afonso Paredes_    |
+| T5       | test T2                       | _Rafael Alexandre_  |
+| T6       | test T3                       | _Pedro Nunes_       |
 
 
 ## Getting Started
