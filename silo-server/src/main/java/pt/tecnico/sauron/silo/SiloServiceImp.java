@@ -3,20 +3,17 @@ package pt.tecnico.sauron.silo;
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.domain.Camera;
 import pt.tecnico.sauron.silo.domain.Silo;
-import pt.tecnico.sauron.silo.grpc.CamInfoRequest;
-import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
-import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
-import pt.tecnico.sauron.silo.grpc.CamJoinResponse;
+import pt.tecnico.sauron.silo.grpc.*;
 
-public class SiloServiceImp {
+public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase  {
 
     private Silo silo = new Silo();
 
     @Override
-    public void joinCamera(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
+    public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
 
         Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
-        silo.joinCamera(camera);
+        silo.addCamera(camera);
         CamJoinResponse response = CamJoinResponse.newBuilder().build();
 
         // Send a single response through the stream.
@@ -26,7 +23,7 @@ public class SiloServiceImp {
     }
 
     @Override
-    public void getCameraInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
+    public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 
 
         CamInfoResponse response = CamInfoResponse.newBuilder().build(); //TO DO

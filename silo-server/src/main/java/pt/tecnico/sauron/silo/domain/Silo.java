@@ -17,7 +17,7 @@ public class Silo {
     }
 
 
-    public void joinCamera(Camera camera){
+    public void addCamera(Camera camera){
         this._cameras.add(camera);
     }
 
