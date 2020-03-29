@@ -4,3 +4,14 @@
 syntax = "proto3";
 package pt.tecnico.sauron.silo.grpc;
 
+
+message
+
+
+
+
+
+service HelloWorldService {
+    // Define a RPC operation
+    rpc greeting(HelloRequest) returns (HelloResponse);
+}
