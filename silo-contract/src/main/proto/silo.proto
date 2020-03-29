@@ -12,69 +12,69 @@ option java_multiple_files = true;
 
 //cam_join silo operation
 
-message camJoinRequest {
+message CamJoinRequest {
     string camName = 1;
     google.type.LatLng coordinates = 2;
 
 }
 
-message camJoinResponse {
+message CamJoinResponse {
 
 }
 
 //cam_info silo operation
 
-message camInfoRequest {
+message CamInfoRequest {
     string camName = 1;
 }
 
-message camInfoResponse {
+message CamInfoResponse {
     google.type.LatLng coordinates = 2;
 }
 
 //report silo operation
 
-message reportRequest {
+message ReportRequest {
     string camName = 1;
     repeated  google.protobuf.Any observation = 2;
 
 }
 
-message reportResponse {
+message ReportResponse {
 
 }
 
 //track silo operation
 
-message trackRequest {
+message TrackRequest {
    Type type = 1;
    string id = 2;
 }
 
-message trackResponse {
+message TrackResponse {
     google.protobuf.Any observation = 1;
 
 }
 
 //trackMatch silo operation
 
-message trackMatchRequest {
+message TrackMatchRequest {
     Type type = 1;
     string subId = 2;
 }
 
-message trackMatchResponse {
+message TrackMatchResponse {
     google.protobuf.Any observation = 1;
 }
 
 //trace silo operation
 
-message traceRequest {
+message TraceRequest {
     Type type = 1;
     string id = 2;
 }
 
-message traceResponse {
+message TraceResponse {
     repeated google.protobuf.Any observation = 1;
 }
 
@@ -87,10 +87,10 @@ enum Type {
 
 service SiloOperationsService {
     // Define a RPC operation
-    rpc camJoin(camJoinRequest) returns (camJoinResponse);
-    rpc camInfo(camInfoRequest) returns (camInfoResponse);
-    rpc report(reportRequest) returns (reportResponse);
-    rpc track(trackRequest) returns (trackResponse);
-    rpc trackMatch(trackMatchRequest) returns (trackMatchResponse);
-    rpc trace(traceRequest) returns (traceResponse);
+    rpc camJoin(CamJoinRequest) returns (CamJoinResponse);
+    rpc camInfo(CamInfoRequest) returns (CamInfoResponse);
+    rpc report(ReportRequest) returns (ReportResponse);
+    rpc track(TrackRequest) returns (TrackResponse);
+    rpc trackMatch(TrackMatchRequest) returns (TrackMatchResponse);
+    rpc trace(TraceRequest) returns (TraceResponse);
 }
