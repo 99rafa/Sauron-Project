@@ -17,7 +17,6 @@ public class Silo {
     }
 
 
-
     public void addCamera(Camera camera){
         this._cameras.add(camera);
     }
@@ -40,5 +39,13 @@ public class Silo {
 
     public void set_observations(List<Observation> _observations) {
         this._observations = _observations;
+    }
+
+    @Override
+    public String toString() {
+        return "Silo{" +
+                "_cameras=" + _cameras +
+                ", _observations=" + _observations +
+                '}';
     }
 }

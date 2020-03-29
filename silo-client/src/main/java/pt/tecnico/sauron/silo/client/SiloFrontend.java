@@ -18,26 +18,26 @@ public class SiloFrontend implements AutoCloseable {
         stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
 
-    public camJoinResponse camJoin(camJoinRequest request) {
+    public CamJoinResponse camJoin(CamJoinRequest request) {
         return stub.camJoin(request);
     }
 
-    public camInfoResponse getCamInfo(camInfoRequest request) {
+    public CamInfoResponse getCamInfo(CamInfoRequest request) {
         return stub.camInfo(request);
     }
 
-    public reportResponse reportObs(reportRequest request) {
+    public ReportResponse reportObs(ReportRequest request) {
         return stub.report(request);
     }
 
-    public trackResponse trackObj(trackRequest request) {
+    public TrackResponse trackObj(TrackRequest request) {
         return stub.track(request);
     }
 
-    public traceResponse traceObj(traceRequest request) {
+    public TraceResponse traceObj(TraceRequest request) {
         return stub.trace(request);
     }
-    
+
 
     @Override
     public final void close() {
