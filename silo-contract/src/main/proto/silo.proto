@@ -4,14 +4,93 @@
 syntax = "proto3";
 package pt.tecnico.sauron.silo.grpc;
 
-
-message
-
-
+import "google/type/latlng.proto";
+import "google/protobuf/any.proto";
 
 
+option java_multiple_files = true;
 
-service HelloWorldService {
+//cam_join silo operation
+
+message camJoinRequest {
+    string camName = 1;
+    google.type.LatLng coordinates = 2;
+
+}
+
+message camJoinResponse {
+
+}
+
+//cam_info silo operation
+
+message camInfoRequest {
+    string camName = 1;
+}
+
+message camInfoResponse {
+    google.type.LatLng coordinates = 2;
+}
+
+//report silo operation
+
+message reportRequest {
+    string camName = 1;
+    repeated  google.protobuf.Any observation = 2;
+
+}
+
+message reportResponse {
+
+}
+
+//track silo operation
+
+message trackRequest {
+   Type type = 1;
+   string id = 2;
+}
+
+message trackResponse {
+    google.protobuf.Any observation = 1;
+
+}
+
+//trackMatch silo operation
+
+message trackMatchRequest {
+    Type type = 1;
+    string subId = 2;
+}
+
+message trackMatchResponse {
+    google.protobuf.Any observation = 1;
+}
+
+//trace silo operation
+
+message traceRequest {
+    Type type = 1;
+    string id = 2;
+}
+
+message traceResponse {
+    repeated google.protobuf.Any observation = 1;
+}
+
+enum Type {
+    PERSON = 0;
+    CAR = 1;
+}
+
+
+
+service SiloOperationsService {
     // Define a RPC operation
-    rpc greeting(HelloRequest) returns (HelloResponse);
+    rpc camJoin(camJoinRequest) returns (camJoinResponse);
+    rpc camInfo(camInfoRequest) returns (camInfoResponse);
+    rpc report(reportRequest) returns (reportResponse);
+    rpc track(trackRequest) returns (trackResponse);
+    rpc trackMatch(trackMatchRequest) returns (trackMatchResponse);
+    rpc trace(traceRequest) returns (traceResponse);
 }
