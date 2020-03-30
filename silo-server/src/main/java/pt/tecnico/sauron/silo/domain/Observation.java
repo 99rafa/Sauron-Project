@@ -105,15 +105,15 @@ public class Observation {
         g3 = this.id.substring(4,5);
 
         if(isNumber(g1)){
-            if(!containsOnlyCapitalLetters(g2) || !containsOnlyCapitalLetters(g3))
+            if(containsOnlyCapitalLetters(g2) && containsOnlyCapitalLetters(g3))
                 return false;
         }
         else if(isNumber(g2)){
-            if(!containsOnlyCapitalLetters(g1) || !containsOnlyCapitalLetters(g3))
+            if(containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g3))
                 return false;
         }
         else if(isNumber(g3)){
-            if(!containsOnlyCapitalLetters(g1) || !containsOnlyCapitalLetters(g2))
+            if(containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g2))
                 return false;
         }
         else{

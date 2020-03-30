@@ -38,13 +38,37 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
 
         String input = request.getInputCommand();
-        PingResponse response = PingResponse.newBuilder().setStatus().build();
+        PingResponse response = PingResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void ctrlClear(ClearRequest request, StreamObserver<ClearResponse> responseObserver) {
+
+        ClearResponse response = ClearResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
+
+        String input = request.getInputCommand();
+        PingResponse response = PingResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+    }
+
 
 
 }

@@ -46,7 +46,7 @@ public class Silo {
     }
 
     public Camera getCameraInfo(String camName) {
-          Iterator<Camera> iterator = _cameras.iterator();
+          Iterator<Camera> iterator = cameras.iterator();
           while (iterator.hasNext()) {
               Camera camera = iterator.next();
               if (camera.get_name().equals(camName)) {
