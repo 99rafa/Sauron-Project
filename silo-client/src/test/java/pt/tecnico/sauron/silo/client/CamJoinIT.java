@@ -7,6 +7,7 @@ import pt.tecnico.sauron.silo.grpc.CamJoinResponse;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
 
 import static io.grpc.Status.ALREADY_EXISTS;
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -81,24 +82,82 @@ public class CamJoinIT extends BaseIT {
         frontend.camJoin(request2);
     }
 
-    @Test
-    public void joinCameraWithNullName(){
 
+    @Test
+    public void joinCameraWithMoreThan15CharsName(){
+        String camName = "UMACOISARANDOMQUEMELEMBREIETEMMUITOMAISQUE15";
+        double lat = 13.2;
+        double log = 31.2;
+
+        CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log).build();
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request))
+                        .getStatus()
+                        .getCode());
     }
 
     @Test
-    public void joinCameraWithInvalidName(){
+    public void joinCameraWithLessThan3CharsName(){
+        String camName = "te";
+        double lat = 13.2;
+        double log = 31.2;
 
+        CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log).build();
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request))
+                        .getStatus()
+                        .getCode());
     }
 
     @Test
     public void joinCameraWithInvalidCoords(){
+        String camName = "Vale das Mos";
+        double log1 = 200.2;
+        double log2 = -10.2;
+        double lat1 = -100.2;
+        double lat2 = 100.0;
+        double lat = 13.2;
+        double log = 31.2;
+
+        CamJoinRequest request1 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log1).build();
+        CamJoinRequest request2 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log2).build();
+        CamJoinRequest request3 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat1).setLongitude(log).build();
+        CamJoinRequest request4 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat2).setLongitude(log).build();
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request1))
+                        .getStatus()
+                        .getCode());
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request2))
+                        .getStatus()
+                        .getCode());
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request3))
+                        .getStatus()
+                        .getCode());
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.camJoin(request4))
+                        .getStatus()
+                        .getCode());
+
 
     }
 
-    @Test
-    public void joinCameraWithNullCoords(){
-
-    }
 
 }

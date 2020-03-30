@@ -10,8 +10,8 @@ public enum ErrorMessage {
     NO_SUCH_CAMERA_NAME("No such camera name %s"),
 
 
-    COORDINATES_INVALID_LATITUDE("The camera latitude %l must be between -90 and 90"),
-    COORDINATES_INVALID_LONGITUDE("The camera longitude %l must be between 0 and 180"),
+    COORDINATES_INVALID_LATITUDE("The camera latitude %f must be between -90 and 90"),
+    COORDINATES_INVALID_LONGITUDE("The camera longitude %f must be between 0 and 180"),
     COORDINATES_NULL_LATITUDE("The camera latitude must not be null"),
     COORDINATES_NULL_LONGITUDE("The camera longitude must not be null"),
 

@@ -29,7 +29,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
             silo.addCamera(camera);
             CamJoinResponse response = CamJoinResponse.newBuilder().build();
-            System.out.println(silo.toString());
             // Send a single response through the stream.
             responseObserver.onNext(response);
             // Notify the client that the operation has been completed.
@@ -223,6 +222,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                             , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
                     ));
                 }
+            }
+            else{
+                responseObserver.onError(NOT_FOUND.withDescription("No such camera").asRuntimeException());
+                return;
             }
 
             ReportResponse response = ReportResponse.newBuilder().build();

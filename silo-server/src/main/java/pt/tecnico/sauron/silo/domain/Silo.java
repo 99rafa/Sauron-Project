@@ -124,7 +124,7 @@ public class Silo {
     }
 
     public boolean checkIfCameraExists(String camName){
-        for(Camera c: this.cameras){
+        for(Camera c : this.cameras){
             if(c.getName().equals(camName))
                 return true;
         }

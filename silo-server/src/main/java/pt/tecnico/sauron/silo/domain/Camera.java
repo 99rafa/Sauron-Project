@@ -104,6 +104,7 @@ public class Camera {
                 "name='" + name + '\'' +
                 ", lat=" + lat +
                 ", log=" + log +
+                ", observations=" + observations +
                 '}';
     }
 
