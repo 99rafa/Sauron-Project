@@ -23,29 +23,29 @@ public class Camera {
     }
 
 
-    public String get_name() {
+    public String getName() {
         return this.name;
     }
 
-    public void set_name(String name) {
+    public void setName(String name) {
         checkName(name);
         this.name = name;
     }
 
-    public double get_lat() {
+    public double getLat() {
         return this.lat;
     }
 
-    public void set_lat(double lat) {
+    public void setLat(double lat) {
         checkLatitude(lat);
         this.lat = lat;
     }
 
-    public double get_log() {
+    public double getLog() {
         return this.log;
     }
 
-    public void set_log(double log) {
+    public void setLog(double log) {
         checkLongitude(log);
         this.log = log;
     }

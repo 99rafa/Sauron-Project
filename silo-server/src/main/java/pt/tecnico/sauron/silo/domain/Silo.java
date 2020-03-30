@@ -103,6 +103,14 @@ public class Silo {
         return res;
     }
 
+    public boolean checkIfCameraExists(String name){
+        for(Camera c: this.cameras){
+            if(c.getName() == name)
+                return true;
+        }
+        return false;
+    }
+
 
     public void addCamera(Camera camera) {
         this.cameras.add(camera);
@@ -112,19 +120,19 @@ public class Silo {
         this.observations.add(observation);
     }
 
-    public List<Camera> get_cameras() {
+    public List<Camera> getCameras() {
         return this.cameras;
     }
 
-    public void set_cameras(List<Camera> cameras) {
+    public void setCameras(List<Camera> cameras) {
         this.cameras = cameras;
     }
 
-    public List<Observation> get_observations() {
+    public List<Observation> getObservations() {
         return this.observations;
     }
 
-    public void set_observations(List<Observation> observations) {
+    public void setObservations(List<Observation> observations) {
         this.observations = observations;
     }
 
@@ -136,8 +144,8 @@ public class Silo {
     @Override
     public String toString() {
         return "Silo{" +
-                "_cameras=" + this.cameras +
-                ", _observations=" + this.observations +
+                "cameras=" + this.cameras +
+                ", observations=" + this.observations +
                 '}';
     }
 

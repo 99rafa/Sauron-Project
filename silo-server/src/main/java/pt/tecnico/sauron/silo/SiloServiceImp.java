@@ -8,7 +8,7 @@ import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.lang.reflect.Array;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,6 +132,32 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         TraceResponse response = builder.build();
 
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+
+    }
+
+    @Override
+    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver){
+
+        String camName = request.getCamName();
+        List<ObservationMessage> observationMessages = new ArrayList<>();
+
+        if(silo.checkIfCameraExists(camName)){
+
+            observationMessages = request.getObservationList();
+            for(ObservationMessage om : observationMessages)
+                silo.addObservation(new Observation(om.getType()
+                        ,om.getId()
+                        ,LocalDateTime.parse(om.getDatetime(),Silo.formatter)
+                ));
+
+        }
+
+        ReportResponse response = ReportResponse.newBuilder().build();
+        
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
