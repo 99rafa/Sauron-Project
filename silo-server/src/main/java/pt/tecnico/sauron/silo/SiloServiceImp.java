@@ -9,7 +9,6 @@ import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -21,161 +20,186 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
 
-        Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
-        silo.addCamera(camera);
-        CamJoinResponse response = CamJoinResponse.newBuilder().build();
-        System.out.println(silo.toString());
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+        try {
+
+            Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
+            silo.addCamera(camera);
+            CamJoinResponse response = CamJoinResponse.newBuilder().build();
+            System.out.println(silo.toString());
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        }
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
     public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 
+        try {
+            String camName = request.getCamName();
+            Camera camera = silo.getCameraByName(camName);
 
-        String camName = request.getCamName();
-        Camera camera = silo.getCameraByName(camName);
+            CamInfoResponse response = CamInfoResponse.newBuilder()
+                    .setLatitude(camera.getLat())
+                    .setLongitude(camera.getLog())
+                    .build();
 
-        CamInfoResponse response = CamInfoResponse.newBuilder()
-                .setLatitude(camera.getLat())
-                .setLongitude(camera.getLog())
-                .build();
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+        }
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 
-        Type type = request.getType();
-        String id = request.getId();
-        Observation result;
+        try {
+
+            Type type = request.getType();
+            String id = request.getId();
+            Observation result;
 
 
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+            result = silo.trackObject(type, id);
 
-        result = silo.trackObject(type, id);
+            //Build Observation Message
+            ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                    .setId(result.getId())
+                    .setType(result.getType())
+                    .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .build();
 
-        //Build Observation Message
-        ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                .setId(result.getId())
-                .setType(result.getType())
-                .setDatetime(result.getDateTime().format(Silo.formatter))
-                .build();
+            TrackResponse response = TrackResponse.newBuilder()
+                    .setObservation(observationMessage)
+                    .build();
 
-        TrackResponse response = TrackResponse.newBuilder()
-                .setObservation(observationMessage)
-                .build();
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
-
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+        }
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
     public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver){
+        try {
+            Type type = request.getType();
+            String partialId = request.getSubId();
+            Observation result;
 
-        Type type = request.getType();
-        String partialId = request.getSubId();
-        Observation result;
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+            result = silo.trackMatchObject(type, partialId);
 
-        result = silo.trackMatchObject(type, partialId);
+            //Build Observation Message
+            ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                    .setId(result.getId())
+                    .setType(result.getType())
+                    .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .build();
 
-        //Build Observation Message
-        ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                .setId(result.getId())
-                .setType(result.getType())
-                .setDatetime(result.getDateTime().format(Silo.formatter))
-                .build();
-
-        TrackMatchResponse response = TrackMatchResponse.newBuilder()
-                .setObservation(observationMessage)
-                .build();
+            TrackMatchResponse response = TrackMatchResponse.newBuilder()
+                    .setObservation(observationMessage)
+                    .build();
 
 
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
-
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+        }
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
     }
 
 
     @Override
     public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver){
 
-        Type type = request.getType();
-        String id = request.getId();
-        List<Observation> result;
-        TraceResponse.Builder builder = TraceResponse.newBuilder();
+        try {
 
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+            Type type = request.getType();
+            String id = request.getId();
+            List<Observation> result;
+            TraceResponse.Builder builder = TraceResponse.newBuilder();
 
-        result = silo.traceObject(type, id);
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-        int i = 0;
-        for(Observation o: result) {
-            //Build Observation Message
-            ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                    .setId(o.getId())
-                    .setType(o.getType())
-                    .setDatetime(o.getDateTime().format(Silo.formatter))
-                    .build();
+            result = silo.traceObject(type, id);
 
-            builder.setObservation(i,observationMessage);
-            i++;
+            for (Observation o : result) {
+                //Build Observation Message
+                ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                        .setId(o.getId())
+                        .setType(o.getType())
+                        .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .build();
+
+                builder.addObservation(observationMessage);
+            }
+
+
+            TraceResponse response = builder.build();
+
+
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
         }
-
-
-        TraceResponse response = builder.build();
-
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
 
     }
 
     @Override
     public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver){
+        try {
+            String camName = request.getCamName();
+            List<ObservationMessage> observationMessages;
 
-        String camName = request.getCamName();
-        List<ObservationMessage> observationMessages = new ArrayList<>();
+            if (silo.checkIfCameraExists(camName)) {
 
-        if(silo.checkIfCameraExists(camName)){
+                Camera cam = silo.getCameraByName(camName);
 
-            Camera cam = silo.getCameraByName(camName);
+                observationMessages = request.getObservationList();
+                for (ObservationMessage om : observationMessages) {
+                    cam.addObservation(new Observation(om.getType()
+                            , om.getId()
+                            , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                    ));
+                }
+            }
 
-            observationMessages = request.getObservationList();
-            for(ObservationMessage om : observationMessages)
-                cam.addObservation(new Observation(om.getType()
-                        ,om.getId()
-                        ,LocalDateTime.parse(om.getDatetime(),Silo.formatter)
-                ));
+            ReportResponse response = ReportResponse.newBuilder().build();
 
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
         }
-
-        ReportResponse response = ReportResponse.newBuilder().build();
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
-
+        catch (SiloException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
@@ -195,6 +219,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         //silo.clearData();
         ClearResponse response = ClearResponse.newBuilder().build();
+
+        //Clears server info
+        silo = new Silo();
+
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.

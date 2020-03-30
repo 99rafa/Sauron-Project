@@ -135,6 +135,8 @@ public class Silo {
         for(Camera c : this.cameras){
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
+            if(c.getName().equals(camera.getName()))
+                return;
         }
 
         this.cameras.add(camera);

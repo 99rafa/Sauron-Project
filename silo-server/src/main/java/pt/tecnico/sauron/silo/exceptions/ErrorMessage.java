@@ -29,4 +29,11 @@ public enum ErrorMessage {
     ErrorMessage(String label) {
         this.label = label;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorMessage{" +
+                "label='" + label + '\'' +
+                '}';
+    }
 }

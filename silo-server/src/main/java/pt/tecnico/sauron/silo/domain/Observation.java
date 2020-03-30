@@ -88,7 +88,7 @@ public class Observation implements Comparable<Observation> {
         String g1;
         String g2;
         String g3;
-
+        
         if (id.length() != 6)
             return false;
 
@@ -96,14 +96,15 @@ public class Observation implements Comparable<Observation> {
         g2 = id.substring(2, 4);
         g3 = id.substring(4, 6);
 
-        if (isNumber(g1)) {
-            return containsOnlyCapitalLetters(g2) && containsOnlyCapitalLetters(g3);
+
+        if (containsOnlyCapitalLetters(g1)) {
+            return isNumber(g2) && isNumber(g3);
         }
-        if (isNumber(g2)) {
-            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g3);
+        if (containsOnlyCapitalLetters(g2)) {
+            return isNumber(g1) && isNumber(g3);
         }
-        if (isNumber(g3)) {
-            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g2);
+        if (containsOnlyCapitalLetters(g3)) {
+            return isNumber(g1) && isNumber(g2);
         }
         return false;
     }
