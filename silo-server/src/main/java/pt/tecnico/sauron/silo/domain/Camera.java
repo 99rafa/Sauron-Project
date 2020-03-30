@@ -6,53 +6,56 @@ import pt.tecnico.sauron.silo.exceptions.SiloException;
 
 public class Camera{
 
-    private String _name;
-    private double _lat;
-    private double _log;
+    private String name;
+    private double lat;
+    private double log;
 
     public Camera() {
     }
 
     public Camera(String name, double lat, double log){
         checkName(name);
+        this.name = name;
         checkLatitude(lat);
+        this.lat = lat;
         checkLongitude(log);
-        this._name = name;
-        this._lat = lat;
-        this._log = log;
+        this.log = log;
     }
 
 
 
 
     public String get_name() {
-        return _name;
+        return this.name;
     }
 
     public void set_name(String name) {
-        this._name = name;
+        checkName(name);
+        this.name = name;
     }
 
     public double get_lat() {
-        return _lat;
+        return this.lat;
     }
 
     public void set_lat(double lat) {
-        this._lat = lat;
+        checkLatitude(lat);
+        this.lat = lat;
     }
 
     public double get_log() {
-        return _log;
+        return this.log;
     }
 
     public void set_log(double log) {
-        this._log = log;
+        checkLongitude(log);
+        this.log = log;
     }
 
     private void checkName(String name){
-        if(_name == null)
+        if(name == null)
             throw new SiloException(ErrorMessage.CAMERA_NAME_NULL);
-        if(_name.length() <3 || _name.length() > 15)
+        if(name.length() <3 || name.length() > 15)
             throw new SiloException(ErrorMessage.CAMERA_NAME_INVALID,name);
     }
 
@@ -61,6 +64,7 @@ public class Camera{
         if(lat == null)
             throw new SiloException(ErrorMessage.COORDINATES_NULL_LATITUDE);
 
+        //Latitude must be between -90 and 90
         if(lat < -90 || lat > 90)
             throw new SiloException(ErrorMessage.COORDINATES_INVALID_LATITUDE,lat);
 
@@ -71,8 +75,18 @@ public class Camera{
         if(log == null)
             throw new SiloException(ErrorMessage.COORDINATES_NULL_LONGITUDE);
 
+        //Longitude must be between 0 and 180
         if(log < 0 || log > 180)
             throw new SiloException(ErrorMessage.COORDINATES_INVALID_LONGITUDE,log);
 
+    }
+
+    @Override
+    public String toString() {
+        return "Camera{" +
+                "name='" + name + '\'' +
+                ", lat=" + lat +
+                ", log=" + log +
+                '}';
     }
 }
