@@ -4,7 +4,7 @@
 syntax = "proto3";
 package pt.tecnico.sauron.silo.grpc;
 
-import "google/type/latlng.proto";
+
 import "google/protobuf/any.proto";
 
 
@@ -30,7 +30,8 @@ message CamInfoRequest {
 }
 
 message CamInfoResponse {
-    google.type.LatLng coordinates = 2;
+   double latitude = 1;
+   double longitude = 2;
 }
 
 //report silo operation
@@ -79,9 +80,39 @@ message TraceResponse {
     repeated google.protobuf.Any observation = 1;
 }
 
+message PingRequest {
+    string inputCommand = 1;
+}
+
+message PingResponse {
+    ServerStatus status = 1;
+}
+
+message ClearRequest {
+
+}
+
+message ClearResponse {
+
+}
+
+message InitRequest {
+    string ip = 1;
+    string port = 2;
+}
+
+message InitResponse {
+
+}
+
 enum Type {
     PERSON = 0;
     CAR = 1;
+}
+
+enum ServerStatus {
+    RUNNING = 0;
+    DOWN = 1;
 }
 
 
@@ -94,4 +125,7 @@ service SiloOperationsService {
     rpc track(TrackRequest) returns (TrackResponse);
     rpc trackMatch(TrackMatchRequest) returns (TrackMatchResponse);
     rpc trace(TraceRequest) returns (TraceResponse);
+    rpc ctrlPing(PingRequest) returns (PingResponse);
+    rpc ctrlClear(ClearRequest) returns (ClearResponse);
+    rpc ctrlInit(InitRequest) returns (InitResponse);
 }

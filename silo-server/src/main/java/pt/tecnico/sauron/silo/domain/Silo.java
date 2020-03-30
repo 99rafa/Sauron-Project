@@ -1,6 +1,10 @@
 package pt.tecnico.sauron.silo.domain;
 
+import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
+import pt.tecnico.sauron.silo.exceptions.SiloException;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Silo {
@@ -39,6 +43,17 @@ public class Silo {
 
     public void set_observations(List<Observation> _observations) {
         this._observations = _observations;
+    }
+
+    public Camera getCameraInfo(String camName) {
+          Iterator<Camera> iterator = _cameras.iterator();
+          while (iterator.hasNext()) {
+              Camera camera = iterator.next();
+              if (camera.get_name().equals(camName)) {
+                  return camera;
+              }
+          }
+         throw new SiloException(ErrorMessage.CAMERA_NOT_IN_SILO, camName);
     }
 
     @Override

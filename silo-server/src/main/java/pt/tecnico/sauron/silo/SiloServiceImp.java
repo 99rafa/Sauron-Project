@@ -25,12 +25,26 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 
-
-        CamInfoResponse response = CamInfoResponse.newBuilder().build(); //TO DO
+        Camera camera = silo.getCameraInfo(request.getCamName());
+        CamInfoResponse response = CamInfoResponse.newBuilder().setLatitude(camera.get_lat()).setLongitude(camera.get_log()).build();
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
+
+        String input = request.getInputCommand();
+        PingResponse response = PingResponse.newBuilder().setStatus().build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+    }
+
+
 }
