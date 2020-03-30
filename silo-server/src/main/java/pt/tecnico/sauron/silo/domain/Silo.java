@@ -4,6 +4,7 @@ import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.Type;
 
+import java.io.CharArrayReader;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +81,26 @@ public class Silo {
 
 
         throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+    }
+
+    public List<Observation> traceObject(Type type, String id){
+
+        List<Observation> res = new ArrayList<>();
+
+        if(id == null || id.strip().length() == 0)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+
+
+        for(Observation o : this.observations){
+            if(o.getType() == type && o.getId() == id)
+                res.add(o);
+        }
+
+        if(res.isEmpty())
+            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+        res.sort(Observation::compareTo);
+
+        return res;
     }
 
 

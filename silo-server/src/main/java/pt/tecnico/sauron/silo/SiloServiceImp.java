@@ -8,6 +8,10 @@ import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.*;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
@@ -97,6 +101,41 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
 
+    }
+
+    @Override
+    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver){
+
+        Type type = request.getType();
+        String id = request.getId();
+        List<Observation> result;
+        TraceResponse.Builder builder = TraceResponse.newBuilder();
+
+        if (type == Type.UNRECOGNIZED)
+            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+
+        result = silo.traceObject(type, id);
+
+        int i = 0;
+        for(Observation o: result) {
+            //Build Observation Message
+            ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                    .setId(o.getId())
+                    .setType(o.getType())
+                    .setDatetime(o.getDateTime().format(Silo.formatter))
+                    .build();
+
+            builder.setObservation(i,observationMessage);
+            i++;
+        }
+
+
+        TraceResponse response = builder.build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
 
     }
 }
