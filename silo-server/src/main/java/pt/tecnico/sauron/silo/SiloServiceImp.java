@@ -49,8 +49,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlClear(ClearRequest request, StreamObserver<ClearResponse> responseObserver) {
 
-        ClearResponse response = ClearResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
-
+        silo.clearData();
+        ClearResponse response = ClearResponse.newBuilder().build();
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
@@ -58,10 +58,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
+    public void ctrlInit(InitRequest request, StreamObserver<InitResponse> responseObserver) {
 
-        String input = request.getInputCommand();
-        PingResponse response = PingResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
+        String input = request.getIp();
+        //falta aqui a funcao para o porto
+        InitResponse response = InitResponse.newBuilder().build();
 
         // Send a single response through the stream.
         responseObserver.onNext(response);

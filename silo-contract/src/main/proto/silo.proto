@@ -97,8 +97,7 @@ message ClearResponse {
 }
 
 message InitRequest {
-    string ip = 1;
-    string port = 2;
+    string port = 1;
 }
 
 message InitResponse {

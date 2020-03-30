@@ -77,7 +77,7 @@ public class Observation {
                 throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID, this.type.toString());
         }
         if (this.type == ObjectType.CAR) {
-            if(!checkCarId(id))
+            if(!isCarId(id))
                 throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID,this.type.toString());
         }
     }
@@ -92,34 +92,28 @@ public class Observation {
     }
 
 
-    private boolean checkCarId(String id){
-        String g1 = "";
-        String g2 = "";
-        String g3 = "";
+    private boolean isCarId(String id){
+        String g1;
+        String g2;
+        String g3;
 
         if(id.length() != 6)
             return false;
 
-        g1 = this.id.substring(0,1);
-        g2 = this.id.substring(2,3);
-        g3 = this.id.substring(4,5);
+        g1 = id.substring(0,1);
+        g2 = id.substring(2,3);
+        g3 = id.substring(4,5);
 
         if(isNumber(g1)){
-            if(containsOnlyCapitalLetters(g2) && containsOnlyCapitalLetters(g3))
-                return false;
+            return containsOnlyCapitalLetters(g2) && containsOnlyCapitalLetters(g3);
         }
-        else if(isNumber(g2)){
-            if(containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g3))
-                return false;
+        if(isNumber(g2)){
+            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g3);
         }
-        else if(isNumber(g3)){
-            if(containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g2))
-                return false;
+        if(isNumber(g3)){
+            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g2);
         }
-        else{
-            return false;
-        }
-        return true;
+        return false;
     }
 
     private boolean isNumber(String s){
