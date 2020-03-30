@@ -38,6 +38,12 @@ public class SiloFrontend implements AutoCloseable {
         return stub.trace(request);
     }
 
+    public PingResponse ctrlPing(PingRequest request) { return stub.ctrlPing(request);}
+
+    public ClearResponse ctrlClear(ClearRequest request) { return stub.ctrlClear(request); }
+
+    public InitResponse ctrlInit(InitRequest request) { return stub.ctrlInit(request); }
+
 
     @Override
     public final void close() {

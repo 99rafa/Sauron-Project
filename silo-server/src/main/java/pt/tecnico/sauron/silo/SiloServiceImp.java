@@ -24,7 +24,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
         silo.addCamera(camera);
         CamJoinResponse response = CamJoinResponse.newBuilder().build();
-        System.out.println(silo.toString());
+
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
@@ -47,6 +47,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
+
     }
 
     @Override
@@ -161,6 +162,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             Camera cam = silo.getCameraByName(camName);
 
             observationMessages = request.getObservationList();
+
             for(ObservationMessage om : observationMessages)
                 cam.addObservation(new Observation(om.getType()
                         ,om.getId()
@@ -168,13 +170,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 ));
 
         }
-
+        System.out.println(silo.getCameras().get(0).getObservations().toString());
         ReportResponse response = ReportResponse.newBuilder().build();
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
+
 
     }
 
