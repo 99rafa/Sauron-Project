@@ -4,11 +4,17 @@
 syntax = "proto3";
 package pt.tecnico.sauron.silo.grpc;
 
-import "google/type/latlng.proto";
-import "google/protobuf/any.proto";
+
 
 
 option java_multiple_files = true;
+
+//observation object message
+message ObservationMessage{
+    Type type = 1;
+    string id = 2;
+    string datetime = 3;
+}
 
 //cam_join silo operation
 
@@ -30,15 +36,15 @@ message CamInfoRequest {
 }
 
 message CamInfoResponse {
-    google.type.LatLng coordinates = 2;
+    double latitude = 1;
+    double longitude = 2;
 }
 
 //report silo operation
 
 message ReportRequest {
     string camName = 1;
-    repeated  google.protobuf.Any observation = 2;
-
+    repeated ObservationMessage observation = 2;
 }
 
 message ReportResponse {
@@ -53,8 +59,7 @@ message TrackRequest {
 }
 
 message TrackResponse {
-    google.protobuf.Any observation = 1;
-
+    ObservationMessage observation = 1;
 }
 
 //trackMatch silo operation
@@ -65,7 +70,7 @@ message TrackMatchRequest {
 }
 
 message TrackMatchResponse {
-    google.protobuf.Any observation = 1;
+    ObservationMessage observation = 1;
 }
 
 //trace silo operation
@@ -76,7 +81,7 @@ message TraceRequest {
 }
 
 message TraceResponse {
-    repeated google.protobuf.Any observation = 1;
+    repeated ObservationMessage observation = 1;
 }
 
 enum Type {

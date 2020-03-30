@@ -2,6 +2,8 @@ package pt.tecnico.sauron.silo.exceptions;
 
 public enum ErrorMessage {
 
+
+
     CAMERA_NAME_INVALID("The camera name %s must be between 3 and 15 characters"),
     CAMERA_NAME_NULL("The camera name cannot be null"),
 
@@ -11,6 +13,7 @@ public enum ErrorMessage {
     COORDINATES_NULL_LONGITUDE("The camera longitude must not be null"),
 
     OBSERVATION_NULL_TYPE("The observation type cannot be null"),
+    NO_SUCH_OBSERVATION("No such observation"),
     OBSERVATION_INVALID_TYPE("The type %s does not exist"),
     OBSERVATION_INVALID_ID("The id is invalid for the given type %s"),
     OBSERVATION_NULL_ID("The observation Id cannot be null"),

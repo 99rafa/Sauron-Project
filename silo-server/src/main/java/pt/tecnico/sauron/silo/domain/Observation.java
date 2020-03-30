@@ -2,39 +2,32 @@ package pt.tecnico.sauron.silo.domain;
 
 import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
+import pt.tecnico.sauron.silo.grpc.Type;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static java.lang.Integer.parseInt;
 
-public class Observation {
+public class Observation implements Comparable<Observation> {
 
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    private SiloObject type;
+    private Type type;
 
     private LocalDateTime dateTime;
+
+    private String id;
 
     public Observation() {
     }
 
-    public Observation(SiloObject type, LocalDateTime dateTime) {
+    public Observation(Type type, String id, LocalDateTime dateTime) {
 
         checkType(type);
         this.type = type;
         checkDate(dateTime);
         this.dateTime = dateTime;
+        checkId(id);
+        this.id = id;
 
-    }
-
-
-    public SiloObject get_type() {
-        return this.type;
-    }
-
-    public void set_type(SiloObject type) {
-        this.type = type;
     }
 
     public LocalDateTime getDateTime() {
@@ -45,10 +38,26 @@ public class Observation {
         this.dateTime = dateTime;
     }
 
+    public Type getType() {
+        return type;
+    }
 
-    private void checkType(SiloObject type) {
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    private void checkType(Type type) {
         if (type == null)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+
     }
 
     private void checkDate(LocalDateTime date) {
@@ -57,8 +66,64 @@ public class Observation {
 
         //Observation Date is in the future (This Ain't Back to the Future)
         if (date.isAfter(LocalDateTime.now())) {
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_DATE, date.format(formatter));
+            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_DATE, date.format(Silo.formatter));
         }
+    }
+
+    private void checkId(String id) {
+        if (id == null)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+        if (this.type == Type.PERSON) {
+            if (!isNumber(id))
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID, type.toString());
+        }
+        if (this.type == Type.CAR) {
+            if (!isCarId(id))
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID, type.toString());
+        }
+    }
+
+
+    private boolean isCarId(String id) {
+        String g1;
+        String g2;
+        String g3;
+
+        if (id.length() != 6)
+            return false;
+
+        g1 = id.substring(0, 2);
+        g2 = id.substring(2, 4);
+        g3 = id.substring(4, 6);
+
+        if (isNumber(g1)) {
+            return containsOnlyCapitalLetters(g2) && containsOnlyCapitalLetters(g3);
+        }
+        if (isNumber(g2)) {
+            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g3);
+        }
+        if (isNumber(g3)) {
+            return containsOnlyCapitalLetters(g1) && containsOnlyCapitalLetters(g2);
+        }
+        return false;
+    }
+
+    private boolean isNumber(String s) {
+        try {
+            parseInt(s);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return true;
+    }
+
+
+    private boolean containsOnlyCapitalLetters(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) < 'A' || s.charAt(i) > 'Z')
+                return false;
+        }
+        return true;
     }
 
 
@@ -71,4 +136,8 @@ public class Observation {
     }
 
 
+    @Override
+    public int compareTo(Observation observation) {
+        return this.dateTime.compareTo(observation.getDateTime());
+    }
 }
