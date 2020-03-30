@@ -38,6 +38,7 @@ public class SiloFrontend implements AutoCloseable {
         return stub.trace(request);
     }
 
+    public ClearResponse clearObj(ClearRequest request) { return  stub.ctrlClear(request);}
 
     @Override
     public final void close() {

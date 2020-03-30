@@ -11,6 +11,10 @@ import pt.tecnico.sauron.silo.grpc.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static io.grpc.Status.ALREADY_EXISTS;
+import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.grpc.Status.NOT_FOUND;
+
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
@@ -31,10 +35,18 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NOT_UNIQUE)
+                responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_INVALID
+                    || e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LATITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LONGITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LATITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LONGITUDE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
-        }
+
     }
 
     @Override
@@ -51,12 +63,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
+
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
-        }
+
     }
 
     @Override
@@ -87,16 +104,22 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
+
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
-        }
+
     }
 
     @Override
-    public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver){
+    public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
         try {
             Type type = request.getType();
             String partialId = request.getSubId();
@@ -121,17 +144,24 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
+
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_PART_ID)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
-        }
+
     }
 
 
     @Override
-    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver){
+    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
 
         try {
 
@@ -162,17 +192,22 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
+
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
-        }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
     }
 
     @Override
-    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver){
+    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
         try {
             String camName = request.getCamName();
             List<ObservationMessage> observationMessages;
@@ -194,11 +229,20 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
+
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
-        }
-        catch (SiloException e){
-            System.out.println(e.getMessage());
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_DATE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_DATE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
     }
 
@@ -238,7 +282,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     }
-
 
 
 }

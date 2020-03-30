@@ -88,7 +88,7 @@ public class Observation implements Comparable<Observation> {
         String g1;
         String g2;
         String g3;
-        
+
         if (id.length() != 6)
             return false;
 
