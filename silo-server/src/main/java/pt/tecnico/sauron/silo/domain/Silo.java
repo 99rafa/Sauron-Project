@@ -111,6 +111,14 @@ public class Silo {
         return false;
     }
 
+    public Camera getCameraByName(String name){
+        for(Camera c : this.cameras){
+            if(c.getName() == name)
+                return c;
+        }
+        //Throw Exception
+        throw new SiloException(ErrorMessage.NO_SUCH_CAMERA_NAME,name);
+    }
 
     public void addCamera(Camera camera) {
         this.cameras.add(camera);
