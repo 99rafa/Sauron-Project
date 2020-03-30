@@ -29,6 +29,9 @@ public class Silo {
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
 
+        if(type == null)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+
         for(Camera c : this.cameras){
             for (Observation o : c.getObservations()) {
                 if (o.getType() == type && o.getId().equals(id))
@@ -50,6 +53,9 @@ public class Silo {
 
         if(partialId == null || partialId.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+
+        if(type == null)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
 
         //If it doesnt have *, it is a simple track
         if(!partialId.contains("*"))
@@ -99,6 +105,9 @@ public class Silo {
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
 
+        if(type == null)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+
         for(Camera c : this.cameras) {
             for (Observation o : c.getObservations()) {
                 if (o.getType() == type && o.getId().equals(id))
@@ -123,6 +132,8 @@ public class Silo {
     }
 
     public Camera getCameraByName(String camName){
+        if(camName.equals(null))
+            throw new SiloException(ErrorMessage.CAMERA_NAME_NULL);
         for(Camera c : this.cameras){
             if(c.getName().equals(camName))
                 return c;
@@ -135,6 +146,8 @@ public class Silo {
         for(Camera c : this.cameras){
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
+            if(c.getName().equals(camera.getName()))
+                return;
         }
 
         this.cameras.add(camera);

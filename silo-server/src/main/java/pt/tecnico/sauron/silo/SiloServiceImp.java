@@ -9,8 +9,11 @@ import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+
+import static io.grpc.Status.ALREADY_EXISTS;
+import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.grpc.Status.NOT_FOUND;
 
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
@@ -21,163 +24,226 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
 
-        Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
-        silo.addCamera(camera);
-        CamJoinResponse response = CamJoinResponse.newBuilder().build();
+        try {
 
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
+            silo.addCamera(camera);
+            CamJoinResponse response = CamJoinResponse.newBuilder().build();
+            System.out.println(silo.toString());
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NOT_UNIQUE)
+                responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_INVALID
+                    || e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LATITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LONGITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LATITUDE
+                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LONGITUDE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }
+
     }
 
     @Override
     public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 
+        try {
+            String camName = request.getCamName();
+            Camera camera = silo.getCameraByName(camName);
 
-        String camName = request.getCamName();
-        Camera camera = silo.getCameraByName(camName);
+            CamInfoResponse response = CamInfoResponse.newBuilder()
+                    .setLatitude(camera.getLat())
+                    .setLongitude(camera.getLog())
+                    .build();
 
-        CamInfoResponse response = CamInfoResponse.newBuilder()
-                .setLatitude(camera.getLat())
-                .setLongitude(camera.getLog())
-                .build();
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
 
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }
 
     }
 
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 
-        Type type = request.getType();
-        String id = request.getId();
-        Observation result;
+        try {
+
+            Type type = request.getType();
+            String id = request.getId();
+            Observation result;
 
 
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+            result = silo.trackObject(type, id);
 
-        result = silo.trackObject(type, id);
-
-        //Build Observation Message
-        ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                .setId(result.getId())
-                .setType(result.getType())
-                .setDatetime(result.getDateTime().format(Silo.formatter))
-                .build();
-
-        TrackResponse response = TrackResponse.newBuilder()
-                .setObservation(observationMessage)
-                .build();
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
-
-    }
-
-    @Override
-    public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver){
-
-        Type type = request.getType();
-        String partialId = request.getSubId();
-        Observation result;
-
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
-
-        result = silo.trackMatchObject(type, partialId);
-
-        //Build Observation Message
-        ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                .setId(result.getId())
-                .setType(result.getType())
-                .setDatetime(result.getDateTime().format(Silo.formatter))
-                .build();
-
-        TrackMatchResponse response = TrackMatchResponse.newBuilder()
-                .setObservation(observationMessage)
-                .build();
-
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
-
-    }
-
-
-    @Override
-    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver){
-
-        Type type = request.getType();
-        String id = request.getId();
-        List<Observation> result;
-        TraceResponse.Builder builder = TraceResponse.newBuilder();
-
-        if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
-
-        result = silo.traceObject(type, id);
-
-        int i = 0;
-        for(Observation o: result) {
             //Build Observation Message
             ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                    .setId(o.getId())
-                    .setType(o.getType())
-                    .setDatetime(o.getDateTime().format(Silo.formatter))
+                    .setId(result.getId())
+                    .setType(result.getType())
+                    .setDatetime(result.getDateTime().format(Silo.formatter))
                     .build();
 
-            builder.setObservation(i,observationMessage);
-            i++;
+            TrackResponse response = TrackResponse.newBuilder()
+                    .setObservation(observationMessage)
+                    .build();
+
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
-
-
-        TraceResponse response = builder.build();
-
-
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
 
     }
 
     @Override
-    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver){
+    public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
+        try {
+            Type type = request.getType();
+            String partialId = request.getSubId();
+            Observation result;
 
-        String camName = request.getCamName();
-        List<ObservationMessage> observationMessages = new ArrayList<>();
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-        if(silo.checkIfCameraExists(camName)){
+            result = silo.trackMatchObject(type, partialId);
 
-            Camera cam = silo.getCameraByName(camName);
+            //Build Observation Message
+            ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                    .setId(result.getId())
+                    .setType(result.getType())
+                    .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .build();
 
-            observationMessages = request.getObservationList();
+            TrackMatchResponse response = TrackMatchResponse.newBuilder()
+                    .setObservation(observationMessage)
+                    .build();
 
-            for(ObservationMessage om : observationMessages)
-                cam.addObservation(new Observation(om.getType()
-                        ,om.getId()
-                        ,LocalDateTime.parse(om.getDatetime(),Silo.formatter)
-                ));
 
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_PART_ID)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
-        System.out.println(silo.getCameras().get(0).getObservations().toString());
-        ReportResponse response = ReportResponse.newBuilder().build();
 
-        // Send a single response through the stream.
-        responseObserver.onNext(response);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+    }
 
+
+    @Override
+    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
+
+        try {
+
+            Type type = request.getType();
+            String id = request.getId();
+            List<Observation> result;
+            TraceResponse.Builder builder = TraceResponse.newBuilder();
+
+            if (type == Type.UNRECOGNIZED)
+                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+
+            result = silo.traceObject(type, id);
+
+            for (Observation o : result) {
+                //Build Observation Message
+                ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                        .setId(o.getId())
+                        .setType(o.getType())
+                        .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .build();
+
+                builder.addObservation(observationMessage);
+            }
+
+
+            TraceResponse response = builder.build();
+
+
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        }
+
+    }
+
+    @Override
+    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
+        try {
+            String camName = request.getCamName();
+            List<ObservationMessage> observationMessages;
+
+            if (silo.checkIfCameraExists(camName)) {
+
+                Camera cam = silo.getCameraByName(camName);
+
+                observationMessages = request.getObservationList();
+                for (ObservationMessage om : observationMessages) {
+                    cam.addObservation(new Observation(om.getType()
+                            , om.getId()
+                            , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                    ));
+                }
+            }
+
+            ReportResponse response = ReportResponse.newBuilder().build();
+
+            // Send a single response through the stream.
+            responseObserver.onNext(response);
+
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+        } catch (SiloException e) {
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
+                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_DATE
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_ID
+                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_DATE)
+                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }
 
     }
 
@@ -198,6 +264,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         //silo.clearData();
         ClearResponse response = ClearResponse.newBuilder().build();
+
+        //Clears server info
+        silo = new Silo();
+
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.
@@ -213,7 +283,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     }
-
 
 
 }
