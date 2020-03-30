@@ -17,11 +17,11 @@ public class Silo {
     }
 
 
-    public void addCamera(Camera camera){
+    public void addCamera(Camera camera) {
         this.cameras.add(camera);
     }
 
-    public void addObservation(Observation observation){
+    public void addObservation(Observation observation) {
         this.observations.add(observation);
     }
 
@@ -41,6 +41,7 @@ public class Silo {
         this.observations = observations;
     }
 
+
     @Override
     public String toString() {
         return "Silo{" +
@@ -48,4 +49,5 @@ public class Silo {
                 ", _observations=" + this.observations +
                 '}';
     }
+
 }
