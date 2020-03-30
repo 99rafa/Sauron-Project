@@ -4,7 +4,6 @@ import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.Type;
 
-import java.io.CharArrayReader;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,33 +14,40 @@ public class Silo {
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private List<Camera> cameras = new ArrayList<>();
-    private List<Observation> observations = new ArrayList<>();
+
 
     public Silo() {
     }
 
-    public Silo(List<Camera> cameras, List<Observation> observations) {
+    public Silo(List<Camera> cameras) {
         this.cameras = cameras;
-        this.observations = observations;
     }
 
     public Observation trackObject(Type type, String id){
 
+        List<Observation> observations = new ArrayList<>();
+
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
 
-        sortObservations();
-
-        for(Observation o : this.observations){
-            if(o.getType() == type && o.getId() == id)
-                return o;
+        for(Camera c : this.cameras){
+            for (Observation o : c.getObservations()) {
+                if (o.getType() == type && o.getId() == id)
+                    observations.add(o);
+            }
         }
 
-        throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+        if(observations.isEmpty())
+            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+
+        observations.sort(Observation::compareTo);
+
+        return observations.get(0);
     }
 
     public Observation trackMatchObject(Type type, String  partialId){
-        sortObservations();
+
+        List<Observation> observations = new ArrayList<>();
 
         if(partialId == null || partialId.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
@@ -62,25 +68,29 @@ public class Silo {
         //More than 1 * throw error
         if(pre.contains("*") || suf.contains("*"))
             throw new SiloException(ErrorMessage.OBSERVATION_INVALID_PART_ID);
+        for(Camera c : this.cameras){
+            for(Observation o : c.getObservations()) {
+                if (o.getType() == type) {
 
-        for(Observation o : this.observations){
-            if(o.getType() == type){
+                    //No prefix ex-> *77
+                    if (pre.length() == 0 && o.getId().endsWith(suf)) observations.add(o);
 
-                //No prefix ex-> *77
-                if(pre.length() == 0 && o.getId().endsWith(suf)) return o;
+                        //No suffix ex-> 77*
+                    else if (suf.length() == 0 && o.getId().startsWith(pre)) observations.add(o);
 
-                //No suffix ex-> 77*
-                else if(suf.length() == 0 && o.getId().startsWith(pre)) return o;
+                        //Having both prefix and suffix ex-> 22*7
+                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) observations.add(o);
 
-                //Having both prefix and suffix ex-> 22*7
-                else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) return o;
-
+                }
             }
-
         }
 
+        if(observations.isEmpty())
+            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
 
-        throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+        observations.sort(Observation::compareTo);
+
+        return observations.get(0);
     }
 
     public List<Observation> traceObject(Type type, String id){
@@ -90,14 +100,16 @@ public class Silo {
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
 
-
-        for(Observation o : this.observations){
-            if(o.getType() == type && o.getId() == id)
-                res.add(o);
+        for(Camera c : this.cameras) {
+            for (Observation o : c.getObservations()) {
+                if (o.getType() == type && o.getId() == id)
+                    res.add(o);
+            }
         }
 
         if(res.isEmpty())
             throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+
         res.sort(Observation::compareTo);
 
         return res;
@@ -121,11 +133,12 @@ public class Silo {
     }
 
     public void addCamera(Camera camera) {
-        this.cameras.add(camera);
-    }
+        for(Camera c : this.cameras){
+            if(c.getName().equals(camera.getName()) && !c.equals(camera))
+                throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
+        }
 
-    public void addObservation(Observation observation) {
-        this.observations.add(observation);
+        this.cameras.add(camera);
     }
 
     public List<Camera> getCameras() {
@@ -136,24 +149,12 @@ public class Silo {
         this.cameras = cameras;
     }
 
-    public List<Observation> getObservations() {
-        return this.observations;
-    }
-
-    public void setObservations(List<Observation> observations) {
-        this.observations = observations;
-    }
-
-    private void sortObservations(){
-        this.observations.sort(Observation::compareTo);
-    }
 
 
     @Override
     public String toString() {
         return "Silo{" +
                 "cameras=" + this.cameras +
-                ", observations=" + this.observations +
                 '}';
     }
 

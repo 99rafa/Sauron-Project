@@ -152,9 +152,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         if(silo.checkIfCameraExists(camName)){
 
+            Camera cam = silo.getCameraByName(camName);
+
             observationMessages = request.getObservationList();
             for(ObservationMessage om : observationMessages)
-                silo.addObservation(new Observation(om.getType()
+                cam.addObservation(new Observation(om.getType()
                         ,om.getId()
                         ,LocalDateTime.parse(om.getDatetime(),Silo.formatter)
                 ));

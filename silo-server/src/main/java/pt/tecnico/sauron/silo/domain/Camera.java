@@ -4,11 +4,16 @@ package pt.tecnico.sauron.silo.domain;
 import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public class Camera {
 
     private String name;
     private double lat;
     private double log;
+    private List<Observation> observations = new ArrayList<>();
 
     public Camera() {
     }
@@ -22,6 +27,13 @@ public class Camera {
         this.log = log;
     }
 
+    public List<Observation> getObservations() {
+        return observations;
+    }
+
+    public void setObservations(List<Observation> observations) {
+        this.observations = observations;
+    }
 
     public String getName() {
         return this.name;
@@ -48,6 +60,14 @@ public class Camera {
     public void setLog(double log) {
         checkLongitude(log);
         this.log = log;
+    }
+
+    public void addObservation(Observation observation) {
+        this.observations.add(observation);
+    }
+
+    public void sortObservations(){
+        this.observations.sort(Observation::compareTo);
     }
 
     private void checkName(String name) {
@@ -87,4 +107,15 @@ public class Camera {
                 ", log=" + log +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Camera camera = (Camera) o;
+        return Double.compare(camera.lat, lat) == 0 &&
+                Double.compare(camera.log, log) == 0 &&
+                name.equals(camera.name);
+    }
+
 }
