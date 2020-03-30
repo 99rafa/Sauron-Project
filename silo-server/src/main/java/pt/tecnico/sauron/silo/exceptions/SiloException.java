@@ -1,6 +1,6 @@
 package pt.tecnico.sauron.silo.exceptions;
 
-public class SiloException extends RuntimeException{
+public class SiloException extends RuntimeException {
 
     private final ErrorMessage errorMessage;
 

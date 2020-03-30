@@ -34,9 +34,9 @@ This change is important for code dependency management, to make sure that your 
 | T1       | cam_join, cam_info, eye       | _Rafael Alexandre_  |
 | T2       | report, spotter               | _Pedro Nunes_       |
 | T3       | track, trackMatch, trace      | _Afonso Paredes_    |
-| T4       | test T1                       | _Afonso Paredes_    |
-| T5       | test T2                       | _Rafael Alexandre_  |
-| T6       | test T3                       | _Pedro Nunes_       |
+| T4       | test T1                       | _Pedro Nunes_       |
+| T5       | test T2                       | _Afonso Paredes_    |
+| T6       | test T3                       | _Rafael Alexandre_  |
 
 
 ## Getting Started
