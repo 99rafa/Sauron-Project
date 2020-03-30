@@ -33,7 +33,7 @@ public class SiloIT extends BaseIT {
 	@BeforeEach
 	public void setUp() {
 		ClearRequest request = ClearRequest.newBuilder().build();
-		frontend.clearObj(request);
+		frontend.ctrlClear(request);
 	}
 	
 	@AfterEach
@@ -66,81 +66,8 @@ public class SiloIT extends BaseIT {
 
 	}
 
-	//CAMJOIN tests
-	@Test
-	public void joinNonUniqueCamera(){
-		String camName = "Vale das Mos";
-
-		CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(13.3).setLongitude(51.2).build();
-		CamJoinResponse response = frontend.camJoin(request);
-
-	}
-
-	@Test
-	public void join2CamerasWithSameNameDifferentLocation(){
-		String camName = "Vale das Mos";
-		double lat1 = 13.2;
-		double lat2 = 11.2;
-		double log = 31.2;
-
-		CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat1).setLongitude(log).build();
-		frontend.camJoin(request);
-		CamJoinRequest request2 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat2).setLongitude(log).build();
 
 
-		assertEquals(
-				ALREADY_EXISTS.getCode(),
-				assertThrows(
-						StatusRuntimeException.class, () -> frontend.camJoin(request2))
-						.getStatus()
-						.getCode());
-
-	}
-
-	@Test
-	public void join2CamerasWithSameNameSameLocation(){
-		String camName = "Vale das Mos";
-		double lat = 13.2;
-		double log = 31.2;
-
-		CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log).build();
-		frontend.camJoin(request);
-		CamJoinRequest request2 = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(lat).setLongitude(log).build();
-		frontend.camJoin(request2);
-	}
-
-	@Test
-	public void joinCameraWithNullName(){
-
-	}
-
-	@Test
-	public void joinCameraWithInvalidName(){
-
-	}
-
-	@Test
-	public void joinCameraWithInvalidCoords(){
-
-	}
-
-	@Test
-	public void joinCameraWithNullCoords(){
-
-	}
-
-
-
-	//CAMINFO tests
-	@Test
-	public void camInfoFromExistingCam(){
-
-	}
-
-	@Test
-	public void camInfoFromNonExistingCam(){
-
-	}
 
 
 }

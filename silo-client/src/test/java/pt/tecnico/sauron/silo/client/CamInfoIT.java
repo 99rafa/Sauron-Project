@@ -1,9 +1,6 @@
 package pt.tecnico.sauron.silo.client;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
 
 public class CamInfoIT extends BaseIT {
@@ -26,11 +23,22 @@ public class CamInfoIT extends BaseIT {
     @BeforeEach
     public void setUp() {
         ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.clearObj(request);
+        frontend.ctrlClear(request);
     }
 
     @AfterEach
     public void tearDown() {
 
     }
+
+    @Test
+    public void camInfoFromExistingCam(){
+
+    }
+
+    @Test
+    public void camInfoFromNonExistingCam(){
+
+    }
+
 }
