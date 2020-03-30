@@ -74,6 +74,28 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         Type type = request.getType();
         String partialId = request.getSubId();
+        Observation result;
+
+        if (type == Type.UNRECOGNIZED)
+            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+
+        result = silo.trackMatchObject(type, partialId);
+
+        //Build Observation Message
+        ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                .setId(result.getId())
+                .setType(result.getType())
+                .setDatetime(result.getDateTime().format(Silo.formatter))
+                .build();
+
+        TrackMatchResponse response = TrackMatchResponse.newBuilder()
+                .setObservation(observationMessage)
+                .build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
 
 
     }

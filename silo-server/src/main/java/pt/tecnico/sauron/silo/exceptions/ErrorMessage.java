@@ -16,7 +16,8 @@ public enum ErrorMessage {
     NO_SUCH_OBSERVATION("No such observation"),
     OBSERVATION_INVALID_TYPE("The type %s does not exist"),
     OBSERVATION_INVALID_ID("The id is invalid for the given type %s"),
-    OBSERVATION_NULL_ID("The observation Id cannot be null"),
+    OBSERVATION_INVALID_PART_ID("The partial id is invalid"),
+    OBSERVATION_NULL_ID("The observation Id cannot be null/empty"),
     OBSERVATION_INVALID_DATE("The observation date %s is invalid"),
     OBSERVATION_NULL_DATE("The observation date cannot be null");
 

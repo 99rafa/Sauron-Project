@@ -25,6 +25,10 @@ public class Silo {
     }
 
     public Observation trackObject(Type type, String id){
+
+        if(id == null || id.strip().length() == 0)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+
         sortObservations();
 
         for(Observation o : this.observations){
@@ -38,6 +42,41 @@ public class Silo {
     public Observation trackMatchObject(Type type, String  partialId){
         sortObservations();
 
+        if(partialId == null || partialId.strip().length() == 0)
+            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+
+        //If it doesnt have *, it is a simple track
+        if(!partialId.contains("*"))
+            return trackObject(type,partialId);
+
+        //If it just *, throw error
+        if(partialId.equals("*"))
+            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_PART_ID);
+
+        String[] arr = partialId.split("\\*",2);
+        String pre = arr[0];
+        String suf = arr[1];
+
+
+        //More than 1 * throw error
+        if(pre.contains("*") || suf.contains("*"))
+            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_PART_ID);
+
+        for(Observation o : this.observations){
+            if(o.getType() == type){
+
+                //No prefix ex-> *77
+                if(pre.length() == 0 && o.getId().endsWith(suf)) return o;
+
+                //No suffix ex-> 77*
+                else if(suf.length() == 0 && o.getId().startsWith(pre)) return o;
+
+                //Having both prefix and suffix ex-> 22*7
+                else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) return o;
+
+            }
+
+        }
 
 
         throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);

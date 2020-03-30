@@ -71,7 +71,7 @@ public class Observation implements Comparable<Observation> {
     }
 
     private void checkId(String id) {
-        if (id == null)
+        if (id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
         if (this.type == Type.PERSON) {
             if (!isNumber(id))
