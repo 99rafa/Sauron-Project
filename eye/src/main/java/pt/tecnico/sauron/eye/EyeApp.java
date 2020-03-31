@@ -17,13 +17,15 @@ public class EyeApp {
 
 		System.out.println(EyeApp.class.getSimpleName());
 
-
 		// check arguments
-		if (!checkInitConfigs(args)) {
-			System.out.println("Invalid Arguments!");
+		if (args.length < 5) {
+			System.out.println("Arguments missing!");
+		}
+		else if (args.length > 5) {
+			System.out.println("More arguments than required!");
 		}
 
-		
+
 		final String host = args[0];
 		final int port = Integer.parseInt(args[1]);
 
@@ -54,20 +56,6 @@ public class EyeApp {
 
 
 		channel.shutdownNow();
-	}
-
-	private static boolean checkInitConfigs(String[] args) {
-
-
-		if (args.length <  5) {
-			return false;
-		}
-
-		if (args.length > 5 && args.length != 7 ) {
-			return false;
-		}
-
-	   	return true;
 	}
 
 	private static void processInputData(SiloFrontend siloFrontend, String camName) throws IOException, InterruptedException {

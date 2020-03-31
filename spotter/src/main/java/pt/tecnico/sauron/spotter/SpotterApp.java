@@ -12,6 +12,7 @@ import java.util.Scanner;
 public class SpotterApp {
 	
 	public static void main(String[] args) {
+
 		System.out.println(SpotterApp.class.getSimpleName());
 
 		Scanner scanner = new Scanner(System.in);
