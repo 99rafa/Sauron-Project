@@ -78,7 +78,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
-        
+
         try {
 
             Type type = request.getType();
@@ -121,7 +121,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
-
 
 
         try {
@@ -264,8 +263,15 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
 
-        String input = request.getInputCommand();
-        PingResponse response = PingResponse.newBuilder().setStatus(ServerStatus.RUNNING).build();
+        String inputText = request.getInputCommand();
+
+        if (inputText == null || inputText.isBlank()) {
+            responseObserver.onError(INVALID_ARGUMENT
+                    .withDescription("Input cannot be empty!").asRuntimeException());
+        }
+
+        String output = "Hello " + inputText + "!\n" + "The server is running!";
+        PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
@@ -291,9 +297,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlInit(InitRequest request, StreamObserver<InitResponse> responseObserver) {
 
-
-        //falta aqui a funcao para o porto
         InitResponse response = InitResponse.newBuilder().build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
 
 
     }

@@ -23,8 +23,10 @@ public class TraceIT extends BaseIT {
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp() {
+
         ClearRequest request = ClearRequest.newBuilder().build();
         frontend.ctrlClear(request);
+
         String camName1 = "Vale das Mos";
         String camName2 = "Alcobaca";
         String id1 = "12AR12";

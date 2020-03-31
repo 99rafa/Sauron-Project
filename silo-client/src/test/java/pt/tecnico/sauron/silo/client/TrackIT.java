@@ -19,6 +19,7 @@ public class TrackIT extends BaseIT{
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp(){
+
         ClearRequest request = ClearRequest.newBuilder().build();
         frontend.ctrlClear(request);
 

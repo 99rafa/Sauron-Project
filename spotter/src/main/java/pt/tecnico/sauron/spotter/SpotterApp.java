@@ -38,12 +38,20 @@ public class SpotterApp {
 
 			final String command = spotterTokens[0];
 
+			SiloFrontend siloFrontend = new SiloFrontend(host, port);
+
 			if(command.equals("exit")){
 				exit = true;
 			}
 
+
 			else if(command.equals("ping")){
-				System.out.println("Command not implemented yet");
+
+				final String name = spotterTokens[1];
+
+				PingRequest request = PingRequest.newBuilder().setInputCommand(name).build();
+				PingResponse response = siloFrontend.ctrlPing(request);
+				System.out.println(response.getOutputText());
 			}
 
 			else if(command.equals("init")){
@@ -67,7 +75,6 @@ public class SpotterApp {
 				final String type = spotterTokens[1];
 				final String id = spotterTokens[2];
 
-				SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
 				if (command.equals("spot")) {
 
@@ -216,11 +223,21 @@ public class SpotterApp {
 
 	private static boolean checkSpotCommand(String[] args) {
 		if (args.length < 3 ) {
-			if (args.length == 1 && (args[0].equals("exit") || args[0].equals("ping") || args[0].equals("help")||
+
+			if (args.length == 1 && (args[0].equals("exit") || args[0].equals("help")||
 					args[0].equals("init") || args[0].equals("clear"))) return true;
-			int numArgsMissing = 3 - args.length;
-			System.out.println("Error:" + numArgsMissing + " Argument(s) missing!" );
-			return false;
+
+			else if(args.length == 2 && args[0].equals("ping")) return true;
+
+			else {
+				int numArgsMissing = 3;
+
+				if (args[0].equals("ping")) numArgsMissing--;
+
+				numArgsMissing -= args.length;
+				System.out.println("Error:" + numArgsMissing + " Argument(s) missing!");
+				return false;
+			}
 		}
 
 		if (args.length > 3 ) {

@@ -14,30 +14,25 @@ import java.util.*;
 public class EyeApp {
 
 	public static void main(String[] args) {
+
 		System.out.println(EyeApp.class.getSimpleName());
 
 
-		System.out.printf("Received %d arguments%n", args.length);
-
 		// check arguments
 		if (!checkInitConfigs(args)) {
-			System.out.println("Error: Invalid Arguments!");
+			System.out.println("Invalid Arguments!");
 		}
 
-
+		
 		final String host = args[0];
 		final int port = Integer.parseInt(args[1]);
 
-
-		
 		final String camName = args[2];
 		final double latitude = Double.parseDouble(args[3]);
 		final double longitude = Double.parseDouble(args[4]);
 
 		final String target = host + ":" + port;
-
 		final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-
 
 		SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
@@ -49,11 +44,11 @@ public class EyeApp {
 		}
 		catch(InterruptedException e) {
 
-			System.out.println("Timeout interrupted");
+			System.out.println("Timeout interrupted!");
 
 		} catch(IOException e) {
 
-			System.out.println("Invalid input");
+			System.out.println("Invalid input!");
 
 		}
 

@@ -88,7 +88,7 @@ message PingRequest {
 }
 
 message PingResponse {
-    ServerStatus status = 1;
+    string outputText = 1;
 }
 
 message ClearRequest {
@@ -100,7 +100,7 @@ message ClearResponse {
 }
 
 message InitRequest {
-    string port = 1;
+
 }
 
 message InitResponse {
