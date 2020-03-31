@@ -42,6 +42,26 @@ public class SpotterApp {
 				exit = true;
 			}
 
+			else if(command.equals("ping")){
+				System.out.println("Command not implemented yet");
+			}
+
+			else if(command.equals("init")){
+				System.out.println("Command not implemented yet");
+			}
+
+			else if(command.equals("clear")){
+				System.out.println("Command not implemented yet");
+			}
+
+			else if(command.equals("help")){
+				System.out.println("Spot -> spot <type> <id> ");
+				System.out.println("Trail -> trail <type> <id> ");
+				System.out.println("Ping -> Not implemented yet");
+				System.out.println("Clear -> Not implemented yet");
+				System.out.println("Init -> Not implemented yet");
+			}
+
 			else {
 
 				final String type = eyeTokens[1];
@@ -196,7 +216,8 @@ public class SpotterApp {
 
 	private static boolean checkSpotCommand(String[] args) {
 		if (args.length < 3 ) {
-			if (args.length == 1 && args[0].equals("exit")) return true;
+			if (args.length == 1 && (args[0].equals("exit") || args[0].equals("ping") || args[0].equals("help")||
+					args[0].equals("init") || args[0].equals("clear"))) return true;
 			int numArgsMissing = 3 - args.length;
 			System.out.println("Error:" + numArgsMissing + " Argument(s) missing!" );
 			return false;
