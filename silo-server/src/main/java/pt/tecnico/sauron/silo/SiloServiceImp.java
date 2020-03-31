@@ -122,25 +122,29 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
         try {
             Type type = request.getType();
-            String partialId = request.getSubId();
-            Observation result;
+            String id = request.getSubId();
+            List<Observation> result;
+            TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
 
             if (type == Type.UNRECOGNIZED)
                 throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
 
-            result = silo.trackMatchObject(type, partialId);
+            result = silo.trackMatchObject(type, id);
 
-            //Build Observation Message
-            ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                    .setId(result.getId())
-                    .setType(result.getType())
-                    .setDatetime(result.getDateTime().format(Silo.formatter))
-                    .setCamName(result.getCamName())
-                    .build();
+            for (Observation o : result) {
+                //Build Observation Message
+                ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                        .setId(o.getId())
+                        .setType(o.getType())
+                        .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .setCamName(o.getCamName())
+                        .build();
 
-            TrackMatchResponse response = TrackMatchResponse.newBuilder()
-                    .setObservation(observationMessage)
-                    .build();
+                builder.addObservation(observationMessage);
+            }
+
+
+            TrackMatchResponse response = builder.build();
 
 
             // Send a single response through the stream.

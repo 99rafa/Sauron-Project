@@ -47,7 +47,7 @@ public class Silo {
         return observations.get(0);
     }
 
-    public Observation trackMatchObject(Type type, String  partialId){
+    public List<Observation> trackMatchObject(Type type, String  partialId){
 
         List<Observation> observations = new ArrayList<>();
 
@@ -58,8 +58,11 @@ public class Silo {
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
 
         //If it doesnt have *, it is a simple track
-        if(!partialId.contains("*"))
-            return trackObject(type,partialId);
+        if(!partialId.contains("*")){
+            observations.add(trackObject(type,partialId));
+            return observations;
+        }
+
 
         //If it just *, throw error
         if(partialId.equals("*"))
@@ -95,7 +98,7 @@ public class Silo {
 
         observations.sort(Observation::compareTo);
 
-        return observations.get(0);
+        return observations;
     }
 
     public List<Observation> traceObject(Type type, String id){

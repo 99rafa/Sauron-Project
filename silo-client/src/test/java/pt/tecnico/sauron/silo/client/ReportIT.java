@@ -71,7 +71,7 @@ public class ReportIT extends BaseIT{
                 .addObservation(observationMessage2)
                 .addObservation(observationMessage3).build();
 
-        frontend.reportObs(reportRequest);
+        ReportResponse reportResponse = frontend.reportObs(reportRequest);
 
 
     }
