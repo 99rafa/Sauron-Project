@@ -79,7 +79,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 
-
         try {
 
             Type type = request.getType();

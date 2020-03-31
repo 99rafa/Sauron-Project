@@ -8,7 +8,7 @@ import pt.tecnico.sauron.silo.grpc.ClearRequest;
 
 public class ClearIT extends BaseIT {
 
-    SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
 
 
     // one-time initialization and clean-up
@@ -19,7 +19,8 @@ public class ClearIT extends BaseIT {
 
     @AfterAll
     public static void oneTimeTearDown() {
-
+        ClearRequest clearRequest = ClearRequest.newBuilder().build();
+        frontend.ctrlClear(clearRequest);
     }
 
     // initialization and clean-up for each test

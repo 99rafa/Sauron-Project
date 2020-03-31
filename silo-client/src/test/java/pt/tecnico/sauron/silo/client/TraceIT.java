@@ -59,7 +59,8 @@ public class TraceIT extends BaseIT {
 
     @AfterAll
     public static void oneTimeTearDown() {
-
+        ClearRequest clearRequest = ClearRequest.newBuilder().build();
+        frontend.ctrlClear(clearRequest);
     }
 
     // initialization and clean-up for each test
