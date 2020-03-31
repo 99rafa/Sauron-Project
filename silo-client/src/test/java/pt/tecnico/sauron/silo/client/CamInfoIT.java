@@ -3,6 +3,7 @@ package pt.tecnico.sauron.silo.client;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.CamInfoRequest;
+import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
 
@@ -48,7 +49,10 @@ public class CamInfoIT extends BaseIT {
         String camName = "Vale das Mos";
         CamInfoRequest camInfoRequest = CamInfoRequest.newBuilder().setCamName(camName).build();
 
-        frontend.getCamInfo(camInfoRequest);
+        CamInfoResponse response =  frontend.getCamInfo(camInfoRequest);
+
+        assertEquals((Double) 12.2, (Double) response.getLatitude());
+        assertEquals((Double) 12.2, (Double) response.getLongitude());
 
 
     }
