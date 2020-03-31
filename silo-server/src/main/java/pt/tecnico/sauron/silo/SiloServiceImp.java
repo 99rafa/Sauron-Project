@@ -95,6 +95,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setId(result.getId())
                     .setType(result.getType())
                     .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .setCamName(result.getCamName())
                     .build();
 
             TrackResponse response = TrackResponse.newBuilder()
@@ -134,6 +135,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setId(result.getId())
                     .setType(result.getType())
                     .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .setCamName(result.getCamName())
                     .build();
 
             TrackMatchResponse response = TrackMatchResponse.newBuilder()
@@ -180,6 +182,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                         .setId(o.getId())
                         .setType(o.getType())
                         .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .setCamName(o.getCamName())
                         .build();
 
                 builder.addObservation(observationMessage);
@@ -220,6 +223,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     cam.addObservation(new Observation(om.getType()
                             , om.getId()
                             , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                            , camName
                     ));
                 }
             }

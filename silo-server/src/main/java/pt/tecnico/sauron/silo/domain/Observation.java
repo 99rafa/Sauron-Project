@@ -16,10 +16,12 @@ public class Observation implements Comparable<Observation> {
 
     private String id;
 
+    private String camName;
+
     public Observation() {
     }
 
-    public Observation(Type type, String id, LocalDateTime dateTime) {
+    public Observation(Type type, String id, LocalDateTime dateTime,String camName) {
 
         checkType(type);
         this.type = type;
@@ -27,7 +29,16 @@ public class Observation implements Comparable<Observation> {
         this.dateTime = dateTime;
         checkId(id);
         this.id = id;
+        this.camName = camName;
 
+    }
+
+    public String getCamName() {
+        return camName;
+    }
+
+    public void setCamName(String camName) {
+        this.camName = camName;
     }
 
     public LocalDateTime getDateTime() {
