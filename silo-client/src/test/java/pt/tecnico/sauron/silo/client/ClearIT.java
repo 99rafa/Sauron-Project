@@ -1,10 +1,9 @@
 package pt.tecnico.sauron.silo.client;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
+import org.junit.jupiter.api.*;
+import pt.tecnico.sauron.silo.grpc.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class ClearIT extends BaseIT {
 
@@ -34,5 +33,11 @@ public class ClearIT extends BaseIT {
     @AfterEach
     public void tearDown() {
 
+    }
+
+    @Test
+    public void clearTest() {
+        ClearRequest request = ClearRequest.newBuilder().build();
+        frontend.ctrlClear(request);
     }
 }
