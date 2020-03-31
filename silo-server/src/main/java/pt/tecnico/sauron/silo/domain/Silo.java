@@ -80,6 +80,8 @@ public class Silo {
             throw new SiloException(ErrorMessage.OBJECT_INVALID_PART_ID);
         for(Camera c : this.cameras){
             for(Observation o : c.getObservations()) {
+                System.out.println("THIS");
+                System.out.println(o);
                 if (o.getType() == type) {
 
                     //No prefix ex-> *77
@@ -115,12 +117,15 @@ public class Silo {
         boolean changed = false;
 
         for(Observation o : observations) {
-            if (o.getId().equals(obs.getId()) && o.getDateTime().isBefore(obs.getDateTime())) {
-                observations.set(i,obs);
+            System.out.println(o);
+            if(o.getId().equals(obs.getId())) {
                 changed = true;
+                if (o.getDateTime().isBefore(obs.getDateTime())) {
+                    System.out.println(obs.getDateTime());
+                    observations.set(i, obs);
+                }
             }
             i++;
-
         }
         if (!changed) observations.add(obs);
     }
