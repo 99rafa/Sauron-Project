@@ -55,19 +55,23 @@ public class SpotterApp {
 			}
 
 			else if(command.equals("init")){
-				System.out.println("Command not implemented yet");
+				InitRequest request = InitRequest.newBuilder().build();
+				siloFrontend.ctrlInit(request);
+				System.out.println("Nothing to be configured!");
 			}
 
 			else if(command.equals("clear")){
-				System.out.println("Command not implemented yet");
+				ClearRequest request = ClearRequest.newBuilder().clear().build();
+				siloFrontend.ctrlClear(request);
+				System.out.println("System is now empty!");
 			}
 
 			else if(command.equals("help")){
 				System.out.println("Spot -> spot <type> <id> ");
 				System.out.println("Trail -> trail <type> <id> ");
-				System.out.println("Ping -> Not implemented yet");
-				System.out.println("Clear -> Not implemented yet");
-				System.out.println("Init -> Not implemented yet");
+				System.out.println("Ping -> ping <name>");
+				System.out.println("Clear -> clear");
+				System.out.println("Init -> init");
 			}
 
 			else {
