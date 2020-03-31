@@ -28,10 +28,10 @@ public class Silo {
         List<Observation> observations = new ArrayList<>();
 
         if(id == null || id.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
 
         if(type == null)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
 
         for(Camera c : this.cameras){
             for (Observation o : c.getObservations()) {
@@ -41,30 +41,34 @@ public class Silo {
         }
 
         if(observations.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
         observations.sort(Observation::compareTo);
+        Collections.reverse(observations);
 
         return observations.get(0);
     }
 
-    public Observation trackMatchObject(Type type, String  partialId){
+    public List<Observation> trackMatchObject(Type type, String  partialId){
 
         List<Observation> observations = new ArrayList<>();
 
         if(partialId == null || partialId.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
 
         if(type == null)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
 
         //If it doesnt have *, it is a simple track
-        if(!partialId.contains("*"))
-            return trackObject(type,partialId);
+        if(!partialId.contains("*")){
+            observations.add(trackObject(type,partialId));
+            return observations;
+        }
+
 
         //If it just *, throw error
         if(partialId.equals("*"))
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_PART_ID);
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_PART_ID);
 
         String[] arr = partialId.split("\\*",2);
         String pre = arr[0];
@@ -73,30 +77,52 @@ public class Silo {
 
         //More than 1 * throw error
         if(pre.contains("*") || suf.contains("*"))
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_PART_ID);
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_PART_ID);
         for(Camera c : this.cameras){
             for(Observation o : c.getObservations()) {
                 if (o.getType() == type) {
 
                     //No prefix ex-> *77
-                    if (pre.length() == 0 && o.getId().endsWith(suf)) observations.add(o);
+                    if (pre.length() == 0 && o.getId().endsWith(suf)) {
+                         assertMostRecentObservation(observations,o);
+                    }
 
                         //No suffix ex-> 77*
-                    else if (suf.length() == 0 && o.getId().startsWith(pre)) observations.add(o);
+                    else if (suf.length() == 0 && o.getId().startsWith(pre)) {
+                        assertMostRecentObservation(observations,o);
+                    }
 
                         //Having both prefix and suffix ex-> 22*7
-                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) observations.add(o);
+                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) {
+                        assertMostRecentObservation(observations,o);
+                    }
 
                 }
             }
         }
 
         if(observations.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
         observations.sort(Observation::compareTo);
 
-        return observations.get(0);
+        return observations;
+    }
+
+    public void assertMostRecentObservation(List<Observation> observations, Observation obs) {
+
+        int i = 0;
+        boolean changed = false;
+
+        for(Observation o : observations) {
+            if (o.getId().equals(obs.getId()) && o.getDateTime().isBefore(obs.getDateTime())) {
+                observations.set(i,obs);
+                changed = true;
+            }
+            i++;
+
+        }
+        if (!changed) observations.add(obs);
     }
 
     public List<Observation> traceObject(Type type, String id){
@@ -126,7 +152,7 @@ public class Silo {
     }
 
     public boolean checkIfCameraExists(String camName){
-        for(Camera c: this.cameras){
+        for(Camera c : this.cameras){
             if(c.getName().equals(camName))
                 return true;
         }

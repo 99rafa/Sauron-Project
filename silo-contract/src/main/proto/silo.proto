@@ -12,6 +12,7 @@ message ObservationMessage{
     Type type = 1;
     string id = 2;
     string datetime = 3;
+    string camName = 4;
 }
 
 //cam_join silo operation
@@ -36,7 +37,6 @@ message CamInfoRequest {
 message CamInfoResponse {
    double latitude = 1;
    double longitude = 2;
-
 }
 
 //report silo operation
@@ -69,7 +69,7 @@ message TrackMatchRequest {
 }
 
 message TrackMatchResponse {
-    ObservationMessage observation = 1;
+    repeated ObservationMessage observation = 1;
 }
 
 //trace silo operation

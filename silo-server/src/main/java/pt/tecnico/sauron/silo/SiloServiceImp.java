@@ -79,6 +79,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 
+        System.out.println(silo.getCameras().toString());
+
         try {
 
             Type type = request.getType();
@@ -87,7 +89,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
             result = silo.trackObject(type, id);
 
@@ -96,6 +98,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setId(result.getId())
                     .setType(result.getType())
                     .setDatetime(result.getDateTime().format(Silo.formatter))
+                    .setCamName(result.getCamName())
                     .build();
 
             TrackResponse response = TrackResponse.newBuilder()
@@ -110,9 +113,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -120,26 +123,34 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
+
+
+
         try {
             Type type = request.getType();
-            String partialId = request.getSubId();
-            Observation result;
+            String id = request.getSubId();
+            List<Observation> result;
+            TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
 
             if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
-            result = silo.trackMatchObject(type, partialId);
+            result = silo.trackMatchObject(type, id);
 
-            //Build Observation Message
-            ObservationMessage observationMessage = ObservationMessage.newBuilder()
-                    .setId(result.getId())
-                    .setType(result.getType())
-                    .setDatetime(result.getDateTime().format(Silo.formatter))
-                    .build();
+            for (Observation o : result) {
+                //Build Observation Message
+                ObservationMessage observationMessage = ObservationMessage.newBuilder()
+                        .setId(o.getId())
+                        .setType(o.getType())
+                        .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .setCamName(o.getCamName())
+                        .build();
 
-            TrackMatchResponse response = TrackMatchResponse.newBuilder()
-                    .setObservation(observationMessage)
-                    .build();
+                builder.addObservation(observationMessage);
+            }
+
+
+            TrackMatchResponse response = builder.build();
 
 
             // Send a single response through the stream.
@@ -149,11 +160,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_PART_ID)
+            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_PART_ID)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -180,6 +191,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                         .setId(o.getId())
                         .setType(o.getType())
                         .setDatetime(o.getDateTime().format(Silo.formatter))
+                        .setCamName(o.getCamName())
                         .build();
 
                 builder.addObservation(observationMessage);
@@ -220,8 +232,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     cam.addObservation(new Observation(om.getType()
                             , om.getId()
                             , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                            , camName
                     ));
                 }
+            }
+            else{
+                responseObserver.onError(NOT_FOUND.withDescription("No such camera").asRuntimeException());
+                return;
             }
 
             ReportResponse response = ReportResponse.newBuilder().build();

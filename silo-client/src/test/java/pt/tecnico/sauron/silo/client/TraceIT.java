@@ -17,24 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TraceIT extends BaseIT {
 
-    SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
 
 
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp() {
-
-    }
-
-    @AfterAll
-    public static void oneTimeTearDown() {
-
-    }
-
-    // initialization and clean-up for each test
-
-    @BeforeEach
-    public void setUp() {
+        ClearRequest request = ClearRequest.newBuilder().build();
+        frontend.ctrlClear(request);
         String camName1 = "Vale das Mos";
         String camName2 = "Alcobaca";
         String id1 = "12AR12";
@@ -45,8 +35,6 @@ public class TraceIT extends BaseIT {
         String date3 = "2015-09-12 12:12:12";
         String date4 = "2010-09-12 12:12:12";
 
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
 
         CamJoinRequest joinRequest1 = CamJoinRequest.newBuilder().setCamName(camName1).setLatitude(13.3).setLongitude(51.2).build();
         CamJoinRequest joinRequest2 = CamJoinRequest.newBuilder().setCamName(camName2).setLatitude(15.3).setLongitude(53.2).build();
@@ -64,6 +52,19 @@ public class TraceIT extends BaseIT {
         frontend.reportObs(request2);
         frontend.reportObs(request3);
         frontend.reportObs(request4);
+
+    }
+
+    @AfterAll
+    public static void oneTimeTearDown() {
+
+    }
+
+    // initialization and clean-up for each test
+
+    @BeforeEach
+    public void setUp() {
+
 
     }
 

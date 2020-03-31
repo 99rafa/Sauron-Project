@@ -102,7 +102,7 @@ public class EyeApp {
 				 observations.clear();
 
 			 } //do nothing when there is a comment line
-			 else if (observationLine[0].startsWith("#")) continue;
+			 else if (observationLine[0].startsWith("#")) { }
 
 			 else {
 
