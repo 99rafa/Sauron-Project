@@ -35,7 +35,10 @@ public class SpotterApp {
 		do {
 			String[] spotterTokens = scanner.nextLine().split(" ");
 
-			while (!checkSpotCommand(spotterTokens)) spotterTokens = scanner.nextLine().split(" ");
+			while (!checkCommand(spotterTokens)) {
+				System.out.println("Invalid Arguments!");
+				spotterTokens = scanner.nextLine().split(" ");
+			}
 
 			final String command = spotterTokens[0];
 
@@ -226,7 +229,7 @@ public class SpotterApp {
 		else return Type.UNRECOGNIZED;
 	}
 
-	private static boolean checkSpotCommand(String[] args) {
+	private static boolean checkCommand(String[] args) {
 		if (args.length < 3 ) {
 
 			if (args.length == 1 && (args[0].equals("exit") || args[0].equals("help")||
@@ -234,26 +237,13 @@ public class SpotterApp {
 
 			else if(args.length == 2 && args[0].equals("ping")) return true;
 
-			else {
-				int numArgsMissing = 3;
-
-				if (args[0].equals("ping")) numArgsMissing--;
-
-				numArgsMissing -= args.length;
-				System.out.println("Error:" + numArgsMissing + " Argument(s) missing!");
-				return false;
-			}
-		}
-
-		if (args.length > 3 ) {
-			System.out.println("Error: More arguments than required!");
 			return false;
 		}
 
-		if (!(args[0].equals("spot") || args[0].equals("trail"))) {
-			System.out.println( "Error: Wrong command!" );
-			return false;
-		}
+		if (args.length > 3 ) return false;
+
+		if (!(args[0].equals("spot") || args[0].equals("trail"))) return false;
+
 		return true;
 
 	}

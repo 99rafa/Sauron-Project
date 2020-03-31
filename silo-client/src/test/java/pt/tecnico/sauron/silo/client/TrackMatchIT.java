@@ -83,6 +83,7 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
+        assertEquals(2,response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
@@ -109,6 +110,7 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
+        assertEquals(2,response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
