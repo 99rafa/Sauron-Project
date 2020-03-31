@@ -4,6 +4,7 @@ import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.CamInfoRequest;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
+import pt.tecnico.sauron.silo.grpc.ClearRequest;
 
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
@@ -26,7 +27,8 @@ public class CamInfoIT extends BaseIT {
 
     @AfterAll
     public static void oneTimeTearDown() {
-
+        ClearRequest clearRequest = ClearRequest.newBuilder().build();
+        frontend.ctrlClear(clearRequest);
     }
 
     // initialization and clean-up for each test

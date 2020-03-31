@@ -78,9 +78,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
-
-        System.out.println(silo.getCameras().toString());
-
+        
         try {
 
             Type type = request.getType();
