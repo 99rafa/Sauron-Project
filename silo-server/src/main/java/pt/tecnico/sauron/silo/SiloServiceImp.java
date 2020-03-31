@@ -29,7 +29,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
             silo.addCamera(camera);
             CamJoinResponse response = CamJoinResponse.newBuilder().build();
-            System.out.println(silo.toString());
+
             // Send a single response through the stream.
             responseObserver.onNext(response);
             // Notify the client that the operation has been completed.
@@ -169,9 +169,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
-
             if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_TYPE, type.toString());
+                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
             result = silo.traceObject(type, id);
 
@@ -197,10 +196,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE)
+            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBSERVATION)
+            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 

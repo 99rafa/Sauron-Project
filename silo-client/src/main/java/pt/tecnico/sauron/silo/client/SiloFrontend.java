@@ -34,10 +34,12 @@ public class SiloFrontend implements AutoCloseable {
         return stub.track(request);
     }
 
+    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {return stub.trackMatch(request);}
+
     public TraceResponse traceObj(TraceRequest request) {
         return stub.trace(request);
     }
-    
+
     public PingResponse ctrlPing(PingRequest request) { return stub.ctrlPing(request);}
 
     public ClearResponse ctrlClear(ClearRequest request) { return stub.ctrlClear(request); }

@@ -5,6 +5,7 @@ import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.Type;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -103,22 +104,23 @@ public class Silo {
         List<Observation> res = new ArrayList<>();
 
         if(id == null || id.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
 
         if(type == null)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
 
         for(Camera c : this.cameras) {
             for (Observation o : c.getObservations()) {
+
                 if (o.getType() == type && o.getId().equals(id))
                     res.add(o);
             }
         }
-
         if(res.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBSERVATION);
+            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
         res.sort(Observation::compareTo);
+        Collections.reverse(res);
 
         return res;
     }

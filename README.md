@@ -21,7 +21,7 @@ This change is important for code dependency management, to make sure that your 
 | Number | Name              | User                                 | Email                                        |
 | -------|-------------------|--------------------------------------| ---------------------------------------------|
 | 89401  | Afonso Paredes    | <https://github.com/afonsoparedes>   | <mailto:afonsoparedes@tecnico.ulisboa.pt>    |
-| 89535  | Pedro Nunes       | <https://github.com/pedronunes99>    | <mailto:bob@tecnico.ulisboa.pt>              |
+| 89535  | Pedro Nunes       | <https://github.com/pedronunes99>    | <mailto:pedro.m.s.nunes@tecnico.ulisboa.pt>  |
 | 89538  | Rafael Alexandre  | <https://github.com/99rafa>          | <mailto:rafael.alexandre@tecnico.ulisboa.pt> |
 
 ### Task leaders

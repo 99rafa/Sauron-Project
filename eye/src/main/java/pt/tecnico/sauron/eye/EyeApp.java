@@ -16,13 +16,12 @@ public class EyeApp {
 	public static void main(String[] args) {
 		System.out.println(EyeApp.class.getSimpleName());
 
-		String dataFile;
 
 		System.out.printf("Received %d arguments%n", args.length);
 
 		// check arguments
 		if (!checkInitConfigs(args)) {
-			System.out.println("erro");
+			System.out.println("Error: Invalid Arguments!");
 		}
 
 
@@ -66,13 +65,10 @@ public class EyeApp {
 
 
 		if (args.length <  5) {
-			int numArgsMissing = 5 - args.length;
-			System.out.println("Error:" + numArgsMissing + " Argument(s) missing!" );
 			return false;
 		}
 
 		if (args.length > 5 && args.length != 7 ) {
-			System.out.println("Error: Invalid Arguments!");
 			return false;
 		}
 

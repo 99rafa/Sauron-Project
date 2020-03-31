@@ -26,7 +26,7 @@ public class CamInfoIT extends BaseIT {
     @BeforeEach
     public void setUp() {
         ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.clearObj(request);
+        frontend.ctrlClear(request);
     }
 
     @AfterEach

@@ -16,11 +16,16 @@ public enum ErrorMessage {
     COORDINATES_NULL_LONGITUDE("The camera longitude must not be null"),
 
     OBSERVATION_NULL_TYPE("The observation type cannot be null"),
+    OBJECT_NULL_TYPE("The object type cannot be null"),
     NO_SUCH_OBSERVATION("No such observation"),
+    NO_SUCH_OBJECT("No such object"),
+    OBJECT_INVALID_TYPE("The type %s does not exist"),
     OBSERVATION_INVALID_TYPE("The type %s does not exist"),
+    OBJECT_INVALID_ID("The id is invalid for the given type %s"),
     OBSERVATION_INVALID_ID("The id is invalid for the given type %s"),
     OBSERVATION_INVALID_PART_ID("The partial id is invalid"),
     OBSERVATION_NULL_ID("The observation Id cannot be null/empty"),
+    OBJECT_NULL_ID("The object Id cannot be null/empty"),
     OBSERVATION_INVALID_DATE("The observation date %s is invalid"),
     OBSERVATION_NULL_DATE("The observation date cannot be null");
 
