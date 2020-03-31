@@ -1,10 +1,14 @@
 package pt.tecnico.sauron.silo.client;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import io.grpc.StatusRuntimeException;
+import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
+import pt.tecnico.sauron.silo.grpc.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static io.grpc.Status.INVALID_ARGUMENT;
+
+
 
 public class PingIT extends BaseIT {
 
@@ -35,4 +39,23 @@ public class PingIT extends BaseIT {
     public void tearDown() {
 
     }
+
+    @Test
+    public void pingOKTest() {
+        PingRequest request = PingRequest.newBuilder().setInputCommand("friend").build();
+        PingResponse response = frontend.ctrlPing(request);
+        assertEquals("Hello friend!\nThe server is running!", response.getOutputText());
+    }
+
+    @Test
+    public void emptyPingTest() {
+        PingRequest request = PingRequest.newBuilder().setInputCommand("").build();
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.ctrlPing(request))
+                        .getStatus()
+                        .getCode());
+    }
+
 }

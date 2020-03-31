@@ -1,10 +1,10 @@
 package pt.tecnico.sauron.silo.client;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
+import pt.tecnico.sauron.silo.grpc.ClearResponse;
+import pt.tecnico.sauron.silo.grpc.InitRequest;
+import pt.tecnico.sauron.silo.grpc.InitResponse;
 
 public class InitIT extends BaseIT {
 
@@ -34,6 +34,11 @@ public class InitIT extends BaseIT {
     @AfterEach
     public void tearDown() {
 
+    }
+    @Test
+    public void initTest() {
+        InitRequest request = InitRequest.newBuilder().build();
+        frontend.ctrlInit(request);
     }
 
 }
