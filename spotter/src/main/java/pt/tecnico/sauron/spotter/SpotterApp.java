@@ -32,11 +32,11 @@ public class SpotterApp {
 		final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
 		do {
-			String[] eyeTokens = scanner.nextLine().split(" ");
+			String[] spotterTokens = scanner.nextLine().split(" ");
 
-			while (!checkSpotCommand(eyeTokens)) eyeTokens = scanner.nextLine().split(" ");
+			while (!checkSpotCommand(spotterTokens)) spotterTokens = scanner.nextLine().split(" ");
 
-			final String command = eyeTokens[0];
+			final String command = spotterTokens[0];
 
 			if(command.equals("exit")){
 				exit = true;
@@ -64,8 +64,8 @@ public class SpotterApp {
 
 			else {
 
-				final String type = eyeTokens[1];
-				final String id = eyeTokens[2];
+				final String type = spotterTokens[1];
+				final String id = spotterTokens[2];
 
 				SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
