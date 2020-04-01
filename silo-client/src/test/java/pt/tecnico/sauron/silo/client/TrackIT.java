@@ -81,7 +81,6 @@ public class TrackIT extends BaseIT{
         TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
         TrackResponse response = frontend.trackObj(request);
 
-            System.out.println(response.toString());
             assertEquals(Type.CAR, response.getObservation().getType());
             assertEquals(id, response.getObservation().getId());
             assertEquals("Vale das Mos", response.getObservation().getCamName());

@@ -26,10 +26,10 @@ public class EyeApp {
 			// check arguments
 			if (args.length < 5) {
 				throw new IOException();
-				//System.out.println("Argument(s) missing!");
+
 			}
 			else if (args.length > 5) {
-				System.out.println("More arguments than required!");
+				throw new IOException();
 			}
 
 
@@ -54,11 +54,11 @@ public class EyeApp {
 			}
 			catch(InterruptedException e) {
 
-			System.out.println("Timeout interrupted!");
+			System.out.println("Error:Timeout interrupted");
 
 		} 	catch(IOException e) {
 
-			System.out.println("Invalid input!");
+			System.out.println("Error:Invalid input");
 
 		}
 
