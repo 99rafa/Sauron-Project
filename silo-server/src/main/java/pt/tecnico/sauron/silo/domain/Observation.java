@@ -33,35 +33,35 @@ public class Observation implements Comparable<Observation> {
 
     }
 
-    public String getCamName() {
+    public synchronized String getCamName() {
         return camName;
     }
 
-    public void setCamName(String camName) {
+    public synchronized void setCamName(String camName) {
         this.camName = camName;
     }
 
-    public LocalDateTime getDateTime() {
+    public synchronized LocalDateTime getDateTime() {
         return this.dateTime;
     }
 
-    public void setDateTime(LocalDateTime dateTime) {
+    public synchronized void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
     }
 
-    public Type getType() {
+    public synchronized Type getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public synchronized void setType(Type type) {
         this.type = type;
     }
 
-    public String getId() {
+    public synchronized String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public synchronized void setId(String id) {
         this.id = id;
     }
 
