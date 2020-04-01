@@ -246,6 +246,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
+
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());

@@ -3,59 +3,65 @@ package pt.tecnico.sauron.eye;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
+import pt.tecnico.sauron.silo.grpc.ObservationMessage;
+import pt.tecnico.sauron.silo.grpc.ReportRequest;
+import pt.tecnico.sauron.silo.grpc.Type;
+
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
 
 
 public class EyeApp {
 
 	public static void main(String[] args) {
-
-		System.out.println(EyeApp.class.getSimpleName());
-
-		// check arguments
-		if (args.length < 5) {
-			System.out.println("Arguments missing!");
-		}
-		else if (args.length > 5) {
-			System.out.println("More arguments than required!");
-		}
-
-
-		final String host = args[0];
-		final int port = Integer.parseInt(args[1]);
-
-		final String camName = args[2];
-		final double latitude = Double.parseDouble(args[3]);
-		final double longitude = Double.parseDouble(args[4]);
-
-		final String target = host + ":" + port;
-		final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-
-		SiloFrontend siloFrontend = new SiloFrontend(host, port);
-
-		CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(latitude).setLongitude(longitude).build();
-		siloFrontend.camJoin(request);
-
 		try {
+			System.out.println(EyeApp.class.getSimpleName());
+
+			// check arguments
+			if (args.length < 5) {
+				throw new IOException();
+				//System.out.println("Argument(s) missing!");
+			}
+			else if (args.length > 5) {
+				System.out.println("More arguments than required!");
+			}
+
+
+			final String host = args[0];
+			final int port = Integer.parseInt(args[1]);
+
+			final String camName = args[2];
+			final double latitude = Double.parseDouble(args[3]);
+			final double longitude = Double.parseDouble(args[4]);
+
+			final String target = host + ":" + port;
+			final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+
+			SiloFrontend siloFrontend = new SiloFrontend(host, port);
+
+			CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(latitude).setLongitude(longitude).build();
+			siloFrontend.camJoin(request);
+
 			processInputData(siloFrontend, camName);
-		}
-		catch(InterruptedException e) {
+
+			channel.shutdownNow();
+			}
+			catch(InterruptedException e) {
 
 			System.out.println("Timeout interrupted!");
 
-		} catch(IOException e) {
+		} 	catch(IOException e) {
 
 			System.out.println("Invalid input!");
 
 		}
 
-
-		channel.shutdownNow();
 	}
 
 	private static void processInputData(SiloFrontend siloFrontend, String camName) throws IOException, InterruptedException {
@@ -83,6 +89,7 @@ public class EyeApp {
 				 siloFrontend.reportObs(request);
 
 				 observations.clear();
+				 System.out.println("Sending files...");
 
 			 } //do nothing when there is a comment line
 			 else if (observationLine[0].startsWith("#")) { }
@@ -117,6 +124,7 @@ public class EyeApp {
 					 int timeout = Integer.parseInt(observationLine[1].trim());
 
 					 Thread.sleep(timeout);
+					 System.out.println("Paused...");
 
 				 } else {
 					 throw new IOException();
@@ -132,6 +140,7 @@ public class EyeApp {
 
 		 ReportRequest request = builder.build();
 		 siloFrontend.reportObs(request);
+		System.out.println("Sending observations...");
 
 		 scanner.close();
 	}

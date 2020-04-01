@@ -1,12 +1,8 @@
 package pt.tecnico.sauron.silo.client;
 
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;

@@ -254,13 +254,12 @@ public class SpotterApp {
 
 
 		if (args.length < 2 ) {
-			int numArgsMissing = 2 - args.length;
-			System.out.println("Error:" + numArgsMissing + " Argument(s) missing!" );
+			System.out.println("Argument(s) missing!" );
 			return false;
 		}
 
 		if (args.length > 2 ) {
-			System.out.println("Error: More arguments than required!");
+			System.out.println("More arguments than required!");
 			return false;
 		}
 		return true;

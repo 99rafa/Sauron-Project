@@ -1,13 +1,8 @@
 package pt.tecnico.sauron.silo.client;
 
-import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import static io.grpc.Status.ALREADY_EXISTS;
-import static io.grpc.Status.INVALID_ARGUMENT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SiloIT extends BaseIT {
 	

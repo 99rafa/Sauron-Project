@@ -4,15 +4,11 @@ import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-import static io.grpc.Status.*;
-import static org.junit.Assert.*;
+import static io.grpc.Status.NOT_FOUND;
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TraceIT extends BaseIT {
