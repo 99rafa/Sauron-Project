@@ -269,6 +269,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         if (inputText == null || inputText.isBlank()) {
             responseObserver.onError(INVALID_ARGUMENT
                     .withDescription("Input cannot be empty!").asRuntimeException());
+            return;
         }
 
         String output = "Hello " + inputText + "!\n" + "The server is running!";

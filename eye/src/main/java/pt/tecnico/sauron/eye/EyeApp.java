@@ -26,10 +26,10 @@ public class EyeApp {
 			// check arguments
 			if (args.length < 5) {
 				throw new IOException();
-				//System.out.println("Argument(s) missing!");
+
 			}
 			else if (args.length > 5) {
-				System.out.println("More arguments than required!");
+				throw new IOException();
 			}
 
 
@@ -54,11 +54,11 @@ public class EyeApp {
 			}
 			catch(InterruptedException e) {
 
-			System.out.println("Timeout interrupted!");
+			System.out.println("Error:Timeout interrupted");
 
 		} 	catch(IOException e) {
 
-			System.out.println("Invalid input!");
+			System.out.println("Error:Invalid input");
 
 		}
 
@@ -79,17 +79,7 @@ public class EyeApp {
 			 //when line is empty, do a reportRequest with the observation to this point
 			 if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
 
-				 ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
-
-				 for (ObservationMessage om : observations) {
-					 builder.addObservation(om).build();
-				 }
-
-				 ReportRequest request = builder.build();
-				 siloFrontend.reportObs(request);
-
-				 observations.clear();
-				 System.out.println("Sending files...");
+				 saveGivenObservations(siloFrontend, camName, observations);
 
 			 } //do nothing when there is a comment line
 			 else if (observationLine[0].startsWith("#")) { }
@@ -123,8 +113,8 @@ public class EyeApp {
 
 					 int timeout = Integer.parseInt(observationLine[1].trim());
 
-					 Thread.sleep(timeout);
 					 System.out.println("Paused...");
+					 Thread.sleep(timeout);
 
 				 } else {
 					 throw new IOException();
@@ -132,17 +122,23 @@ public class EyeApp {
 			 }
 		 }
 
-		 ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
+		saveGivenObservations(siloFrontend, camName, observations);
 
-		 for (ObservationMessage om : observations) {
-			 builder.addObservation(om).build();
-		 }
-
-		 ReportRequest request = builder.build();
-		 siloFrontend.reportObs(request);
-		System.out.println("Sending observations...");
-
-		 scanner.close();
+		scanner.close();
 	}
-	
+
+	private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<ObservationMessage> observations) {
+		ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
+
+		for (ObservationMessage om : observations) {
+			System.out.println("Sending observation for id "+ om.getId() + " of type " + om.getType().toString() + "... ");
+			builder.addObservation(om).build();
+		}
+
+		ReportRequest request = builder.build();
+		siloFrontend.reportObs(request);
+		observations.clear();
+		System.out.println("Observations successfully saved!");
+	}
+
 }
