@@ -173,7 +173,7 @@ public class Silo {
         return false;
     }
 
-    public Camera getCameraByName(String camName){
+    public synchronized Camera getCameraByName(String camName){
         if(camName.equals(null))
             throw new SiloException(ErrorMessage.CAMERA_NAME_NULL);
         for(Camera c : this.cameras){
@@ -197,11 +197,11 @@ public class Silo {
         this.cameras.add(camera);
     }
 
-    public List<Camera> getCameras() {
+    public synchronized List<Camera> getCameras() {
         return this.cameras;
     }
 
-    public void setCameras(List<Camera> cameras) {
+    public synchronized void setCameras(List<Camera> cameras) {
         this.cameras = cameras;
     }
 
