@@ -110,6 +110,7 @@ message InitResponse {
 enum Type {
     PERSON = 0;
     CAR = 1;
+    UNKNOWN = 2;
 }
 
 enum ServerStatus {
