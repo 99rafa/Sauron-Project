@@ -4,15 +4,15 @@ package pt.tecnico.sauron.silo.domain;
 import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Camera {
 
     private String name;
     private double lat;
     private double log;
-    private List<Observation> observations = new ArrayList<>();
+    private List<Observation> observations = new CopyOnWriteArrayList<>();
 
     public Camera() {
     }

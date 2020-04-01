@@ -11,7 +11,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<group.id>C31</group.id>
+		<group.id>A31</group.id>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

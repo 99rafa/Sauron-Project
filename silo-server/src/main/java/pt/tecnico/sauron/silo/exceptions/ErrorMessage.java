@@ -4,7 +4,7 @@ public enum ErrorMessage {
 
 
 
-    CAMERA_NAME_INVALID("The camera name %s must be between 3 and 15 characters"),
+    CAMERA_NAME_INVALID("The camera name must be between 3 and 15 characters"),
     CAMERA_NAME_NULL("The camera name cannot be null"),
     CAMERA_NAME_NOT_UNIQUE("The camera name must be unique"),
     NO_SUCH_CAMERA_NAME("No such camera name %s"),

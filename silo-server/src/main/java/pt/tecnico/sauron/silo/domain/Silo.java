@@ -7,13 +7,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Silo {
 
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private List<Camera> cameras = new ArrayList<>();
+    private List<Camera> cameras = new CopyOnWriteArrayList<>();
 
 
     public Silo() {
@@ -173,7 +174,8 @@ public class Silo {
         throw new SiloException(ErrorMessage.NO_SUCH_CAMERA_NAME,camName);
     }
 
-    public void addCamera(Camera camera) {
+    public synchronized void  addCamera(Camera camera) {
+
         for(Camera c : this.cameras){
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
@@ -194,7 +196,7 @@ public class Silo {
 
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "Silo{" +
                 "cameras=" + this.cameras +
                 '}';

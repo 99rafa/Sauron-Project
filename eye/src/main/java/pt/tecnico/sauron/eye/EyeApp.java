@@ -2,6 +2,7 @@ package pt.tecnico.sauron.eye;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
 import pt.tecnico.sauron.silo.grpc.ObservationMessage;
@@ -20,46 +21,55 @@ import java.util.Scanner;
 public class EyeApp {
 
 	public static void main(String[] args) {
+
 		try {
 			System.out.println(EyeApp.class.getSimpleName());
+			System.out.println("> Eye client started");
+			try {
+				// check arguments
+				if (args.length < 5) {
+					throw new IOException();
 
-			// check arguments
-			if (args.length < 5) {
-				throw new IOException();
+				} else if (args.length > 5) {
+					throw new IOException();
+				}
 
+
+				final String host = args[0];
+				final int port = Integer.parseInt(args[1]);
+
+				final String camName = args[2];
+				final double latitude = Double.parseDouble(args[3]);
+				final double longitude = Double.parseDouble(args[4]);
+
+				final String target = host + ":" + port;
+				final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+
+				SiloFrontend siloFrontend = new SiloFrontend(host, port);
+
+				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(latitude).setLongitude(longitude).build();
+				siloFrontend.camJoin(request);
+
+				processInputData(siloFrontend, camName);
+
+				channel.shutdownNow();
+
+				siloFrontend.close();
+
+			} catch (InterruptedException e) {
+
+				System.out.println("Caught exception with description: Timeout interrupted");
+
+			} catch (IOException e) {
+
+				System.out.println("Caught exception with description: Invalid input");
+
+			} catch (StatusRuntimeException e) {
+				System.out.println("Caught exception with description: " +
+						e.getStatus().getDescription());
 			}
-			else if (args.length > 5) {
-				throw new IOException();
-			}
-
-
-			final String host = args[0];
-			final int port = Integer.parseInt(args[1]);
-
-			final String camName = args[2];
-			final double latitude = Double.parseDouble(args[3]);
-			final double longitude = Double.parseDouble(args[4]);
-
-			final String target = host + ":" + port;
-			final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-
-			SiloFrontend siloFrontend = new SiloFrontend(host, port);
-
-			CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(latitude).setLongitude(longitude).build();
-			siloFrontend.camJoin(request);
-
-			processInputData(siloFrontend, camName);
-
-			channel.shutdownNow();
-			}
-			catch(InterruptedException e) {
-
-			System.out.println("Error:Timeout interrupted");
-
-		} 	catch(IOException e) {
-
-			System.out.println("Error:Invalid input");
-
+		} finally {
+			System.out.println("> Client Closing");
 		}
 
 	}
@@ -70,6 +80,7 @@ public class EyeApp {
 		 List<ObservationMessage> observations = new ArrayList<>();
 
 		 scanner = new Scanner(System.in);
+
 
 		 while (scanner.hasNextLine()) {
 
