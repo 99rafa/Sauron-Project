@@ -63,6 +63,8 @@ public class Camera {
 
     public void addObservation(Observation observation) {
         this.observations.add(observation);
+        System.out.println("Added observation for object id:" + observation.getId() + " and Type:" + observation.getType() +
+               " on " + observation.getDateTime()+ " in camera " + this.name);
     }
 
     public void sortObservations(){

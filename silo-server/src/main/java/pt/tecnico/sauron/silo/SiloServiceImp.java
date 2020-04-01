@@ -85,7 +85,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             Observation result;
 
-
             if (type == Type.UNRECOGNIZED)
                 throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
@@ -217,6 +216,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
         try {
+
             String camName = request.getCamName();
             List<ObservationMessage> observationMessages;
 

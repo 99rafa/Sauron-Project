@@ -182,7 +182,8 @@ public class Silo {
             if(c.getName().equals(camera.getName()))
                 return;
         }
-
+        System.out.println("Camera with name:" + camera.getName() + " and latitude:" + camera.getLat() + " and longitude:"
+                + camera.getLog()+ " added to silo");
         this.cameras.add(camera);
     }
 

@@ -68,6 +68,8 @@ public class Observation implements Comparable<Observation> {
     private void checkType(Type type) {
         if (type == null)
             throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
+        else if (type == Type.UNRECOGNIZED)
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
 
     }
 

@@ -108,7 +108,7 @@ public class SpotterApp {
 					else {
 
 						try {
-
+							System.out.println(t.toString());
 							TrackRequest request = TrackRequest.newBuilder().setType(t).setId(id).build();
 							TrackResponse response = siloFrontend.trackObj(request);
 							trackResponseToString(response, siloFrontend);
