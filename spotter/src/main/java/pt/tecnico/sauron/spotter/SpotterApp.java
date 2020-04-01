@@ -38,6 +38,8 @@ public class SpotterApp {
 
 			final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
+			SiloFrontend siloFrontend = new SiloFrontend(host, port);
+
 			do {
 				String[] spotterTokens = scanner.nextLine().split(" ");
 
@@ -48,8 +50,6 @@ public class SpotterApp {
 				}
 
 				final String command = spotterTokens[0];
-
-				SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
 				//exits from spotter client
 				if (command.equals("exit")) {
@@ -80,11 +80,13 @@ public class SpotterApp {
 
 				else if (command.equals("help")) {
 
-					System.out.println("Spot -> spot <type> <id> ");
-					System.out.println("Trail -> trail <type> <id> ");
-					System.out.println("Ping -> ping <name>");
-					System.out.println("Clear -> clear");
-					System.out.println("Init -> init");
+					System.out.println("-----------------------------");
+					System.out.println("spot -> spot <type> <id> ");
+					System.out.println("trail -> trail <type> <id> ");
+					System.out.println("ping -> ping <name>");
+					System.out.println("clear -> clear");
+					System.out.println("init -> init");
+					System.out.println("-----------------------------");
 
 				}
 

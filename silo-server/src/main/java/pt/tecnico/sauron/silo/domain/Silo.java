@@ -58,6 +58,9 @@ public class Silo {
 
         List<Observation> observations = new ArrayList<>();
 
+        if (type == Type.UNKNOWN)
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
+
         if(partialId == null || partialId.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
 
@@ -136,6 +139,9 @@ public class Silo {
     public List<Observation> traceObject(Type type, String id){
 
         List<Observation> res = new ArrayList<>();
+
+        if (type == Type.UNKNOWN)
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
 
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
