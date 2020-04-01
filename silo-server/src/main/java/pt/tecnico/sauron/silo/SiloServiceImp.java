@@ -85,9 +85,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             Observation result;
 
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
-
             result = silo.trackObject(type, id);
 
             //Build Observation Message
@@ -110,7 +107,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE)
+                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -128,8 +126,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             List<Observation> result;
             TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
 
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
+            if (type == Type.UNKNOWN)
+                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
 
             result = silo.trackMatchObject(type, id);
 
@@ -176,8 +174,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
+            if (type == Type.UNKNOWN)
+                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
 
             result = silo.traceObject(type, id);
 
