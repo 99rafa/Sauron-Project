@@ -5,7 +5,7 @@ Distributed Systems 2019-2020, 2nd semester project
 
 ## Authors
 
-*(fill-in line below with group identifier e.g. A08 or T22; and then delete this line)*  
+
 **Group A31**
 
 ### Code identification
@@ -26,7 +26,7 @@ This change is important for code dependency management, to make sure that your 
 
 ### Task leaders
 
-*(fill-in table below with with team members assigned as leader to each task set; and then delete this line)*  
+
 
 | Task set | To-Do                         | Leader              |
 | ---------|-------------------------------| --------------------|
