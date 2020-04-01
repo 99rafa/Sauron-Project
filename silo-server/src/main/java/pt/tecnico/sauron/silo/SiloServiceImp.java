@@ -78,7 +78,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
-        System.out.println(silo);
+
         try {
 
             Type type = request.getType();
@@ -246,7 +246,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-            System.out.println(silo);
 
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)

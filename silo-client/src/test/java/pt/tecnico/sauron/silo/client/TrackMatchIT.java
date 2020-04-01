@@ -1,12 +1,8 @@
 package pt.tecnico.sauron.silo.client;
 
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
@@ -83,6 +79,7 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
+        assertEquals(2,response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
@@ -109,6 +106,7 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
+        assertEquals(2,response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
