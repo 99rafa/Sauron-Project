@@ -76,30 +76,42 @@ mvn install
 
 Example to run the test track.txt:
 ```bash
-./target/appassembler/bin/eye localhost 8080 < ../demo/track.txt
+./target/appassembler/bin/spotter localhost 8080 < ../demo/track.txt
 ``` 
 
 ## Test files
 
 **insert100cars.txt** 
 
-  This file tests cam_join and report functions in the eye client.
+  This file tests the cam_join and report functions in the eye client.
   
 **insert100persons.txt**
 
-  This file tests cam_join and report functions in the eye client.
+  This file tests the cam_join and report functions in the eye client.
   
 **track.txt**
 
-  This file tests track function in the spotter client.
+  This file tests the track function in the spotter client.
   
 **trackMatch.txt**
 
-  This file tests trackMatch function in the spotter client.
+  This file tests the trackMatch function in the spotter client.
   
 **trail.txt**
 
-  This file tests trace function in the spotter client.
+  This file tests the trace function in the spotter client.
+  
+**init.txt**
+
+  This file tests the init function in the spotter client.
+  
+**clear.txt**
+
+  This file tests the clear function in the spotter client.
+  
+**ping.txt**
+
+  This file tests the ping function in the spotter client.
  
 ----
 
