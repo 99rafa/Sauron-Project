@@ -66,23 +66,23 @@ Example to run the test track.txt
 
 **insert100cars.txt** 
 
-  This file tests cam_join and report functions
+  This file tests cam_join and report functions in the eye client
   
 **insert100persons.txt**
 
-  This file tests cam_join and report functions
+  This file tests cam_join and report functions in the eye client
   
 **track.txt**
 
-  This file tests track function
+  This file tests track function in the spotter client
   
 **trackMatch.txt**
 
-  This file tests trackMatch function
+  This file tests trackMatch function in the spotter client
   
 **trail.txt**
 
-  This file tests trace function
+  This file tests trace function in the spotter client
  
 ----
 
