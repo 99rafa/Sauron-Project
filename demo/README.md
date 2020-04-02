@@ -11,7 +11,16 @@ First, open a terminal, go to the ```/A31-Sauron/silo-server``` directory and ru
 mvn compile:exec
 ``` 
 That will start the server.
-Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command ```./target/appassembler/bin/eye [args]*```  .
+
+Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command 
+```bash
+./target/appassembler/bin/eye [args]*
+```
+
+To start the spotter client is similar, but instead go to the ```/A31-Sauron/spotter``` directory and run the command 
+```bash
+./target/appassembler/bin/spotter [args]*
+```
 
 ## Instructions to run the test files
 
