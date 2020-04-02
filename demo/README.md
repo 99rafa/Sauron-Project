@@ -14,7 +14,7 @@ That will start the server.
 
 Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command 
 ```bash
-./target/appassembler/bin/eye [args]*
+./target/appassembler/bin/eye <args>*
 ```
 
 To start the spotter client is similar, but instead go to the ```/A31-Sauron/spotter``` directory and run the command 
