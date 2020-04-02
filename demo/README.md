@@ -62,5 +62,16 @@ Example to run the test track.txt
 ./target/appassembler/bin/eye localhost 8080 < ../demo/track.txt
 ``` 
 
+## Test files
+
+**insert100cars.txt** 
+
+  This file tests cam_join and report functions
+  
+**insert100persons.txt**
+
+  This file tests cam_join and report functions
+  
+ 
 ----
 
