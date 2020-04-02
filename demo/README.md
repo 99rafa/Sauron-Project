@@ -6,13 +6,20 @@ This is a demo file so the user can understand how the application works.
 
 ## Instructions for using Maven and running the application
 
-First, open a terminal, go to the ```/A31-Sauron/silo-server``` directory and run the commands:
+First, open a terminal, go to the ```/A31-Sauron``` directory and run the command:
 ```bash
 mvn install
 ``` 
+
+
+Do the same thing on the ```/A31-Sauron/contract``` directory.
+
+
+Then, on the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
-mvn compile:exec
+mvn compile exec:java
 ``` 
+
 That will start the server.
 
 Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command:
@@ -27,16 +34,24 @@ To start the spotter client is similar, but instead go to the ```/A31-Sauron/spo
 
 ## Instructions to run the test files
 
-First, open a terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command 
+First, open a terminal, go to the ```/A31-Sauron``` directory and run the command:
 ```bash
 mvn install
 ``` 
+
+
+Do the same thing on the ```/A31-Sauron/contract``` directory.
+
+
+Then, on the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
-mvn compile:exec
+mvn compile exec:java
 ``` 
+
 That will start the server.
 
-Then, to run the first 2 tests (insert100cars.txt and insert100persons.txt), open a terminal in the ```/A31-Sauron/eye``` directory and run the commands:
+
+Then, to run the first two tests (insert100cars.txt and insert100persons.txt), open a terminal in the ```/A31-Sauron/eye``` directory and run the commands:
 ```bash
 mvn install
 ``` 
