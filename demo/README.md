@@ -76,7 +76,7 @@ mvn install
 
 Example to run the test track.txt:
 ```bash
-./target/appassembler/bin/eye localhost 8080 < ../demo/track.txt
+./target/appassembler/bin/spotter localhost 8080 < ../demo/track.txt
 ``` 
 
 ## Test files
