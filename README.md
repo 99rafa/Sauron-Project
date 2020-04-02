@@ -4,7 +4,7 @@ Distributed Systems 2019-2020, 2nd semester project
 
 
 ## Authors
-+
+
 **Group A31**
 
 ### Code identification
@@ -23,11 +23,6 @@ This change is important for code dependency management, to make sure that your 
 | 89538  | Rafael Alexandre  | <https://github.com/99rafa>          | <mailto:rafael.alexandre@tecnico.ulisboa.pt> |
 
 ### Task leaders
-
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
 
 | Task set | To-Do                         | Leader              |
 | ---------|-------------------------------| --------------------|
