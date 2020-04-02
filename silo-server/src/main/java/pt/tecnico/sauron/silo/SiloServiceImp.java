@@ -273,6 +273,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         String output = "Hello " + inputText + "!\n" + "The server is running!";
         PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
+        System.out.println("Ping request received");
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
@@ -288,7 +289,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         //Clears server info
         silo = new Silo();
-
+        System.out.println("System state cleared");
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.

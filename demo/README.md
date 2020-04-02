@@ -35,7 +35,7 @@ Then, to run the first 2 tests (insert100cars.txt and insert100persons.txt), ope
 ./target/appassembler/bin/eye [args]* < ../demo/<nameOfTest>
 ```
 
-Example to run the test insert100cars.txt 
+Example to run the test insert100cars.txt: 
 ```bash
 ./target/appassembler/bin/eye localhost 8080 camara 30 30 < ../demo/insert100cars.txt
 ```
@@ -45,7 +45,7 @@ To run the other tests (track.txt, trackMatch.txt and trail.txt), open a termina
 ./target/appassembler/bin/spotter [args]* < ../demo/<nameOfTest>
 ```
 
-Example to run the test track.txt 
+Example to run the test track.txt:
 ```bash
 ./target/appassembler/bin/eye localhost 8080 < ../demo/track.txt
 ``` 
