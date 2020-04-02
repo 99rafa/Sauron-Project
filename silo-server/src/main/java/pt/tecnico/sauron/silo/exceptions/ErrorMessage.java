@@ -4,7 +4,7 @@ public enum ErrorMessage {
 
 
 
-    CAMERA_NAME_INVALID("The camera name %s must be between 3 and 15 characters"),
+    CAMERA_NAME_INVALID("The camera name must be between 3 and 15 characters"),
     CAMERA_NAME_NULL("The camera name cannot be null"),
     CAMERA_NAME_NOT_UNIQUE("The camera name must be unique"),
     NO_SUCH_CAMERA_NAME("No such camera name %s"),
@@ -18,8 +18,8 @@ public enum ErrorMessage {
     OBSERVATION_NULL_TYPE("The observation type cannot be null"),
     OBJECT_NULL_TYPE("The object type cannot be null"),
     NO_SUCH_OBSERVATION("No such observation"),
-    NO_SUCH_OBJECT("No such object"),
-    OBJECT_INVALID_TYPE("The type %s does not exist"),
+    NO_SUCH_OBJECT(""),
+    OBJECT_INVALID_TYPE("The type does not exist"),
     OBSERVATION_INVALID_TYPE("The type %s does not exist"),
     OBJECT_INVALID_ID("The id is invalid for the given type %s"),
     OBSERVATION_INVALID_ID("The id is invalid for the given type %s"),

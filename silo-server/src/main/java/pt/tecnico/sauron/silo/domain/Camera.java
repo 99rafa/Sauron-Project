@@ -4,15 +4,15 @@ package pt.tecnico.sauron.silo.domain;
 import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Camera {
 
     private String name;
     private double lat;
     private double log;
-    private List<Observation> observations = new ArrayList<>();
+    private List<Observation> observations = new CopyOnWriteArrayList<>();
 
     public Camera() {
     }
@@ -26,43 +26,45 @@ public class Camera {
         this.log = log;
     }
 
-    public List<Observation> getObservations() {
+    public synchronized List<Observation> getObservations() {
         return observations;
     }
 
-    public void setObservations(List<Observation> observations) {
+    public synchronized void setObservations(List<Observation> observations) {
         this.observations = observations;
     }
 
-    public String getName() {
+    public synchronized String getName() {
         return this.name;
     }
 
-    public void setName(String name) {
+    public synchronized void setName(String name) {
         checkName(name);
         this.name = name;
     }
 
-    public double getLat() {
+    public synchronized double getLat() {
         return this.lat;
     }
 
-    public void setLat(double lat) {
+    public synchronized void setLat(double lat) {
         checkLatitude(lat);
         this.lat = lat;
     }
 
-    public double getLog() {
+    public synchronized double getLog() {
         return this.log;
     }
 
-    public void setLog(double log) {
+    public synchronized void setLog(double log) {
         checkLongitude(log);
         this.log = log;
     }
 
     public void addObservation(Observation observation) {
         this.observations.add(observation);
+        System.out.println("Added observation for object id:" + observation.getId() + " and Type:" + observation.getType() +
+               " on " + observation.getDateTime()+ " in camera " + this.name);
     }
 
     public void sortObservations(){

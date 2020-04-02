@@ -85,10 +85,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             Observation result;
 
-
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
-
             result = silo.trackObject(type, id);
 
             //Build Observation Message
@@ -103,6 +99,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setObservation(observationMessage)
                     .build();
 
+            System.out.println("Sending most recent observation of object with id:" + id + " and type:" +type + "..." );
+
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
@@ -111,7 +109,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE)
+                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -129,8 +128,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             List<Observation> result;
             TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
 
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
             result = silo.trackMatchObject(type, id);
 
@@ -149,7 +146,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             TrackMatchResponse response = builder.build();
 
-
+            System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" +type + "...");
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
@@ -159,7 +156,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
                     || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_PART_ID)
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_PART_ID
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -177,8 +175,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             String id = request.getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
-            if (type == Type.UNRECOGNIZED)
-                throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE, type.toString());
 
             result = silo.traceObject(type, id);
 
@@ -198,6 +194,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             TraceResponse response = builder.build();
 
 
+            System.out.println("Sending trace path of object with id:" + id + " and type:" +type + "...");
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
@@ -206,7 +203,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         } catch (SiloException e) {
             if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE)
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
+                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
             if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
                 responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -217,6 +215,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
         try {
+
             String camName = request.getCamName();
             List<ObservationMessage> observationMessages;
 
@@ -274,6 +273,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         String output = "Hello " + inputText + "!\n" + "The server is running!";
         PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
+        System.out.println("Ping request received");
 
         // Send a single response through the stream.
         responseObserver.onNext(response);
@@ -289,7 +289,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         //Clears server info
         silo = new Silo();
-
+        System.out.println("System state cleared");
         // Send a single response through the stream.
         responseObserver.onNext(response);
         // Notify the client that the operation has been completed.

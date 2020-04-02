@@ -7,13 +7,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Silo {
 
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private List<Camera> cameras = new ArrayList<>();
+    private List<Camera> cameras = new CopyOnWriteArrayList<>();
 
 
     public Silo() {
@@ -26,6 +27,10 @@ public class Silo {
     public Observation trackObject(Type type, String id){
 
         List<Observation> observations = new ArrayList<>();
+
+        if (type == Type.UNKNOWN){
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
+        }
 
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
@@ -52,6 +57,9 @@ public class Silo {
     public List<Observation> trackMatchObject(Type type, String  partialId){
 
         List<Observation> observations = new ArrayList<>();
+
+        if (type == Type.UNKNOWN)
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
 
         if(partialId == null || partialId.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
@@ -132,6 +140,9 @@ public class Silo {
 
         List<Observation> res = new ArrayList<>();
 
+        if (type == Type.UNKNOWN)
+            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
+
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
 
@@ -162,7 +173,7 @@ public class Silo {
         return false;
     }
 
-    public Camera getCameraByName(String camName){
+    public synchronized Camera getCameraByName(String camName){
         if(camName.equals(null))
             throw new SiloException(ErrorMessage.CAMERA_NAME_NULL);
         for(Camera c : this.cameras){
@@ -173,28 +184,30 @@ public class Silo {
         throw new SiloException(ErrorMessage.NO_SUCH_CAMERA_NAME,camName);
     }
 
-    public void addCamera(Camera camera) {
+    public synchronized void  addCamera(Camera camera) {
+
         for(Camera c : this.cameras){
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
             if(c.getName().equals(camera.getName()))
                 return;
         }
-
+        System.out.println("Camera with name:" + camera.getName() + " and latitude:" + camera.getLat() + " and longitude:"
+                + camera.getLog()+ " added to silo");
         this.cameras.add(camera);
     }
 
-    public List<Camera> getCameras() {
+    public synchronized List<Camera> getCameras() {
         return this.cameras;
     }
 
-    public void setCameras(List<Camera> cameras) {
+    public synchronized void setCameras(List<Camera> cameras) {
         this.cameras = cameras;
     }
 
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "Silo{" +
                 "cameras=" + this.cameras +
                 '}';
