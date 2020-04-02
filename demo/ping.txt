@@ -1,0 +1,4 @@
+#Testa ping
+ping skr
+ping boom
+ping 123skr
