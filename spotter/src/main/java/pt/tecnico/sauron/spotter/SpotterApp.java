@@ -40,7 +40,7 @@ public class SpotterApp {
 
 			SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
-			do {
+			while (scanner.hasNextLine() ) {
 				String[] spotterTokens = scanner.nextLine().split(" ");
 
 				//verifies if the command and arguments are valid. If not, asks for next command
@@ -52,102 +52,106 @@ public class SpotterApp {
 				final String command = spotterTokens[0];
 
 				//exits from spotter client
-				if (command.equals("exit")) {
-					exit = true;
+				switch (command) {
+					case "exit":
+						exit = true;
 
-				} else if (command.equals("ping")) {
+						break;
+					case "ping": {
 
-					final String name = spotterTokens[1];
+						final String name = spotterTokens[1];
 
-					PingRequest request = PingRequest.newBuilder().setInputCommand(name).build();
-					PingResponse response = siloFrontend.ctrlPing(request);
-					System.out.println(response.getOutputText());
-				}
-				else if (command.equals("init")) {
+						PingRequest request = PingRequest.newBuilder().setInputCommand(name).build();
+						PingResponse response = siloFrontend.ctrlPing(request);
+						System.out.println(response.getOutputText());
+						break;
+					}
+					case "init": {
 
-					InitRequest request = InitRequest.newBuilder().build();
-					siloFrontend.ctrlInit(request);
-					System.out.println("Nothing to be configured!");
-				}
+						InitRequest request = InitRequest.newBuilder().build();
+						siloFrontend.ctrlInit(request);
+						System.out.println("Nothing to be configured!");
+						break;
+					}
+					case "clear": {
 
-				else if (command.equals("clear")) {
+						ClearRequest request = ClearRequest.newBuilder().clear().build();
+						siloFrontend.ctrlClear(request);
+						System.out.println("System is now empty!");
 
-					ClearRequest request = ClearRequest.newBuilder().clear().build();
-					siloFrontend.ctrlClear(request);
-					System.out.println("System is now empty!");
+						break;
+					}
+					case "help":
 
-				}
+						System.out.println("-----------------------------");
+						System.out.println("Spotter commands:");
+						System.out.println("spot -> spot <type> <id> ");
+						System.out.println("trail -> trail <type> <id> ");
+						System.out.println("ping -> ping <name>");
+						System.out.println("clear -> clear");
+						System.out.println("init -> init");
+						System.out.println("-----------------------------");
 
-				else if (command.equals("help")) {
+						break;
+					default:
 
-					System.out.println("-----------------------------");
-					System.out.println("Spotter commands:");
-					System.out.println("spot -> spot <type> <id> ");
-					System.out.println("trail -> trail <type> <id> ");
-					System.out.println("ping -> ping <name>");
-					System.out.println("clear -> clear");
-					System.out.println("init -> init");
-					System.out.println("-----------------------------");
-
-				}
-
-				else {
-
-					final String type = spotterTokens[1];
-					final String id = spotterTokens[2];
+						final String type = spotterTokens[1];
+						final String id = spotterTokens[2];
 
 
-					if (command.equals("spot")) {
+						if (command.equals("spot")) {
 
-						Type t = verifyType(type);
+							Type t = verifyType(type);
 
-						if (id.contains("*")) {
+							if (id.contains("*")) {
+
+								try {
+
+									TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(t).setSubId(id).build();
+									TrackMatchResponse response = siloFrontend.trackMatchObj(request);
+									trackMatchResponseToString(response, siloFrontend);
+
+								} catch (StatusRuntimeException e) {
+
+									System.out.println(e.getStatus().getDescription());
+
+								}
+
+							} else {
+
+								try {
+
+									TrackRequest request = TrackRequest.newBuilder().setType(t).setId(id).build();
+									TrackResponse response = siloFrontend.trackObj(request);
+									trackResponseToString(response, siloFrontend);
+
+								} catch (StatusRuntimeException e) {
+									System.out.println(e.getStatus().getDescription());
+
+								}
+							}
+						}
+
+						if (command.equals("trail")) {
+
+							Type t = verifyType(type);
 
 							try {
 
-								TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(t).setSubId(id).build();
-								TrackMatchResponse response = siloFrontend.trackMatchObj(request);
-								trackMatchResponseToString(response, siloFrontend);
+								TraceRequest request = TraceRequest.newBuilder().setType(t).setId(id).build();
+								TraceResponse response = siloFrontend.traceObj(request);
+								traceResponseToString(response, siloFrontend);
 
 							} catch (StatusRuntimeException e) {
 
 								System.out.println(e.getStatus().getDescription());
 
 							}
-
-						} else {
-
-							try {
-
-								TrackRequest request = TrackRequest.newBuilder().setType(t).setId(id).build();
-								TrackResponse response = siloFrontend.trackObj(request);
-								trackResponseToString(response, siloFrontend);
-
-							} catch (StatusRuntimeException e) {
-								System.out.println(e.getStatus().getDescription());
-
-							}
 						}
-					}
-
-					if (command.equals("trail")) {
-
-						Type t = verifyType(type);
-
-						try {
-
-							TraceRequest request = TraceRequest.newBuilder().setType(t).setId(id).build();
-							TraceResponse response = siloFrontend.traceObj(request);
-							traceResponseToString(response, siloFrontend);
-
-						} catch (StatusRuntimeException e) {
-
-							System.out.println(e.getStatus().getDescription());
-
-						}
-					}
+						break;
 				}
-			} while (!exit);
+				if (exit) break;
+			}
 
 			channel.shutdownNow();
 

@@ -47,7 +47,8 @@ public class EyeApp {
 
 				SiloFrontend siloFrontend = new SiloFrontend(host, port);
 
-				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(latitude).setLongitude(longitude).build();
+				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
+						.setLatitude(latitude).setLongitude(longitude).build();
 				siloFrontend.camJoin(request);
 
 				processInputData(siloFrontend, camName);
@@ -64,6 +65,11 @@ public class EyeApp {
 
 				System.out.println("Caught exception with description: Invalid input");
 
+			} catch (StatusRuntimeException e) {
+
+				System.out.println("Caught exception with description: " +
+						e.getStatus().getDescription());
+
 			}
 		} finally {
 			System.out.println("> Client Closing");
@@ -77,13 +83,14 @@ public class EyeApp {
 		 List<ObservationMessage> observations = new ArrayList<>();
 
 		 scanner = new Scanner(System.in);
+		 String[] observationLine;
 
 
 		 while (scanner.hasNextLine()) {
 
 			 try {
 
-				 String[] observationLine = scanner.nextLine().split(",");
+				 observationLine = scanner.nextLine().split(",");
 
 
 				 //when line is empty, do a reportRequest with the observation to this point
@@ -107,7 +114,8 @@ public class EyeApp {
 						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 						 Date date = new Date();
 
-						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR).setId(id).setDatetime(dateFormat.format(date)).build());
+						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR)
+								 .setId(id).setDatetime(dateFormat.format(date)).build());
 
 					 } else if (firstToken.equals("person") && observationLine.length == 2) {
 
@@ -115,7 +123,8 @@ public class EyeApp {
 						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 						 Date date = new Date();
 
-						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON).setId(id).setDatetime(dateFormat.format(date)).build());
+						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON)
+								 .setId(id).setDatetime(dateFormat.format(date)).build());
 
 					 }
 					 //timeout when line starts with zzz
@@ -155,7 +164,8 @@ public class EyeApp {
 		ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
 
 		for (ObservationMessage om : observations) {
-			System.out.println("Sending observation for id "+ om.getId() + " of type " + om.getType().toString() + "... ");
+			System.out.println("Sending observation for id "+ om.getId() +
+					" of type " + om.getType().toString() + "... ");
 			builder.addObservation(om).build();
 		}
 
