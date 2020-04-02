@@ -100,6 +100,18 @@ Example to run the test track.txt:
 **trail.txt**
 
   This file tests trace function in the spotter client.
+  
+**init.txt**
+
+  This file tests init function in the spotter client.
+  
+**clear.txt**
+
+  This file tests trace function in the spotter client.
+  
+**ping.txt**
+
+  This file tests trace function in the spotter client.
  
 ----
 
