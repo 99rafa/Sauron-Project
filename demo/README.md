@@ -6,7 +6,7 @@ This is a demo file so the user can understand how the application works.
 
 ## Instructions for using Maven and running the application
 
-First, open a terminal, go to the ```/A31-Sauron/silo-server``` directory and run the commands
+First, open a terminal, go to the ```/A31-Sauron/silo-server``` directory and run the commands:
 ```bash
 mvn install
 ``` 
@@ -15,12 +15,12 @@ mvn compile:exec
 ``` 
 That will start the server.
 
-Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command 
+Then, open another terminal and to start the eye client, go to the ```/A31-Sauron/eye``` directory and run the command:
 ```bash
 ./target/appassembler/bin/eye <args>*
 ```
 
-To start the spotter client is similar, but instead go to the ```/A31-Sauron/spotter``` directory and run the command 
+To start the spotter client is similar, but instead go to the ```/A31-Sauron/spotter``` directory and run the command:
 ```bash
 ./target/appassembler/bin/spotter <args>*
 ```
@@ -36,7 +36,7 @@ mvn compile:exec
 ``` 
 That will start the server.
 
-Then, to run the first 2 tests (insert100cars.txt and insert100persons.txt), open a terminal in the ```/A31-Sauron/eye``` directory and run the commands
+Then, to run the first 2 tests (insert100cars.txt and insert100persons.txt), open a terminal in the ```/A31-Sauron/eye``` directory and run the commands:
 ```bash
 mvn install
 ``` 
@@ -44,12 +44,12 @@ mvn install
 ./target/appassembler/bin/eye [args]* < ../demo/<nameOfTest>
 ```
 
-Example to run the test insert100cars.txt 
+Example to run the test insert100cars.txt:
 ```bash
 ./target/appassembler/bin/eye localhost 8080 camara 30 30 < ../demo/insert100cars.txt
 ```
 
-To run the other tests (track.txt, trackMatch.txt and trail.txt), open a terminal in the ```/A31-Sauron/spotter``` directory and run the commands
+To run the other tests (track.txt, trackMatch.txt and trail.txt), open a terminal in the ```/A31-Sauron/spotter``` directory and run the commands:
 ```bash
 mvn install
 ``` 
@@ -57,7 +57,7 @@ mvn install
 ./target/appassembler/bin/spotter [args]* < ../demo/<nameOfTest>
 ```
 
-Example to run the test track.txt 
+Example to run the test track.txt:
 ```bash
 ./target/appassembler/bin/eye localhost 8080 < ../demo/track.txt
 ``` 
@@ -66,23 +66,23 @@ Example to run the test track.txt
 
 **insert100cars.txt** 
 
-  This file tests cam_join and report functions in the eye client
+  This file tests cam_join and report functions in the eye client.
   
 **insert100persons.txt**
 
-  This file tests cam_join and report functions in the eye client
+  This file tests cam_join and report functions in the eye client.
   
 **track.txt**
 
-  This file tests track function in the spotter client
+  This file tests track function in the spotter client.
   
 **trackMatch.txt**
 
-  This file tests trackMatch function in the spotter client
+  This file tests trackMatch function in the spotter client.
   
 **trail.txt**
 
-  This file tests trace function in the spotter client
+  This file tests trace function in the spotter client.
  
 ----
 
