@@ -64,9 +64,6 @@ public class EyeApp {
 
 				System.out.println("Caught exception with description: Invalid input");
 
-			} catch (StatusRuntimeException e) {
-				System.out.println("Caught exception with description: " +
-						e.getStatus().getDescription());
 			}
 		} finally {
 			System.out.println("> Client Closing");
@@ -74,7 +71,7 @@ public class EyeApp {
 
 	}
 
-	private static void processInputData(SiloFrontend siloFrontend, String camName) throws IOException, InterruptedException {
+	private static void processInputData(SiloFrontend siloFrontend, String camName) throws InterruptedException {
 
 		 Scanner scanner;
 		 List<ObservationMessage> observations = new ArrayList<>();
@@ -84,52 +81,68 @@ public class EyeApp {
 
 		 while (scanner.hasNextLine()) {
 
-			 String[] observationLine = scanner.nextLine().split(",");
+			 try {
+
+				 String[] observationLine = scanner.nextLine().split(",");
 
 
-			 //when line is empty, do a reportRequest with the observation to this point
-			 if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
+				 //when line is empty, do a reportRequest with the observation to this point
+				 if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
 
-				 saveGivenObservations(siloFrontend, camName, observations);
+					 saveGivenObservations(siloFrontend, camName, observations);
 
-			 } //do nothing when there is a comment line
-			 else if (observationLine[0].startsWith("#")) { }
+				 } //do nothing when there is a comment line
+				 else if (observationLine[0].startsWith("#")) { }
 
-			 else {
+				 else {
 
-				 //first token is first substring before the comma
-				 String firstToken = observationLine[0];
+					 //first token is first substring before the comma
+					 String firstToken = observationLine[0];
 
-				 //observations to be added
-				 if (firstToken.equals("car") && observationLine.length == 2) {
+					 //observations to be added
+					 if (firstToken.equals("car") && observationLine.length == 2) {
 
 
-					 String id = observationLine[1];
-					 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					 Date date = new Date();
+						 String id = observationLine[1];
+						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						 Date date = new Date();
 
-					 observations.add(ObservationMessage.newBuilder().setType(Type.CAR).setId(id).setDatetime(dateFormat.format(date)).build());
+						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR).setId(id).setDatetime(dateFormat.format(date)).build());
 
-				 } else if (firstToken.equals("person") && observationLine.length == 2) {
+					 } else if (firstToken.equals("person") && observationLine.length == 2) {
 
-					 String id = observationLine[1];
-					 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					 Date date = new Date();
+						 String id = observationLine[1];
+						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						 Date date = new Date();
 
-					 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON).setId(id).setDatetime(dateFormat.format(date)).build());
+						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON).setId(id).setDatetime(dateFormat.format(date)).build());
 
+					 }
+					 //timeout when line starts with zzz
+					 else if ((firstToken).equals("zzz") && observationLine.length == 2) {
+
+						 int timeout = Integer.parseInt(observationLine[1].trim());
+
+						 System.out.println("Client paused...");
+						 Thread.sleep(timeout);
+						 System.out.println("Client resumed...");
+
+
+					 } else {
+						 throw new IOException();
+					 }
 				 }
-				 //timeout when line starts with zzz
-				 else if ((firstToken).equals("zzz") && observationLine.length == 2) {
+			 } catch (StatusRuntimeException e) {
 
-					 int timeout = Integer.parseInt(observationLine[1].trim());
+				 observations.clear();
 
-					 System.out.println("Paused...");
-					 Thread.sleep(timeout);
+				 System.out.println("Caught exception with description: " +
+						 e.getStatus().getDescription());
 
-				 } else {
-					 throw new IOException();
-				 }
+			 } catch (IOException e) {
+
+				 System.out.println("Caught exception with description: Invalid input");
+
 			 }
 		 }
 

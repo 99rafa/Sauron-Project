@@ -81,6 +81,7 @@ public class SpotterApp {
 				else if (command.equals("help")) {
 
 					System.out.println("-----------------------------");
+					System.out.println("Spotter commands:");
 					System.out.println("spot -> spot <type> <id> ");
 					System.out.println("trail -> trail <type> <id> ");
 					System.out.println("ping -> ping <name>");

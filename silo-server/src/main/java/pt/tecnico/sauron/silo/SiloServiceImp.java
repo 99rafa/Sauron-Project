@@ -99,6 +99,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setObservation(observationMessage)
                     .build();
 
+            System.out.println("Sending most recent observation of object with id:" + id + " and type:" +type + "..." );
+
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
@@ -144,7 +146,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             TrackMatchResponse response = builder.build();
 
-
+            System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" +type + "...");
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
@@ -192,6 +194,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             TraceResponse response = builder.build();
 
 
+            System.out.println("Sending trace path of object with id:" + id + " and type:" +type + "...");
             // Send a single response through the stream.
             responseObserver.onNext(response);
 
