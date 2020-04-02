@@ -72,6 +72,17 @@ Example to run the test track.txt
 
   This file tests cam_join and report functions
   
+**track.txt**
+
+  This file tests track function
+  
+**trackMatch.txt**
+
+  This file tests trackMatch function
+  
+**trail.txt**
+
+  This file tests trace function
  
 ----
 
