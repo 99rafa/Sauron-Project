@@ -46,10 +46,12 @@ public class EyeApp {
 				final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
 				SiloFrontend siloFrontend = new SiloFrontend(host, port);
+				
 
 				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
 						.setLatitude(latitude).setLongitude(longitude).build();
 				siloFrontend.camJoin(request);
+
 
 				processInputData(siloFrontend, camName);
 
@@ -63,7 +65,7 @@ public class EyeApp {
 
 			} catch (IOException e) {
 
-				System.out.println("Caught exception with description: Invalid input");
+				System.out.println("Caught exception with description: Argument(s) missing or more than expected!");
 
 			} catch (StatusRuntimeException e) {
 
@@ -80,7 +82,7 @@ public class EyeApp {
 	private static void processInputData(SiloFrontend siloFrontend, String camName) throws InterruptedException {
 
 		 Scanner scanner;
-		 List<ObservationMessage> observations = new ArrayList<>();
+		 List<ObservationMessage.Builder> observations = new ArrayList<>();
 
 		 scanner = new Scanner(System.in);
 		 String[] observationLine;
@@ -111,20 +113,16 @@ public class EyeApp {
 
 
 						 String id = observationLine[1];
-						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						 Date date = new Date();
 
 						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR)
-								 .setId(id).setDatetime(dateFormat.format(date)).build());
+								 .setId(id));
 
 					 } else if (firstToken.equals("person") && observationLine.length == 2) {
 
 						 String id = observationLine[1];
-						 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						 Date date = new Date();
 
 						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON)
-								 .setId(id).setDatetime(dateFormat.format(date)).build());
+								 .setId(id));
 
 					 }
 					 //timeout when line starts with zzz
@@ -160,12 +158,16 @@ public class EyeApp {
 		scanner.close();
 	}
 
-	private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<ObservationMessage> observations) {
+	private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<ObservationMessage.Builder> observations) {
 		ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
 
-		for (ObservationMessage om : observations) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		for (ObservationMessage.Builder om : observations) {
 			System.out.println("Sending observation for id "+ om.getId() +
 					" of type " + om.getType().toString() + "... ");
+			om.setDatetime(dateFormat.format(date)).build();
 			builder.addObservation(om).build();
 		}
 

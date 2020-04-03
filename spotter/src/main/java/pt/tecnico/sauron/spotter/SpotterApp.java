@@ -152,7 +152,7 @@ public class SpotterApp {
 				}
 				if (exit) break;
 			}
-
+			System.out.println("> Closing client");
 			channel.shutdownNow();
 
 		} catch (IOException e){
