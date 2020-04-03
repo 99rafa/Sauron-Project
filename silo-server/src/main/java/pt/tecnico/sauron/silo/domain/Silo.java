@@ -102,7 +102,7 @@ public class Silo {
                     }
 
                         //Having both prefix and suffix ex-> 22*7
-                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) {
+                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf) && o.getId().length() >= (suf.length() + pre.length())) {
                         assertMostRecentObservation(observations,o);
                     }
 
