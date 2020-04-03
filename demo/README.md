@@ -17,8 +17,14 @@ Do the same thing on the ```/A31-Sauron/contract``` directory.
 
 Then, on the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
-mvn compile exec:java
+mvn install
 ``` 
+and then,
+```bash
+./arget/appassembler/bin/silo-server <port>
+``` 
+
+
 
 That will start the server.
 
@@ -45,7 +51,11 @@ Do the same thing on the ```/A31-Sauron/contract``` directory.
 
 Then, on the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
-mvn compile exec:java
+mvn install
+``` 
+and then,
+```bash
+./target/appassembler/bin/silo-server <port>
 ``` 
 
 That will start the server.
