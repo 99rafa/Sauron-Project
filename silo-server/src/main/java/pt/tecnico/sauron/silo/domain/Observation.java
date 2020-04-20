@@ -154,4 +154,6 @@ public class Observation implements Comparable<Observation> {
     public int compareTo(Observation observation) {
         return this.dateTime.compareTo(observation.getDateTime());
     }
+
+    public int customSort(Observation observation) { return this.getId().compareTo(observation.getId());}
 }
