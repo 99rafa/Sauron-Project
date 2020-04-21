@@ -21,7 +21,7 @@ mvn install
 ``` 
 and then,
 ```bash
-./arget/appassembler/bin/silo-server <port>
+./target/appassembler/bin/silo-server <port>
 ``` 
 
 
