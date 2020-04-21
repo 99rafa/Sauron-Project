@@ -113,7 +113,7 @@ public class Silo {
         if(observations.isEmpty())
             throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
-        observations.sort(Observation::compareTo);
+        observations.sort(Observation::customSort);
 
         return observations;
     }
