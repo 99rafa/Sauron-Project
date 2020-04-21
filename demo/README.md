@@ -21,7 +21,7 @@ $ mvn install
 ``` 
 
 
-### 1.2. Silo
+### 1.2. *Silo*
 
 Then, on the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
@@ -36,7 +36,7 @@ $ ./target/appassembler/bin/silo-server 8080
 That will start the server, and *silo* will have the address *localhost* and the port as *8080*.
 
 
-### 1.3. Eye
+### 1.3. *Eye*
 
 
 We will now regist 3 cameras and their observations. Each camera will have its own entry file with some observations already defined. To do that, go to the ```/A31-Sauron/eye``` directory and run the command:
@@ -52,7 +52,7 @@ $ ./target/appassembler/bin/eye localhost 8080 Lisboa 32.737613 15.303164 < ../d
 ## 2. Operations tests
 
 
-### 2.1. cam_join
+### 2.1. *cam_join*
 
 This operation was already tested in section 1.3. but we still need to test the output of some restrictions.
 
@@ -72,7 +72,7 @@ $ ./target/appassembler/bin/eye localhost 8080 ab 10.0 10.0
 $ ./target/appassembler/bin/eye localhost 8080 abcdefghijklmnop 10.0 10.0
 ```
 
-### 2.3 report
+### 2.3 *report*
 
 To test this command, open a client spotter in the ```/A31-Sauron/spotter``` directory, running this command:
 
@@ -94,7 +94,7 @@ It will return 2 observations of the camera named Tagus:
 ``` 
 
 
-### 2.4. track
+### 2.4. *track*
 
 This operation can be tested using the command *spot* with an id.
 
@@ -119,7 +119,7 @@ car,19SD19,2020-04-21 12:15:32,Lisboa,32.737613,15.303164
 ``` 
 
 
-### 2.5. trackMatch
+### 2.5. *trackMatch*
 
 This operation will be tested using the command *spot* with a fraction of the id.
 
@@ -200,7 +200,7 @@ car,19SD89,2020-04-21 12:42:33,Lisboa,32.737613,15.303164
 car,19SD99,2020-04-21 12:42:33,Lisboa,32.737613,15.303164
 ```
 
-## 2.6. trace
+## 2.6. *trace*
 
 This operation will be tested using the command *trail* with an id.
 
