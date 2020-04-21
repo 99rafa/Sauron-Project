@@ -240,7 +240,7 @@ public class SpotterApp {
 	private static String verifyType (String string){
 		if(string.equals("car")) return "CAR";
 		if(string.equals("person")) return "PERSON";
-		else return "";
+		else return string;
 	}
 
 	private static boolean checkCommand(String[] args) {

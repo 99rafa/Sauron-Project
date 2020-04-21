@@ -10,7 +10,7 @@ public enum ErrorMessage {
     NO_SUCH_CAMERA_NAME("No such camera name %s"),
 
 
-    COORDINATES_INVALID("The camera %s are invalid"),
+    COORDINATES_INVALID("The camera %s is invalid"),
     COORDINATES_NULL("The camera coordinates must not be null"),
 
     NULL_TYPE("The type cannot be null/empty"),
@@ -18,7 +18,9 @@ public enum ErrorMessage {
     NULL_ID("The Id cannot be null/empty"),
     INVALID_ID("The id is invalid for the given type %s"),
     NULL_DATE("The date cannot be null"),
-    INVALID_DATE("The date %s is invalid");
+    INVALID_DATE("The date %s is invalid"),
+
+    NO_SUCH_OBJECT("The object with id %s does not exist");
 
     public final String label;
 

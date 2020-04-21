@@ -45,7 +45,7 @@ public class Silo {
 
         //No observations matched
         if(observations.isEmpty())
-            throw new NoSuchObjectException();
+            throw new NoSuchObjectException(id);
 
         //Order observations
         observations.sort(Observation::compareTo);
@@ -115,7 +115,7 @@ public class Silo {
 
         //No Observations Matched
         if(observations.isEmpty())
-            throw new NoSuchObjectException();
+            throw new NoSuchObjectException(partialId);
 
         //Order observations
         observations.sort(Observation::customSort);
@@ -163,7 +163,7 @@ public class Silo {
 
         //No matched objects
         if(res.isEmpty())
-            throw new NoSuchObjectException();
+            throw new NoSuchObjectException(id);
 
         //Order observations
         res.sort(Observation::compareTo);

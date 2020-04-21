@@ -42,7 +42,7 @@ To start the spotter client is similar, but instead go to the ```/A31-Sauron/spo
 
 First, open a terminal, go to the ```/A31-Sauron``` directory and run the command:
 ```bash
-mvn install
+mvn clean install -DskipTests 
 ``` 
 
 
