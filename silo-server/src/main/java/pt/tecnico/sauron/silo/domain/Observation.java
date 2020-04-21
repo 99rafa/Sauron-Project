@@ -1,5 +1,6 @@
 package pt.tecnico.sauron.silo.domain;
 
+import com.google.protobuf.DoubleValue;
 import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
 import pt.tecnico.sauron.silo.exceptions.SiloException;
 import pt.tecnico.sauron.silo.grpc.Type;
@@ -124,7 +125,7 @@ public class Observation implements Comparable<Observation> {
 
     private boolean isNumber(String s) {
         try {
-            parseInt(s);
+            Double.parseDouble(s);
         } catch (NumberFormatException e) {
             return false;
         }
