@@ -7,6 +7,7 @@ import pt.tecnico.sauron.silo.grpc.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,7 +28,7 @@ public class TraceIT extends BaseIT {
         String camName2 = "Alcobaca";
         String id1 = "12AR12";
         String id2 = "12AR18";
-        String id3 = "151217";
+        String id3 = "123456";
         String date1 = "1999-03-12 12:12:12";
         String date2 = "2020-03-12 12:12:12";
         String date3 = "2015-09-12 12:12:12";
@@ -73,8 +74,8 @@ public class TraceIT extends BaseIT {
     }
 
     @Test
-    //correct trace of one object whose observations are spread through 2 cameras
-    public void traceOneObject() {
+    //correct trace of one car whose observations are spread through 2 cameras
+    public void traceOneCar() {
         Type type = Type.CAR;
         String id = "12AR12";
         LocalDateTime dt1 = null, dt2;
@@ -100,8 +101,35 @@ public class TraceIT extends BaseIT {
     }
 
     @Test
-    //no object was found
-    public void noObjectFound() {
+    //correct trace of one person whose observations are spread through 2 cameras
+    public void traceOnePerson() {
+        Type type = Type.PERSON;
+        String id = "123456";
+        LocalDateTime dt1 = null, dt2;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
+        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
+        TraceResponse response = frontend.traceObj(request);
+
+        for (ObservationMessage o : response.getObservationList()) {
+            assertEquals(Type.PERSON, o.getType());
+            assertEquals(id, o.getId());
+            if (dt1 == null) dt1 = LocalDateTime.parse(o.getDatetime(), formatter);
+            else {
+                dt2 = LocalDateTime.parse(o.getDatetime(), formatter);
+                System.out.println(dt1);
+                System.out.println(dt2);
+                assert dt2.isBefore(dt1);
+                dt1 = dt2;
+            }
+
+        }
+    }
+
+    @Test
+    //no person was found with given id
+    public void noPersonFound() {
         Type type = Type.PERSON;
         String id = "1234521";
 
@@ -115,6 +143,76 @@ public class TraceIT extends BaseIT {
                         .getCode());
 
     }
+
+    @Test
+    //no car was found with given id
+    public void noCarFound() {
+        Type type = Type.PERSON;
+        String id = "12AA12";
+
+
+        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
+
+        assertEquals(NOT_FOUND.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //no type given
+    public void noType() {
+        String id = "12AA12";
+
+
+        TraceRequest request = TraceRequest.newBuilder().setId(id).build();
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //no id given
+    public void noId() {
+        Type type = Type.PERSON;
+
+
+        TraceRequest request = TraceRequest.newBuilder().setType(type).build();
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //unknown type given
+    public void unknownType() {
+        Type type = Type.UNKNOWN;
+        String id = "12345";
+
+
+        TraceRequest request = TraceRequest.newBuilder().setId(id).setType(type).build();
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
 
 }
 

@@ -26,6 +26,7 @@ public class TrackMatchIT extends BaseIT {
         String id1 = "12DL12";
         String id2 = "12AR12";
         String id3 = "151212";
+        String id4 = "151213";
         String date1 = "1999-03-12 12:12:12";
         String date2 = "2020-03-12 12:12:12";
         String date3 = "2015-09-12 12:12:12";
@@ -40,14 +41,17 @@ public class TrackMatchIT extends BaseIT {
         ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id2).setDatetime(date2).build();
         ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id1).setDatetime(date3).build();
         ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType(Type.PERSON).setId(id3).setDatetime(date4).build();
+        ObservationMessage observationMessage5 = ObservationMessage.newBuilder().setType(Type.PERSON).setId(id4).setDatetime(date4).build();
         ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
         ReportRequest request2 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage2).build();
         ReportRequest request3 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage3).build();
         ReportRequest request4 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage4).build();
+        ReportRequest request5 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage5).build();
         frontend.reportObs(request1);
         frontend.reportObs(request2);
         frontend.reportObs(request3);
         frontend.reportObs(request4);
+        frontend.reportObs(request5);
 
     }
 
@@ -70,8 +74,8 @@ public class TrackMatchIT extends BaseIT {
     }
 
     @Test
-    //correct trackMatch 2 object that start with id 12*
-    public void trackMatchObjectRegular() {
+    //correct trackMatch 2 cars that start with id 12*
+    public void trackMatchCarRegular() {
         Type type = Type.CAR;
         String subId = "12*";
 
@@ -92,6 +96,34 @@ public class TrackMatchIT extends BaseIT {
                 assertEquals("Alcobaca",o.getCamName());
                 assertEquals(Type.CAR, o.getType());
                 assertEquals("2020-03-12 12:12:12", o.getDatetime());
+            }
+        }
+    }
+
+
+    @Test
+    //correct trackMatch 2 persons that start with id 12*
+    public void trackMatchPersonRegular() {
+        Type type = Type.PERSON;
+        String subId = "15*";
+
+
+        TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
+        TrackMatchResponse response = frontend.trackMatchObj(request);
+
+        assertEquals(2,response.getObservationList().size());
+        for (ObservationMessage o : response.getObservationList()) {
+
+            assert o.getId().startsWith("15");
+            if (o.getId().equals("151212")) {
+                assertEquals("Alcobaca",o.getCamName());
+                assertEquals(Type.PERSON, o.getType());
+                assertEquals("2010-09-12 12:12:12", o.getDatetime());
+            }
+            else if (o.getId().equals("151213")) {
+                assertEquals("Alcobaca",o.getCamName());
+                assertEquals(Type.PERSON, o.getType());
+                assertEquals("2010-09-12 12:12:12", o.getDatetime());
             }
         }
     }
@@ -144,7 +176,7 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //no object was found
     public void noObjectFound() {
-        Type type = Type.CAR;
+        Type type = Type.PERSON;
         String subId = "13*";
 
 
@@ -188,5 +220,37 @@ public class TrackMatchIT extends BaseIT {
                         StatusRuntimeException.class, () -> frontend.trackMatchObj(request))
                         .getStatus()
                         .getCode());
+    }
+
+    @Test
+    //no type was given
+    public void noTypeGiven() {
+        String subId = "13*";
+
+
+        TrackMatchRequest request = TrackMatchRequest.newBuilder().setSubId(subId).build();
+
+        assertEquals(INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackMatchObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //no type was given
+    public void noIdGiven() {
+        Type type = Type.CAR;
+
+
+        TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).build();
+
+        assertEquals(INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackMatchObj(request))
+                        .getStatus()
+                        .getCode());
+
     }
 }

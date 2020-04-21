@@ -61,7 +61,7 @@ public class Camera {
         this.log = log;
     }
 
-    public void addObservation(Observation observation) {
+    public synchronized void addObservation(Observation observation) {
         this.observations.add(observation);
         System.out.println("Added observation for object id:" + observation.getId() + " and Type:" + observation.getType() +
                " on " + observation.getDateTime()+ " in camera " + this.name);

@@ -108,7 +108,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
+            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
                 || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
                     || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
                 responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());

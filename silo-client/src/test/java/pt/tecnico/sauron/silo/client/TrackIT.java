@@ -7,6 +7,7 @@ import pt.tecnico.sauron.silo.grpc.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,8 +73,8 @@ public class TrackIT extends BaseIT{
     }
 
     @Test
-    //correct track of one object
-    public void trackOneObject() {
+    //correct track of one car
+    public void trackOneCar() {
         Type type = Type.CAR;
         String id = "12AR12";
 
@@ -88,8 +89,24 @@ public class TrackIT extends BaseIT{
     }
 
     @Test
-    //no object was found
-    public void noObjectFound() {
+    //correct track of one person
+    public void trackOnePerson() {
+        Type type = Type.PERSON;
+        String id = "151217";
+
+
+        TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
+        TrackResponse response = frontend.trackObj(request);
+
+        assertEquals(Type.PERSON, response.getObservation().getType());
+        assertEquals(id, response.getObservation().getId());
+        assertEquals("Alcobaca", response.getObservation().getCamName());
+        assertEquals("2010-09-12 12:12:12", response.getObservation().getDatetime());
+    }
+
+    @Test
+    //no person was found
+    public void noPersonFound() {
         Type type = Type.PERSON;
         String id = "1234521";
 
@@ -103,4 +120,71 @@ public class TrackIT extends BaseIT{
                         .getCode());
 
     }
+
+    @Test
+    //no car was found
+    public void noCarFound() {
+        Type type = Type.PERSON;
+        String id = "1234521";
+
+
+        TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
+
+        assertEquals(NOT_FOUND.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //no type given
+    public void noType() {
+        String id = "12AA12";
+
+        TrackRequest request = TrackRequest.newBuilder().setId(id).build();
+
+        assertEquals(NOT_FOUND.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+    @Test
+    //no id given
+    public void noId() {
+        Type type = Type.PERSON;
+
+        TrackRequest request = TrackRequest.newBuilder().setType(type).build();
+
+        assertEquals(INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
+
+    @Test
+    //unknown type given
+    public void unknownType() {
+        Type type = Type.UNKNOWN;
+        String id = "12345";
+
+
+        TrackRequest request = TrackRequest.newBuilder().setId(id).setType(type).build();
+
+        assertEquals(
+                INVALID_ARGUMENT.getCode(),
+                assertThrows(
+                        StatusRuntimeException.class, () -> frontend.trackObj(request))
+                        .getStatus()
+                        .getCode());
+
+    }
+
 }

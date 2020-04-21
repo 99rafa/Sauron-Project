@@ -25,8 +25,19 @@ public class SiloServerApp {
 			return;
 		}
 
-		final int port = Integer.parseInt(args[0]);
+		final int port;
+		int port1;
+
+		try {
+			port1 = Integer.parseInt(args[0]);
+		}
+		catch (NumberFormatException e) {
+			port1 = 8080;
+		}
+
+		port = port1;
 		final BindableService impl = new SiloServiceImp();
+
 
 		// Create a new server to listen on port
 		Server server = ServerBuilder.forPort(port).addService(impl).build();

@@ -24,9 +24,10 @@ public class Silo {
         this.cameras = cameras;
     }
 
-    public Observation trackObject(Type type, String id){
+    public synchronized Observation trackObject(Type type, String id){
 
         List<Observation> observations = new ArrayList<>();
+
 
         if (type == Type.UNKNOWN){
             throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
@@ -34,6 +35,8 @@ public class Silo {
 
         if(id == null || id.strip().length() == 0)
             throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
+
+
 
         if(type == null)
             throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
@@ -48,13 +51,14 @@ public class Silo {
         if(observations.isEmpty())
             throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
+
         observations.sort(Observation::compareTo);
         Collections.reverse(observations);
 
         return observations.get(0);
     }
 
-    public List<Observation> trackMatchObject(Type type, String  partialId){
+    public synchronized List<Observation> trackMatchObject(Type type, String  partialId){
 
         List<Observation> observations = new ArrayList<>();
 
@@ -118,7 +122,7 @@ public class Silo {
         return observations;
     }
 
-    public void assertMostRecentObservation(List<Observation> observations, Observation obs) {
+    public synchronized void assertMostRecentObservation(List<Observation> observations, Observation obs) {
 
         int i = 0;
         boolean changed = false;
@@ -136,7 +140,7 @@ public class Silo {
         if (!changed) observations.add(obs);
     }
 
-    public List<Observation> traceObject(Type type, String id){
+    public synchronized List<Observation> traceObject(Type type, String id){
 
         List<Observation> res = new ArrayList<>();
 
