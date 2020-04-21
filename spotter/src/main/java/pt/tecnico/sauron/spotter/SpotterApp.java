@@ -101,7 +101,7 @@ public class SpotterApp {
 
 						if (command.equals("spot")) {
 
-							Type t = verifyType(type);
+							String t = verifyType(type);
 
 							if (id.contains("*")) {
 
@@ -134,7 +134,7 @@ public class SpotterApp {
 
 						if (command.equals("trail")) {
 
-							Type t = verifyType(type);
+							String t = verifyType(type);
 
 							try {
 
@@ -166,7 +166,7 @@ public class SpotterApp {
 		List<ObservationMessage> observationList = response.getObservationList();
 
 		for (ObservationMessage om: observationList){
-			if(om.getType().equals(Type.CAR)){
+			if(om.getType().equals("CAR")){
 
 				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
 				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
@@ -176,7 +176,7 @@ public class SpotterApp {
 						camResponse.getLatitude() + "," + camResponse.getLongitude());
 			}
 
-			else if(om.getType().equals(Type.PERSON)){
+			else if(om.getType().equals("PERSON")){
 
 				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
 				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
@@ -192,14 +192,14 @@ public class SpotterApp {
 		CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(response.getObservation().getCamName()).build();
 		CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
 
-		if (response.getObservation().getType().equals(Type.CAR)){
+		if (response.getObservation().getType().equals("CAR")){
 			System.out.println("car" + "," +
 					response.getObservation().getId() + "," + response.getObservation().getDatetime() +
 					"," + response.getObservation().getCamName() + "," + camResponse.getLatitude() + "," +
 					camResponse.getLongitude());
 		}
 
-		else if (response.getObservation().getType().equals(Type.PERSON)){
+		else if (response.getObservation().getType().equals("PERSON")){
 			System.out.println("person" + "," +
 					response.getObservation().getId() + "," + response.getObservation().getDatetime() +
 					"," + response.getObservation().getCamName() + "," + camResponse.getLatitude() + "," +
@@ -214,7 +214,7 @@ public class SpotterApp {
 		List<ObservationMessage> observationList = response.getObservationList();
 
 		for (ObservationMessage om: observationList){
-			if(om.getType().equals(Type.CAR)){
+			if(om.getType().equals("CAR")){
 
 				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
 				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
@@ -224,7 +224,7 @@ public class SpotterApp {
 						camResponse.getLatitude() + "," + camResponse.getLongitude());
 			}
 
-			else if(om.getType().equals(Type.PERSON)){
+			else if(om.getType().equals("PERSON")){
 
 				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
 				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
@@ -237,10 +237,10 @@ public class SpotterApp {
 	}
 
 
-	private static Type verifyType (String string){
-		if(string.equals("car")) return Type.CAR;
-		if(string.equals("person")) return Type.PERSON;
-		else return Type.UNKNOWN;
+	private static String verifyType (String string){
+		if(string.equals("car")) return "CAR";
+		if(string.equals("person")) return "PERSON";
+		else return "";
 	}
 
 	private static boolean checkCommand(String[] args) {

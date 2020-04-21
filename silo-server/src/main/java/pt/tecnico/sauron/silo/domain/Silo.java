@@ -1,8 +1,6 @@
 package pt.tecnico.sauron.silo.domain;
 
-import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
-import pt.tecnico.sauron.silo.exceptions.SiloException;
-import pt.tecnico.sauron.silo.grpc.Type;
+import pt.tecnico.sauron.silo.exceptions.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,52 +22,49 @@ public class Silo {
         this.cameras = cameras;
     }
 
-    public synchronized Observation trackObject(Type type, String id){
+
+    public Observation trackObject(String type, String id){
 
         List<Observation> observations = new ArrayList<>();
 
-
-        if (type == Type.UNKNOWN){
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
-        }
-
+        //Null or empty string id
         if(id == null || id.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
+            throw new InvalidIdException();
 
+        //Null type
+        if(type == null || type.strip().length() == 0)
+            throw new InvalidTypeException();
 
-
-        if(type == null)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
-
+        //Retrieves observations with given type and id
         for(Camera c : this.cameras){
             for (Observation o : c.getObservations()) {
-                if (o.getType() == type && o.getId().equals(id))
+                if (o.getType().equals(type) && o.getId().equals(id))
                     observations.add(o);
             }
         }
 
+        //No observations matched
         if(observations.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
+            throw new NoSuchObjectException();
 
-
+        //Order observations
         observations.sort(Observation::compareTo);
         Collections.reverse(observations);
 
         return observations.get(0);
     }
 
-    public synchronized List<Observation> trackMatchObject(Type type, String  partialId){
+    public List<Observation> trackMatchObject(String type, String  partialId){
 
         List<Observation> observations = new ArrayList<>();
 
-        if (type == Type.UNKNOWN)
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
-
+        //Null or empty string id
         if(partialId == null || partialId.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
+            throw new InvalidIdException();
 
-        if(type == null)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
+        //Null type
+        if(type == null || type.strip().length() == 0)
+            throw new InvalidTypeException();
 
         //If it doesnt have *, it is a simple track
         if(!partialId.contains("*")){
@@ -80,8 +75,10 @@ public class Silo {
 
         //If it just *, throw error
         if(partialId.equals("*"))
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_PART_ID);
+            throw new InvalidIdException(type);
 
+
+        //Gets prefix and suffix from partial ID
         String[] arr = partialId.split("\\*",2);
         String pre = arr[0];
         String suf = arr[1];
@@ -89,24 +86,26 @@ public class Silo {
 
         //More than 1 * throw error
         if(pre.contains("*") || suf.contains("*"))
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_PART_ID);
+            throw new InvalidIdException(type);
+
+        //Retrieves observations with given type and partial id
         for(Camera c : this.cameras){
             for(Observation o : c.getObservations()) {
 
-                if (o.getType() == type) {
+                if (o.getType().equals(type)) {
 
                     //No prefix ex-> *77
                     if (pre.length() == 0 && o.getId().endsWith(suf)) {
                          assertMostRecentObservation(observations,o);
                     }
 
-                        //No suffix ex-> 77*
+                    //No suffix ex-> 77*
                     else if (suf.length() == 0 && o.getId().startsWith(pre)) {
                         assertMostRecentObservation(observations,o);
                     }
 
-                        //Having both prefix and suffix ex-> 22*7
-                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf)) {
+                    //Having both prefix and suffix ex-> 22*7
+                    else if (o.getId().startsWith(pre) && o.getId().endsWith(suf) && o.getId().length() >= (suf.length() + pre.length())) {
                         assertMostRecentObservation(observations,o);
                     }
 
@@ -114,15 +113,18 @@ public class Silo {
             }
         }
 
+        //No Observations Matched
         if(observations.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
+            throw new NoSuchObjectException();
 
+        //Order observations
         observations.sort(Observation::customSort);
 
         return observations;
     }
 
-    public synchronized void assertMostRecentObservation(List<Observation> observations, Observation obs) {
+    //Sets most recent observation
+    public void assertMostRecentObservation(List<Observation> observations, Observation obs) {
 
         int i = 0;
         boolean changed = false;
@@ -140,29 +142,30 @@ public class Silo {
         if (!changed) observations.add(obs);
     }
 
-    public synchronized List<Observation> traceObject(Type type, String id){
+    public List<Observation> traceObject(String type, String id){
 
         List<Observation> res = new ArrayList<>();
 
-        if (type == Type.UNKNOWN)
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
-
+        //Null id or empty string id
         if(id == null || id.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_ID);
+            throw new InvalidIdException();
 
-        if(type == null)
-            throw new SiloException(ErrorMessage.OBJECT_NULL_TYPE);
+        //Null type
+        if(type == null || type.strip().length() == 0)
+            throw new InvalidTypeException();
 
+        //Retrieve observations for the given type nad id
         for(Camera c : this.cameras) {
-            for (Observation o : c.getObservations()) {
-
-                if (o.getType() == type && o.getId().equals(id))
+            for (Observation o : c.getObservations())
+                if (o.getType().equals(type) && o.getId().equals(id))
                     res.add(o);
-            }
         }
-        if(res.isEmpty())
-            throw new SiloException(ErrorMessage.NO_SUCH_OBJECT);
 
+        //No matched objects
+        if(res.isEmpty())
+            throw new NoSuchObjectException();
+
+        //Order observations
         res.sort(Observation::compareTo);
         Collections.reverse(res);
 
@@ -178,26 +181,36 @@ public class Silo {
     }
 
     public synchronized Camera getCameraByName(String camName){
+
+        //Camera name null
         if(camName.equals(null))
-            throw new SiloException(ErrorMessage.CAMERA_NAME_NULL);
+            throw new CameraNameNullException();
+
+        //Find camera for the given name
         for(Camera c : this.cameras){
             if(c.getName().equals(camName))
                 return c;
         }
-        //Throw Exception
-        throw new SiloException(ErrorMessage.NO_SUCH_CAMERA_NAME,camName);
+
+        //No camera found
+        throw new NoSuchCameraNameException(camName);
     }
 
     public synchronized void  addCamera(Camera camera) {
 
+        //Checks for duplicate cameras
         for(Camera c : this.cameras){
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
-                throw new SiloException(ErrorMessage.CAMERA_NAME_NOT_UNIQUE);
+                throw new CameraNameNotUniqueException();
             if(c.getName().equals(camera.getName()))
                 return;
         }
+
+        //Just a system message
         System.out.println("Camera with name:" + camera.getName() + " and latitude:" + camera.getLat() + " and longitude:"
                 + camera.getLog()+ " added to silo");
+
+        //Add camera to lot of cameras
         this.cameras.add(camera);
     }
 
@@ -208,7 +221,6 @@ public class Silo {
     public synchronized void setCameras(List<Camera> cameras) {
         this.cameras = cameras;
     }
-
 
     @Override
     public synchronized String toString() {

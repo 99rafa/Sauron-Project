@@ -7,7 +7,6 @@ import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
 import pt.tecnico.sauron.silo.grpc.ObservationMessage;
 import pt.tecnico.sauron.silo.grpc.ReportRequest;
-import pt.tecnico.sauron.silo.grpc.Type;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -114,14 +113,14 @@ public class EyeApp {
 
 						 String id = observationLine[1];
 
-						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR)
+						 observations.add(ObservationMessage.newBuilder().setType("CAR")
 								 .setId(id));
 
 					 } else if (firstToken.equals("person") && observationLine.length == 2) {
 
 						 String id = observationLine[1];
 
-						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON)
+						 observations.add(ObservationMessage.newBuilder().setType("PERSON")
 								 .setId(id));
 
 					 }

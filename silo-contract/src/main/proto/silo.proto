@@ -9,7 +9,7 @@ option java_multiple_files = true;
 
 //observation object message
 message ObservationMessage{
-    Type type = 1;
+    string type = 1;
     string id = 2;
     string datetime = 3;
     string camName = 4;
@@ -53,7 +53,7 @@ message ReportResponse {
 //track silo operation
 
 message TrackRequest {
-   Type type = 1;
+   string type = 1;
    string id = 2;
 }
 
@@ -64,7 +64,7 @@ message TrackResponse {
 //trackMatch silo operation
 
 message TrackMatchRequest {
-    Type type = 1;
+    string type = 1;
     string subId = 2;
 }
 
@@ -75,7 +75,7 @@ message TrackMatchResponse {
 //trace silo operation
 
 message TraceRequest {
-    Type type = 1;
+    string type = 1;
     string id = 2;
 }
 
@@ -105,12 +105,6 @@ message InitRequest {
 
 message InitResponse {
 
-}
-
-enum Type {
-    PERSON = 0;
-    CAR = 1;
-    UNKNOWN = 2;
 }
 
 enum ServerStatus {

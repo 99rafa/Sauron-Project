@@ -4,8 +4,7 @@ import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.domain.Camera;
 import pt.tecnico.sauron.silo.domain.Observation;
 import pt.tecnico.sauron.silo.domain.Silo;
-import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
-import pt.tecnico.sauron.silo.exceptions.SiloException;
+import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
@@ -19,7 +18,6 @@ import static io.grpc.Status.NOT_FOUND;
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
     private Silo silo = new Silo();
-
 
     @Override
     public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
@@ -35,18 +33,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NOT_UNIQUE)
-                responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_INVALID
-                    || e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
-                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LATITUDE
-                    || e.getErrorMessage() == ErrorMessage.COORDINATES_INVALID_LONGITUDE
-                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LATITUDE
-                    || e.getErrorMessage() == ErrorMessage.COORDINATES_NULL_LONGITUDE)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( CameraNameNotUniqueException e){
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( CameraNameInvalidException  |
+                  CameraNameNullException     |
+                  InvalidCoordinatesException e ) {
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
-
     }
 
     @Override
@@ -67,12 +60,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
-                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( NoSuchCameraNameException e ){
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( CameraNameNullException e ){
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
+
 
     }
 
@@ -81,8 +74,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         try {
 
-            Type type = request.getType();
+            String type = request.getType();
+            checkType(type);
+
             String id = request.getId();
+
             Observation result;
 
             result = silo.trackObject(type, id);
@@ -107,13 +103,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
-                || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
-                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch( InvalidIdException   |
+                 InvalidTypeException e ){
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( NoSuchObjectException e ){
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
     }
@@ -123,7 +117,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
         try {
-            Type type = request.getType();
+            String type = request.getType();
+            checkType(type);
+
             String id = request.getSubId();
             List<Observation> result;
             TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
@@ -153,14 +149,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_PART_ID
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
-                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( InvalidTypeException   |
+                  InvalidIdException     e ){
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( NoSuchObjectException e ){
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
     }
@@ -171,7 +164,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         try {
 
-            Type type = request.getType();
+            String type = request.getType();
+            checkType(type);
+
             String id = request.getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
@@ -201,14 +196,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.OBJECT_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBJECT_INVALID_TYPE)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_OBJECT)
-                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( InvalidIdException   |
+                  InvalidTypeException e ){
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( NoSuchObjectException e){
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
+
 
     }
 
@@ -225,6 +219,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
                 observationMessages = request.getObservationList();
                 for (ObservationMessage om : observationMessages) {
+                    checkType(om.getType());
                     cam.addObservation(new Observation(om.getType()
                             , om.getId()
                             , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
@@ -245,17 +240,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-
-        } catch (SiloException e) {
-            if(e.getErrorMessage() == ErrorMessage.NO_SUCH_CAMERA_NAME)
-                responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-            if(e.getErrorMessage() == ErrorMessage.CAMERA_NAME_NULL
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_TYPE
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_ID
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_DATE
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_INVALID_ID
-                    || e.getErrorMessage() == ErrorMessage.OBSERVATION_NULL_DATE)
-                responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( NoSuchCameraNameException e ){
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch ( CameraNameNullException  |
+                  InvalidTypeException     |
+                  InvalidIdException       |
+                  InvalidDateException     e){
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
     }
@@ -307,6 +298,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         responseObserver.onCompleted();
 
 
+    }
+
+    //Checks if type is valid
+    private void checkType(String type){
+          if(type == null || type.strip().length() == 0) {
+              throw new InvalidTypeException();
+          }
+          if( !type.equals("PERSON") &&
+              !type.equals("CAR") ){
+              throw new InvalidTypeException(type);
+        }
     }
 
 

@@ -47,8 +47,8 @@ public class ReportIT extends BaseIT{
     public void report3CorrectObservations(){
         String date = "2019-12-12 12:12:12";
         String camName = "Vale das Mos";
-        Type car = Type.CAR;
-        Type person = Type.PERSON;
+        String car = "CAR";
+        String person = "PERSON";
 
 
         ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
@@ -81,8 +81,8 @@ public class ReportIT extends BaseIT{
     public void reportInvalidObsId(){
         String date = "2019-12-12 12:12:12";
         String camName = "Vale das Mos";
-        Type car = Type.CAR;
-        Type person = Type.PERSON;
+        String car = "CAR";
+        String person = "PERSON";
 
         ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
                 .setDatetime(date)
@@ -125,7 +125,7 @@ public class ReportIT extends BaseIT{
     public void reportInvalidDate(){
         String date = "2021-12-12 12:12:12";
         String camName = "Vale das Mos";
-        Type person = Type.PERSON;
+        String person = "PERSON";
 
         ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
                 .setDatetime(date)
@@ -149,7 +149,7 @@ public class ReportIT extends BaseIT{
     public void reportNonExistingCamera(){
         String date = "2019-12-12 12:12:12";
         String camName = "NOT Mos";
-        Type person = Type.PERSON;
+        String person = "PERSON";
 
         ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
                 .setDatetime(date)

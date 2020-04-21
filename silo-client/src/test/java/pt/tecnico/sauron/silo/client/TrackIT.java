@@ -4,8 +4,6 @@ import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
@@ -39,10 +37,10 @@ public class TrackIT extends BaseIT{
         CamJoinRequest joinRequest2 = CamJoinRequest.newBuilder().setCamName(camName2).setLatitude(15.3).setLongitude(53.2).build();
         frontend.camJoin(joinRequest1);
         frontend.camJoin(joinRequest2);
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id1).setDatetime(date1).build();
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id2).setDatetime(date2).build();
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id1).setDatetime(date3).build();
-        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType(Type.PERSON).setId(id3).setDatetime(date4).build();
+        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date1).build();
+        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR" ).setId(id2).setDatetime(date2).build();
+        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date3).build();
+        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON" ).setId(id3).setDatetime(date4).build();
         ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
         ReportRequest request2 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage2).build();
         ReportRequest request3 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage3).build();
@@ -73,16 +71,16 @@ public class TrackIT extends BaseIT{
     }
 
     @Test
-    //correct track of one car
-    public void trackOneCar() {
-        Type type = Type.CAR;
+    //correct track of one object
+    public void trackOneObject() {
+        String type = "CAR" ;
         String id = "12AR12";
 
 
         TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
         TrackResponse response = frontend.trackObj(request);
 
-            assertEquals(Type.CAR, response.getObservation().getType());
+            assertEquals("CAR" , response.getObservation().getType());
             assertEquals(id, response.getObservation().getId());
             assertEquals("Vale das Mos", response.getObservation().getCamName());
             assertEquals("2015-09-12 12:12:12", response.getObservation().getDatetime());
@@ -91,14 +89,14 @@ public class TrackIT extends BaseIT{
     @Test
     //correct track of one person
     public void trackOnePerson() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "151217";
 
 
         TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
         TrackResponse response = frontend.trackObj(request);
 
-        assertEquals(Type.PERSON, response.getObservation().getType());
+        assertEquals("PERSON", response.getObservation().getType());
         assertEquals(id, response.getObservation().getId());
         assertEquals("Alcobaca", response.getObservation().getCamName());
         assertEquals("2010-09-12 12:12:12", response.getObservation().getDatetime());
@@ -107,7 +105,7 @@ public class TrackIT extends BaseIT{
     @Test
     //no person was found
     public void noPersonFound() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "1234521";
 
 
@@ -124,7 +122,7 @@ public class TrackIT extends BaseIT{
     @Test
     //no car was found
     public void noCarFound() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "1234521";
 
 
@@ -145,7 +143,7 @@ public class TrackIT extends BaseIT{
 
         TrackRequest request = TrackRequest.newBuilder().setId(id).build();
 
-        assertEquals(NOT_FOUND.getCode(),
+        assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
                         StatusRuntimeException.class, () -> frontend.trackObj(request))
                         .getStatus()
@@ -156,7 +154,7 @@ public class TrackIT extends BaseIT{
     @Test
     //no id given
     public void noId() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
 
         TrackRequest request = TrackRequest.newBuilder().setType(type).build();
 
@@ -172,7 +170,7 @@ public class TrackIT extends BaseIT{
     @Test
     //unknown type given
     public void unknownType() {
-        Type type = Type.UNKNOWN;
+        String type = "DINOSSAURO";
         String id = "12345";
 
 

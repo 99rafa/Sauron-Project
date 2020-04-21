@@ -39,10 +39,10 @@ public class TraceIT extends BaseIT {
         CamJoinRequest joinRequest2 = CamJoinRequest.newBuilder().setCamName(camName2).setLatitude(15.3).setLongitude(53.2).build();
         frontend.camJoin(joinRequest1);
         frontend.camJoin(joinRequest2);
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id1).setDatetime(date1).build();
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id2).setDatetime(date2).build();
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType(Type.CAR).setId(id1).setDatetime(date3).build();
-        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType(Type.PERSON).setId(id3).setDatetime(date4).build();
+        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date1).build();
+        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR").setId(id2).setDatetime(date2).build();
+        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date3).build();
+        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON").setId(id3).setDatetime(date4).build();
         ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
         ReportRequest request2 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage2).build();
         ReportRequest request3 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage3).build();
@@ -74,9 +74,10 @@ public class TraceIT extends BaseIT {
     }
 
     @Test
-    //correct trace of one car whose observations are spread through 2 cameras
-    public void traceOneCar() {
-        Type type = Type.CAR;
+
+    //correct trace of one object whose observations are spread through 2 cameras
+    public void traceOneObject() {
+        String type = "CAR";
         String id = "12AR12";
         LocalDateTime dt1 = null, dt2;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -86,7 +87,7 @@ public class TraceIT extends BaseIT {
         TraceResponse response = frontend.traceObj(request);
 
         for (ObservationMessage o : response.getObservationList()) {
-            assertEquals(Type.CAR, o.getType());
+            assertEquals("CAR", o.getType());
             assertEquals(id, o.getId());
             if (dt1 == null) dt1 = LocalDateTime.parse(o.getDatetime(), formatter);
             else {
@@ -103,7 +104,7 @@ public class TraceIT extends BaseIT {
     @Test
     //correct trace of one person whose observations are spread through 2 cameras
     public void traceOnePerson() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "123456";
         LocalDateTime dt1 = null, dt2;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -113,7 +114,7 @@ public class TraceIT extends BaseIT {
         TraceResponse response = frontend.traceObj(request);
 
         for (ObservationMessage o : response.getObservationList()) {
-            assertEquals(Type.PERSON, o.getType());
+            assertEquals("PERSON", o.getType());
             assertEquals(id, o.getId());
             if (dt1 == null) dt1 = LocalDateTime.parse(o.getDatetime(), formatter);
             else {
@@ -130,7 +131,7 @@ public class TraceIT extends BaseIT {
     @Test
     //no person was found with given id
     public void noPersonFound() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "1234521";
 
 
@@ -147,7 +148,7 @@ public class TraceIT extends BaseIT {
     @Test
     //no car was found with given id
     public void noCarFound() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
         String id = "12AA12";
 
 
@@ -181,7 +182,7 @@ public class TraceIT extends BaseIT {
     @Test
     //no id given
     public void noId() {
-        Type type = Type.PERSON;
+        String type = "PERSON";
 
 
         TraceRequest request = TraceRequest.newBuilder().setType(type).build();
@@ -198,7 +199,7 @@ public class TraceIT extends BaseIT {
     @Test
     //unknown type given
     public void unknownType() {
-        Type type = Type.UNKNOWN;
+        String type = "DINOSSAURO";
         String id = "12345";
 
 

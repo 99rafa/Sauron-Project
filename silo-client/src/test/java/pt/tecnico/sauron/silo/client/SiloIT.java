@@ -45,11 +45,11 @@ public class SiloIT extends BaseIT {
 		String id2 = "12";
 		String id4 = "122";
 
-		ObservationMessage o1 = ObservationMessage.newBuilder().setDatetime(date1).setId(id1).setType(Type.PERSON).build();
-		ObservationMessage o2 = ObservationMessage.newBuilder().setDatetime(date2).setId(id2).setType(Type.PERSON).build();
-		ObservationMessage o3 = ObservationMessage.newBuilder().setDatetime(date3).setId(id1).setType(Type.PERSON).build();
-		ObservationMessage o4 = ObservationMessage.newBuilder().setDatetime(date4).setId(id4).setType(Type.PERSON).build();
-		ObservationMessage o5 = ObservationMessage.newBuilder().setDatetime(date5).setId(id4).setType(Type.PERSON).build();
+		ObservationMessage o1 = ObservationMessage.newBuilder().setDatetime(date1).setId(id1).setType("PERSON").build();
+		ObservationMessage o2 = ObservationMessage.newBuilder().setDatetime(date2).setId(id2).setType("PERSON").build();
+		ObservationMessage o3 = ObservationMessage.newBuilder().setDatetime(date3).setId(id1).setType("PERSON").build();
+		ObservationMessage o4 = ObservationMessage.newBuilder().setDatetime(date4).setId(id4).setType("PERSON").build();
+		ObservationMessage o5 = ObservationMessage.newBuilder().setDatetime(date5).setId(id4).setType("PERSON").build();
 
 
 		ReportRequest request3 = ReportRequest.newBuilder()
@@ -116,11 +116,11 @@ public class SiloIT extends BaseIT {
 
 	@Test
 	public void track(){
-		TrackRequest request = TrackRequest.newBuilder().setId("1").setType(Type.PERSON).build();
+		TrackRequest request = TrackRequest.newBuilder().setId("1").setType("PERSON").build();
 		TrackResponse response = frontend.trackObj(request);
 		ObservationMessage obs = response.getObservation();
 		String cam = obs.getCamName();
-		Type t = obs.getType();
+		String t = obs.getType();
 		String date = obs.getDatetime();
 		String id = obs.getId();
 
@@ -128,31 +128,31 @@ public class SiloIT extends BaseIT {
 		assertEquals("1", id);
 		assertEquals("2001-02-12 12:12:12",date);
 		assertEquals("Vale das Mos",cam);
-		assertEquals(t,Type.PERSON);
+		assertEquals(t,"PERSON");
 
 
 	}
 
 	@Test
 	public void trackMatch(){
-		TrackMatchRequest request = TrackMatchRequest.newBuilder().setSubId("1*").setType(Type.PERSON).build();
+		TrackMatchRequest request = TrackMatchRequest.newBuilder().setSubId("1*").setType("PERSON").build();
 		TrackMatchResponse response = frontend.trackMatchObj(request);
 		List<ObservationMessage> obsv = response.getObservationList();
 
-		ObservationMessage obs2 = obsv.get(0);
-		ObservationMessage obs1 = obsv.get(1);
+		ObservationMessage obs1 = obsv.get(0);
+		ObservationMessage obs2 = obsv.get(1);
 
 
 		assertEquals("1",obs1.getId());
 		assertEquals("2001-02-12 12:12:12",obs1.getDatetime());
 		assertEquals("Vale das Mos",obs1.getCamName());
-		assertEquals(Type.PERSON,obs1.getType());
+		assertEquals("PERSON",obs1.getType());
 
 		assertEquals("12",obs2.getId());
 		assertEquals("2000-02-12 12:12:12",obs2.getDatetime());
 		assertEquals("Vale das Mos",obs2.getCamName());
 
-		request = TrackMatchRequest.newBuilder().setSubId("*2").setType(Type.PERSON).build();
+		request = TrackMatchRequest.newBuilder().setSubId("*2").setType("PERSON").build();
 		response = frontend.trackMatchObj(request);
 		obsv = response.getObservationList();
 
@@ -162,17 +162,17 @@ public class SiloIT extends BaseIT {
 		assertEquals("12",obs1.getId());
 		assertEquals("2000-02-12 12:12:12",obs1.getDatetime());
 		assertEquals("Vale das Mos",obs1.getCamName());
-		assertEquals(Type.PERSON,obs1.getType());
+		assertEquals("PERSON",obs1.getType());
 
 		assertEquals("122",obs2.getId());
 		assertEquals("2003-02-12 12:12:12",obs2.getDatetime());
 		assertEquals("Alcobaca",obs2.getCamName());
-		assertEquals(Type.PERSON,obs2.getType());
+		assertEquals("PERSON",obs2.getType());
 	}
 
 	@Test
 	public void trace(){
-		TraceRequest request = TraceRequest.newBuilder().setId("1").setType(Type.PERSON).build();
+		TraceRequest request = TraceRequest.newBuilder().setId("1").setType("PERSON").build();
 		TraceResponse response = frontend.traceObj(request);
 		List<ObservationMessage> obsv = response.getObservationList();
 
@@ -182,12 +182,12 @@ public class SiloIT extends BaseIT {
 		assertEquals("1",obs1.getId());
 		assertEquals("2001-02-12 12:12:12",obs1.getDatetime());
 		assertEquals("Vale das Mos",obs1.getCamName());
-		assertEquals(Type.PERSON,obs1.getType());
+		assertEquals("PERSON",obs1.getType());
 
 		assertEquals("1",obs2.getId());
 		assertEquals("1999-02-12 12:12:12",obs2.getDatetime());
 		assertEquals("Alcobaca",obs2.getCamName());
-		assertEquals(Type.PERSON,obs2.getType());
+		assertEquals("PERSON",obs2.getType());
 
 	}
 }
