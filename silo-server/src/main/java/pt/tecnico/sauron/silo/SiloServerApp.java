@@ -4,12 +4,15 @@ package pt.tecnico.sauron.silo;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
 
 public class SiloServerApp {
 	
-	public static void main(String[] args) throws IOException, InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException, ZKNamingException {
+		ZKNaming zkNaming = null;
 		System.out.println(SiloServerApp.class.getSimpleName());
 
 		// receive and print arguments
@@ -25,33 +28,55 @@ public class SiloServerApp {
 			return;
 		}
 
+		final String zooHost;
+		final String zooPort;
+		final String host;
 		final int port;
+		final String path;
+		final String portBind = args[4];
 		int port1;
 
+
 		try {
-			port1 = Integer.parseInt(args[0]);
-		}
-		catch (NumberFormatException e) {
-			port1 = 8080;
+			port1 = Integer.parseInt(args[4]);
+		} catch (NumberFormatException e) {
+			port1 = 8081;
 		}
 
+		zooHost = args[0];
+		zooPort = args[1];
+		path = "/grpc/sauron/silo/" + args[2];
+		host = args[3];
 		port = port1;
-		final BindableService impl = new SiloServiceImp();
 
+		try {
 
-		// Create a new server to listen on port
-		Server server = ServerBuilder.forPort(port).addService(impl).build();
+			final BindableService impl = new SiloServiceImp();
 
-		// Start the server
-		server.start();
+			// Create a new server to listen on port
+			Server server = ServerBuilder.forPort(port).addService(impl).build();
 
-		// Server threads are running in the background.
-		System.out.println("Server started");
+			zkNaming = new ZKNaming(zooHost, zooPort);
+			// publish
+			zkNaming.rebind(path, host, portBind);
 
-		// Do not exit the main thread. Wait until server is terminated.
-		server.awaitTermination();
+			// Start the server
+			server.start();
 
-		System.out.println("> Server Closing");
+			// Server threads are running in the background.
+			System.out.println("Server started");
+
+			// Do not exit the main thread. Wait until server is terminated.
+			server.awaitTermination();
+
+			System.out.println("> Server Closing");
+
+		} finally {
+			if (zkNaming != null) {
+				// remove
+				zkNaming.unbind(path,host,portBind);
+			}
+		}
 	}
 	
 }

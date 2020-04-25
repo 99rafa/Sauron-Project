@@ -16,8 +16,11 @@
 	<properties>
 		<!-- see parent POM for more properties -->
 
-		<mainclass>pt.tecnico.sauron.eye.EyeApp</mainclass>
 
+		<zoo.host>localhost</zoo.host>
+		<zoo.port>2181</zoo.port>
+
+		<mainclass>pt.tecnico.sauron.eye.EyeApp</mainclass>
 	</properties>
 
 	<dependencies>
@@ -73,7 +76,8 @@
 				<configuration>
 					<mainClass>${mainclass}</mainClass>
 					<arguments>
-
+						<argument>${zoo.host}</argument>
+						<argument>${zoo.port}</argument>
 					</arguments>
 				</configuration>
 			</plugin>

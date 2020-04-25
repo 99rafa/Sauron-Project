@@ -3,16 +3,47 @@ package pt.tecnico.sauron.silo.client;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.tecnico.sauron.silo.grpc.*;
+import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
+import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Random;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 
 public class SiloFrontend implements AutoCloseable {
     private final ManagedChannel channel;
     private final SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
-    public SiloFrontend(String host, int port) {
+    public SiloFrontend(String zooHost, String zooPort, String repN) throws ZKNamingException {
 
-        this.channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+        Random random = new Random();
+        final String path;
+        System.out.println(zooHost + ":" + zooPort);
+        ZKNaming zkNaming = new ZKNaming(zooHost,zooPort);
+        ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
+
+        for(ZKRecord r : recs) {
+            System.out.println(r.getURI());
+            System.out.println(r.getPath());
+        }
+
+        if(repN.equals(""))
+            path = recs.get(random.nextInt(recs.size())).getPath();
+        else
+            path = "/grpc/sauron/silo/" + repN;
+
+        System.out.println(path);
+
+        // lookup
+        ZKRecord record = zkNaming.lookup(path);
+        String target = record.getURI();
+
+        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
         // Create a blocking stub.
         stub = SiloOperationsServiceGrpc.newBlockingStub(channel);

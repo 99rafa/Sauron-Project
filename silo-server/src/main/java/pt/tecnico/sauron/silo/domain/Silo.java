@@ -200,8 +200,10 @@ public class Silo {
 
         //Checks for duplicate cameras
         for(Camera c : this.cameras){
+            //Same name different coordinates
             if(c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new CameraNameNotUniqueException();
+            //Same name same coordinates
             if(c.getName().equals(camera.getName()))
                 return;
         }

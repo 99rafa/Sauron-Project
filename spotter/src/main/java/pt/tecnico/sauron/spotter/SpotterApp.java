@@ -5,6 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.*;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,19 +27,23 @@ public class SpotterApp {
 			if (args.length < 2) {
 				throw new IOException();
 
-			} else if (args.length > 2) {
+			} else if (args.length > 3) {
 				throw new IOException();
 			}
 
 			final String host = args[0];
-			final int port = Integer.parseInt(args[1]);
-
+			final String port = args[1];
+			final String repN;
+			if(args.length == 3)
+				repN = args[2];
+			else
+				repN = "";
 
 			final String target = host + ":" + port;
 
 			final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
-			SiloFrontend siloFrontend = new SiloFrontend(host, port);
+			SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
 
 			while (scanner.hasNextLine() ) {
 				String[] spotterTokens = scanner.nextLine().split(" ");
@@ -155,7 +160,7 @@ public class SpotterApp {
 			System.out.println("> Closing client");
 			channel.shutdownNow();
 
-		} catch (IOException e){
+		} catch (IOException | ZKNamingException e){
 			System.out.println("Caught exception with description: Invalid input");
 		}
 

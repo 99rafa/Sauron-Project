@@ -7,6 +7,7 @@ import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
 import pt.tecnico.sauron.silo.grpc.ObservationMessage;
 import pt.tecnico.sauron.silo.grpc.ReportRequest;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -29,22 +30,27 @@ public class EyeApp {
 				if (args.length < 5) {
 					throw new IOException();
 
-				} else if (args.length > 5) {
+				} else if (args.length > 6) {
 					throw new IOException();
 				}
 
-
 				final String host = args[0];
-				final int port = Integer.parseInt(args[1]);
+				final String port = args[1];
 
 				final String camName = args[2];
 				final double latitude = Double.parseDouble(args[3]);
 				final double longitude = Double.parseDouble(args[4]);
+				final String repN;
+
+				if(args.length == 6)
+					repN = args[5];
+				else
+					repN = "";
 
 				final String target = host + ":" + port;
 				final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
-				SiloFrontend siloFrontend = new SiloFrontend(host, port);
+				SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
 				
 
 				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
@@ -71,6 +77,8 @@ public class EyeApp {
 				System.out.println("Caught exception with description: " +
 						e.getStatus().getDescription());
 
+			} catch (ZKNamingException e) {
+				e.printStackTrace();
 			}
 		} finally {
 			System.out.println("> Client Closing");

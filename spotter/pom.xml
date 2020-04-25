@@ -18,6 +18,10 @@
 	<properties>
 		<!-- see parent POM for more properties -->
 
+		<zoo.host>localhost</zoo.host>
+		<zoo.port>2181</zoo.port>
+
+
 		<mainclass>pt.tecnico.sauron.spotter.SpotterApp</mainclass>
 	</properties>
 
@@ -68,6 +72,8 @@
 				<configuration>
 					<mainClass>${mainclass}</mainClass>
 					<arguments>
+						<argument>${zoo.host}</argument>
+						<argument>${zoo.port}</argument>
 					</arguments>
 				</configuration>
 			</plugin>
