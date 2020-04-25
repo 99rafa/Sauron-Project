@@ -5,10 +5,19 @@ import pt.tecnico.sauron.silo.grpc.ClearRequest;
 import pt.tecnico.sauron.silo.grpc.ClearResponse;
 import pt.tecnico.sauron.silo.grpc.InitRequest;
 import pt.tecnico.sauron.silo.grpc.InitResponse;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 public class InitIT extends BaseIT {
 
-    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend;
+
+    static {
+        try {
+            frontend = new SiloFrontend("localhost", "2181","");
+        } catch (ZKNamingException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     // one-time initialization and clean-up

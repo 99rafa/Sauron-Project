@@ -3,6 +3,7 @@ package pt.tecnico.sauron.silo.client;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 
 import static io.grpc.Status.INVALID_ARGUMENT;
@@ -12,7 +13,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TrackIT extends BaseIT{
 
-    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend;
+
+    static {
+        try {
+            frontend = new SiloFrontend("localhost", "2181","");
+        } catch (ZKNamingException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     // one-time initialization and clean-up

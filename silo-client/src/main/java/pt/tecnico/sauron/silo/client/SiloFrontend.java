@@ -23,14 +23,8 @@ public class SiloFrontend implements AutoCloseable {
 
         Random random = new Random();
         final String path;
-        System.out.println(zooHost + ":" + zooPort);
         ZKNaming zkNaming = new ZKNaming(zooHost,zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
-
-        for(ZKRecord r : recs) {
-            System.out.println(r.getURI());
-            System.out.println(r.getPath());
-        }
 
         if(repN.equals(""))
             path = recs.get(random.nextInt(recs.size())).getPath();

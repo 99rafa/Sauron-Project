@@ -6,13 +6,22 @@ import pt.tecnico.sauron.silo.grpc.CamInfoRequest;
 import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
 import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CamInfoIT extends BaseIT {
-    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend;
+
+    static {
+        try {
+            frontend = new SiloFrontend("localhost", "2181","");
+        } catch (ZKNamingException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     // one-time initialization and clean-up
