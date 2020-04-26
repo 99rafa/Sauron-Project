@@ -2,13 +2,18 @@ package pt.tecnico.sauron.silo;
 
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.domain.Camera;
+import pt.tecnico.sauron.silo.domain.LogRecords;
 import pt.tecnico.sauron.silo.domain.Observation;
 import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static io.grpc.Status.ALREADY_EXISTS;
 import static io.grpc.Status.INVALID_ARGUMENT;
@@ -19,6 +24,18 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     private Integer replicaNumber;
     private Silo silo = new Silo();
+
+    private Map<Integer, Integer> replicaTS = new ConcurrentHashMap<Integer, Integer>();
+
+    private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
+
+    private Map<Integer, Integer> valueTS = new ConcurrentHashMap<Integer, Integer>();
+
+    private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
+
+    private Map<Integer, Integer> prevTS = new ConcurrentHashMap<Integer, Integer>();
+
+    private List<ClientRequest> pendingQueries = new CopyOnWriteArrayList<>();
 
 
     public SiloServiceImp(Integer repN) {
@@ -37,7 +54,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
 
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
@@ -51,10 +68,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
+    public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
-            String camName = request.getCamName();
+            String camName = request.getCamInfoRequest().getCamName();
             Camera camera = silo.getCameraByName(camName);
 
             CamInfoResponse response = CamInfoResponse.newBuilder()
@@ -62,8 +79,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setLongitude(camera.getLog())
                     .build();
 
+            ClientResponse clientResponse = ClientResponse.newBuilder().setCamInfoResponse(response).build();
+
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
 
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
@@ -78,14 +97,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
+    public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
-            String type = request.getType();
+            String type = request.getTrackRequest().getType();
             checkType(type);
 
-            String id = request.getId();
+            String id = request.getTrackRequest().getId();
 
             Observation result;
 
@@ -105,8 +124,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             System.out.println("Sending most recent observation of object with id:" + id + " and type:" +type + "..." );
 
+            ClientResponse clientResponse = ClientResponse.newBuilder().setTrackResponse(response).build();
+
+
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
 
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
@@ -121,14 +143,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
+    public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
 
         try {
-            String type = request.getType();
+            String type = request.getTrackMatchRequest().getType();
             checkType(type);
 
-            String id = request.getSubId();
+            String id = request.getTrackMatchRequest().getSubId();
             List<Observation> result;
             TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
 
@@ -151,8 +173,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             TrackMatchResponse response = builder.build();
 
             System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" +type + "...");
+
+            ClientResponse clientResponse = ClientResponse.newBuilder().setTrackMatchResponse(response).build();
+
+
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
 
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
@@ -168,14 +194,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     @Override
-    public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
+    public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
-            String type = request.getType();
+            String type = request.getTraceRequest().getType();
             checkType(type);
 
-            String id = request.getId();
+            String id = request.getTraceRequest().getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
 
@@ -198,8 +224,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             System.out.println("Sending trace path of object with id:" + id + " and type:" +type + "...");
+
+            ClientResponse clientResponse = ClientResponse.newBuilder().setTraceResponse(response).build();
+
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
 
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
@@ -215,17 +244,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
+    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
-            String camName = request.getCamName();
+            String camName = request.getReportRequest().getCamName();
             List<ObservationMessage> observationMessages;
 
             if (silo.checkIfCameraExists(camName)) {
 
                 Camera cam = silo.getCameraByName(camName);
 
-                observationMessages = request.getObservationList();
+                observationMessages = request.getReportRequest().getObservationList();
                 for (ObservationMessage om : observationMessages) {
                     checkType(om.getType());
                     cam.addObservation(new Observation(om.getType()
@@ -242,8 +271,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             ReportResponse response = ReportResponse.newBuilder().build();
 
+            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
+
+
             // Send a single response through the stream.
-            responseObserver.onNext(response);
+            responseObserver.onNext(clientResponse);
 
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
@@ -260,9 +292,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void ctrlPing(PingRequest request, StreamObserver<PingResponse> responseObserver) {
+    public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        String inputText = request.getInputCommand();
+        String inputText = request.getPingRequest().getInputCommand();
 
         if (inputText == null || inputText.isBlank()) {
             responseObserver.onError(INVALID_ARGUMENT
@@ -274,14 +306,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
         System.out.println("Ping request received");
 
+        ClientResponse clientResponse = ClientResponse.newBuilder().setPingResponse(response).build();
+
+
         // Send a single response through the stream.
-        responseObserver.onNext(response);
+        responseObserver.onNext(clientResponse);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
 
     @Override
-    public void ctrlClear(ClearRequest request, StreamObserver<ClearResponse> responseObserver) {
+    public void ctrlClear(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         //silo.clearData();
         ClearResponse response = ClearResponse.newBuilder().build();
@@ -289,26 +324,75 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         //Clears server info
         silo = new Silo();
         System.out.println("System state cleared");
+
+        ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).build();
+
         // Send a single response through the stream.
-        responseObserver.onNext(response);
+        responseObserver.onNext(clientResponse);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
 
     @Override
-    public void ctrlInit(InitRequest request, StreamObserver<InitResponse> responseObserver) {
+    public void ctrlInit(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         InitResponse response = InitResponse.newBuilder().build();
 
+        ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).build();
+
+
         // Send a single response through the stream.
-        responseObserver.onNext(response);
+        responseObserver.onNext(clientResponse);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
 
 
     }
 
+    public synchronized void updateSiloState(Integer replicaNumber, ClientRequest request) {
 
+        if (isInExecutedUpdates(request.getOpId())) {}
+
+        increaseReplicaTS(replicaNumber);
+
+        Map<Integer,Integer> updateTS = this.replicaTS;
+        LogRecords logRecord = new LogRecords(replicaNumber, updateTS,request, this.prevTS,request.getOpId());
+
+        updateLog.add(logRecord);
+
+
+    }
+
+    public synchronized boolean processReadRequest(ClientRequest e) {
+        if (happensBefore(this.prevTS, this.valueTS)) {
+            return true;
+        }
+        else {
+            this.pendingQueries.add(e);
+            return false;
+        }
+    }
+
+    public synchronized void increaseReplicaTS(Integer replicaNumber) {
+        this.replicaTS.merge(replicaNumber, 1, Integer::sum);
+    }
+
+
+    //checks if update has already been done
+    private synchronized boolean isInExecutedUpdates(String operationID) {
+        return !this.executedOpsTable.contains(operationID);
+    }
+
+    //checks if a happens before b
+    private boolean happensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
+
+        boolean isBefore = true;
+        for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
+            Integer valueB = b.get(entryA.getKey());
+            if ( entryA.getValue() > valueB) isBefore = false;
+        }
+        return isBefore;
+    }
 
     //Checks if type is valid
     private void checkType(String type){
@@ -322,5 +406,59 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         }
     }
 
+    public Integer getReplicaNumber() {
+        return replicaNumber;
+    }
 
+    public void setReplicaNumber(Integer replicaNumber) {
+        this.replicaNumber = replicaNumber;
+    }
+
+    public Silo getSilo() {
+        return silo;
+    }
+
+    public void setSilo(Silo silo) {
+        this.silo = silo;
+    }
+
+    public Map<Integer, Integer> getReplicaTS() {
+        return replicaTS;
+    }
+
+    public void setReplicaTS(Map<Integer, Integer> replicaTS) {
+        this.replicaTS = replicaTS;
+    }
+
+    public List<LogRecords> getUpdateLog() {
+        return updateLog;
+    }
+
+    public void setUpdateLog(List<LogRecords> updateLog) {
+        this.updateLog = updateLog;
+    }
+
+    public Map<Integer, Integer> getValueTS() {
+        return valueTS;
+    }
+
+    public void setValueTS(Map<Integer, Integer> valueTS) {
+        this.valueTS = valueTS;
+    }
+
+    public List<String> getExecutedOpsTable() {
+        return executedOpsTable;
+    }
+
+    public void setExecutedOpsTable(List<String> executedOpsTable) {
+        this.executedOpsTable = executedOpsTable;
+    }
+
+    public Map<Integer, Integer> getPrevTS() {
+        return prevTS;
+    }
+
+    public void setPrevTS(Map<Integer, Integer> prevTS) {
+        this.prevTS = prevTS;
+    }
 }

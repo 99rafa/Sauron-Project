@@ -48,7 +48,7 @@ message ClientResponse {
     CamJoinResponse camJoinResponse = 2;
     CamInfoResponse camInfoResponse = 3;
     ReportResponse reportResponse = 4;
-    TrackResponse trackRequest = 5;
+    TrackResponse trackResponse = 5;
     TrackMatchResponse trackMatchResponse = 6;
     TraceResponse traceResponse = 7;
     PingResponse pingResponse = 8;

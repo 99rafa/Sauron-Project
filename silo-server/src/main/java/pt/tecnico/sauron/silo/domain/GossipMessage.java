@@ -2,15 +2,17 @@ package pt.tecnico.sauron.silo.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GossipMessage {
     private LogRecords log;
-    private List<Integer> repTs = new ArrayList<>();
+    private Map<Integer, Integer> repTs = new ConcurrentHashMap<Integer, Integer>();
 
     public GossipMessage() {
     }
 
-    public GossipMessage(LogRecords log, List<Integer> repTs) {
+    public GossipMessage(LogRecords log, Map<Integer, Integer> repTs) {
         this.log = log;
         this.repTs = repTs;
     }
@@ -23,11 +25,11 @@ public class GossipMessage {
         this.log = log;
     }
 
-    public List<Integer> getRepTs() {
+    public Map<Integer, Integer> getRepTs() {
         return repTs;
     }
 
-    public void setRepTs(List<Integer> repTs) {
+    public void setRepTs(Map<Integer, Integer> repTs) {
         this.repTs = repTs;
     }
 }

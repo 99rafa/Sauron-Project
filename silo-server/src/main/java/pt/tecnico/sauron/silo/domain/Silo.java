@@ -3,6 +3,7 @@ package pt.tecnico.sauron.silo.domain;
 import pt.tecnico.sauron.silo.exceptions.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -12,14 +13,6 @@ public class Silo {
 
     //our replica current value is the state of this list of cameras
     private List<Camera> cameras = new CopyOnWriteArrayList<>();
-
-    private Map<Integer, Integer> replicaTS = new HashMap<Integer, Integer>();
-
-    private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
-
-    private Map<Integer, Integer> valueTS = new HashMap<Integer, Integer>();
-
-    private List<Integer> executedOpsTable = new CopyOnWriteArrayList<>();
 
 
     public Silo() {
@@ -224,9 +217,6 @@ public class Silo {
         this.cameras.add(camera);
     }
 
-    public synchronized void increaseReplicaTS(Integer replicaNumber) {
-        if (replicaTS.get())
-    }
 
     public synchronized List<Camera> getCameras() {
         return this.cameras;
@@ -235,6 +225,7 @@ public class Silo {
     public synchronized void setCameras(List<Camera> cameras) {
         this.cameras = cameras;
     }
+
 
     @Override
     public synchronized String toString() {
