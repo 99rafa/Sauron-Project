@@ -1,6 +1,5 @@
-package pt.tecnico.sauron.silo.domain;
+package pt.tecnico.sauron.silo.api;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

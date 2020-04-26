@@ -1,12 +1,16 @@
 package pt.tecnico.sauron.silo;
 
 import io.grpc.stub.StreamObserver;
+import pt.tecnico.sauron.silo.api.GossipMessage;
+import pt.tecnico.sauron.silo.api.LogRecords;
+import pt.tecnico.sauron.silo.api.Operation;
 import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +35,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
 
-    private Map<ClientRequest, StreamObserver<ClientResponse>> pendingQueries = new ConcurrentHashMap<>();
+    private List<Operation> pendingQueries = new ArrayList<>();
 
 
     public SiloServiceImp(Integer repN) {
@@ -65,7 +69,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processUpdateRequest(request, responseObserver);
+        processUpdateRequest("CamJoin", request, responseObserver);
     }
 
     public void camInfoAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
@@ -98,7 +102,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest(request, responseObserver);
+        processReadRequest("CamInfo", request, responseObserver);
 
     }
 
@@ -151,7 +155,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest(request, responseObserver);
+        processReadRequest("Track", request, responseObserver);
 
     }
 
@@ -209,7 +213,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest(request, responseObserver);
+        processReadRequest("TrackMatch", request, responseObserver);
 
     }
 
@@ -265,7 +269,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest(request, responseObserver);
+        processReadRequest("Trace", request, responseObserver);
 
     }
 
@@ -320,7 +324,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processUpdateRequest(request, responseObserver);
+        processUpdateRequest("Report",request, responseObserver);
 
     }
 
@@ -349,7 +353,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest(request, responseObserver);
+        processReadRequest("Ping" ,request, responseObserver);
 
     }
 
@@ -390,7 +394,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     //respond to an update request by the client
-    public synchronized void processUpdateRequest(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public synchronized void processUpdateRequest(String op,ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         if (isInExecutedUpdates(request.getOpId())) { /*TODO: o que fazer neste caso?*/}
 
@@ -400,7 +404,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         Map<Integer,Integer> updateTS = request.getPrevTSMap();
         updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
 
-        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request, request.getPrevTSMap(),request.getOpId(), responseObserver);
+        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request.getPrevTSMap(),request.getOpId(), new Operation(op,request,responseObserver));
 
         updateLog.add(logRecord);
 
@@ -409,12 +413,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     //respond to a read request by the client
-    public synchronized boolean processReadRequest(ClientRequest e, StreamObserver<ClientResponse> responseObserver) {
-        if (happensBefore(e.getPrevTSMap(), this.valueTS)) {
+    public synchronized boolean processReadRequest(String operation,ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        if (happensBefore(request.getPrevTSMap(), this.valueTS)) {
             return true;
         }
         else {
-            this.pendingQueries.put(e,responseObserver);
+            this.pendingQueries.add(new Operation(operation,request,responseObserver));
             return false;
         }
     }
