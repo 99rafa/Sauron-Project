@@ -9,7 +9,6 @@ import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -355,7 +354,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         increaseReplicaTS(replicaNumber);
 
-        Map<Integer,Integer> updateTS = this.replicaTS;g
+        Map<Integer,Integer> updateTS = this.replicaTS;
         LogRecords logRecord = new LogRecords(replicaNumber, updateTS,request, this.prevTS,request.getOpId());
 
         updateLog.add(logRecord);
