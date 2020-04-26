@@ -15,7 +15,7 @@ import java.util.Scanner;
 public class SpotterApp {
 	
 	public static void main(String[] args) throws ZKNamingException {
-		SiloFrontend siloFrontend = null;
+		SiloFrontend siloFrontend;
 		try {
 			System.out.println(SpotterApp.class.getSimpleName());
 			System.out.println("> Spotter client started");
@@ -157,33 +157,21 @@ public class SpotterApp {
 		}
 	}
 
+	//Prints the responses to the trail command
 	private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend){
 
 		List<ObservationMessage> observationList = response.getObservationList();
-
-		for (ObservationMessage om: observationList){
-			if(om.getType().equals("CAR")){
-
-				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
-				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
-
-				System.out.println("car" + "," +
-						om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +
-						camResponse.getLatitude() + "," + camResponse.getLongitude());
-			}
-
-			else if(om.getType().equals("PERSON")){
-
-				CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
-				CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
-
-				System.out.println("person" + "," +
-						om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +
-						camResponse.getLatitude() + "," + camResponse.getLongitude());
-			}
-		}
+		printResponses(observationList,siloFrontend);
 	}
 
+	//Prints the responses to the spot * command
+	private static void trackMatchResponseToString(TrackMatchResponse response, SiloFrontend siloFrontend){
+
+		List<ObservationMessage> observationList = response.getObservationList();
+		printResponses(observationList,siloFrontend);
+	}
+
+	//Prints the responses to the spot command
 	private static void trackResponseToString(TrackResponse response, SiloFrontend siloFrontend){
 		CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(response.getObservation().getCamName()).build();
 		CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
@@ -202,12 +190,10 @@ public class SpotterApp {
 					camResponse.getLongitude());
 		}
 
-
 	}
 
-	private static void trackMatchResponseToString(TrackMatchResponse response, SiloFrontend siloFrontend){
-
-		List<ObservationMessage> observationList = response.getObservationList();
+	//Auxiliary function to print a list of observations
+	private static void printResponses(List<ObservationMessage> observationList, SiloFrontend siloFrontend){
 
 		for (ObservationMessage om: observationList){
 			if(om.getType().equals("CAR")){
@@ -232,13 +218,14 @@ public class SpotterApp {
 		}
 	}
 
-
+	//Verifies and returns the type of the object
 	private static String verifyType (String string){
 		if(string.equals("car")) return "CAR";
 		if(string.equals("person")) return "PERSON";
 		else return string;
 	}
 
+	//Verifies the user's command
 	private static boolean checkCommand(String[] args) {
 		if (args.length < 3 ) {
 
@@ -257,6 +244,4 @@ public class SpotterApp {
 		return true;
 
 	}
-
-
 }
