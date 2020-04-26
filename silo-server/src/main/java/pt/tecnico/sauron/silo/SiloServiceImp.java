@@ -299,6 +299,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     }
+    
 
     //Checks if type is valid
     private void checkType(String type){
