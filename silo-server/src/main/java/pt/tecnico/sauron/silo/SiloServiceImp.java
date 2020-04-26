@@ -355,7 +355,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         increaseReplicaTS(replicaNumber);
 
-        Map<Integer,Integer> updateTS = this.replicaTS;g
+        Map<Integer,Integer> updateTS = this.replicaTS;
         LogRecords logRecord = new LogRecords(replicaNumber, updateTS,request, this.prevTS,request.getOpId());
 
         updateLog.add(logRecord);
