@@ -13,11 +13,11 @@ public class Silo {
     //our replica current value is the state of this list of cameras
     private List<Camera> cameras = new CopyOnWriteArrayList<>();
 
-    private Map<Integer, Integer> replicaTS;
+    private Map<Integer, Integer> replicaTS = new HashMap<Integer, Integer>();
 
     private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
 
-    private Map<Integer, Integer> valueTS;
+    private Map<Integer, Integer> valueTS = new HashMap<Integer, Integer>();
 
     private List<Integer> executedOpsTable = new CopyOnWriteArrayList<>();
 
@@ -25,11 +25,8 @@ public class Silo {
     public Silo() {
     }
 
-    public Silo(List<Camera> cameras, Integer numberReps) {
+    public Silo(List<Camera> cameras) {
         this.cameras = cameras;
-        replicaTS = new Integer[numberReps];
-        valueTS = new Integer[numberReps];
-
 
     }
 
@@ -228,7 +225,7 @@ public class Silo {
     }
 
     public synchronized void increaseReplicaTS(Integer replicaNumber) {
-
+        if (replicaTS.get())
     }
 
     public synchronized List<Camera> getCameras() {
