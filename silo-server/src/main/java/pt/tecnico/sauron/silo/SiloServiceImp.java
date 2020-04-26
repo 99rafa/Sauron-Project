@@ -17,16 +17,24 @@ import static io.grpc.Status.NOT_FOUND;
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
+    private Integer replicaNumber;
     private Silo silo = new Silo();
 
+
+    public SiloServiceImp(Integer repN) {
+        this.replicaNumber = repN;
+    }
+
     @Override
-    public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver) {
+    public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
-            Camera camera = new Camera(request.getCamName(), request.getLatitude(), request.getLongitude());
+            Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
             silo.addCamera(camera);
             CamJoinResponse response = CamJoinResponse.newBuilder().build();
+
+            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(response);
@@ -299,7 +307,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     }
-    
+
+
 
     //Checks if type is valid
     private void checkType(String type){

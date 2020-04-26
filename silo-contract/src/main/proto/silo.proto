@@ -24,6 +24,10 @@ message CamJoinRequest {
 
 }
 
+message CamJoinResponse {
+
+}
+
 //Client Request operation
 message ClientRequest {
     string opId = 1;
@@ -36,11 +40,11 @@ message ClientRequest {
     PingRequest pingRequest = 8;
     InitRequest initRequest = 9;
     ClearRequest clearRequest = 10;
-    repeated int32 prevTS = 11;
+    map<int32,int32> prevTS = 11;
 }
 
 message ClientResponse {
-    repeated int32 updateTS = 1;
+    map<int32,int32> updateTS = 1;
     CamJoinResponse camJoinResponse = 2;
     CamInfoResponse camInfoResponse = 3;
     ReportResponse reportResponse = 4;
@@ -53,9 +57,6 @@ message ClientResponse {
 
 }
 
-message CamJoinResponse {
-
-}
 
 //cam_info silo operation
 

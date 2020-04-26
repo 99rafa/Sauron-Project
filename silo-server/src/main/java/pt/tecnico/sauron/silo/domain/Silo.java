@@ -2,9 +2,7 @@ package pt.tecnico.sauron.silo.domain;
 
 import pt.tecnico.sauron.silo.exceptions.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -15,11 +13,11 @@ public class Silo {
     //our replica current value is the state of this list of cameras
     private List<Camera> cameras = new CopyOnWriteArrayList<>();
 
-    private List<Integer> replicaTS = new CopyOnWriteArrayList<>();
+    private Map<Integer, Integer> replicaTS;
 
     private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
 
-    private List<Integer> valueTS = new CopyOnWriteArrayList<>();
+    private Map<Integer, Integer> valueTS;
 
     private List<Integer> executedOpsTable = new CopyOnWriteArrayList<>();
 
@@ -27,8 +25,12 @@ public class Silo {
     public Silo() {
     }
 
-    public Silo(List<Camera> cameras) {
+    public Silo(List<Camera> cameras, Integer numberReps) {
         this.cameras = cameras;
+        replicaTS = new Integer[numberReps];
+        valueTS = new Integer[numberReps];
+
+
     }
 
 
@@ -223,6 +225,10 @@ public class Silo {
 
         //Add camera to lot of cameras
         this.cameras.add(camera);
+    }
+
+    public synchronized void increaseReplicaTS(Integer replicaNumber) {
+
     }
 
     public synchronized List<Camera> getCameras() {
