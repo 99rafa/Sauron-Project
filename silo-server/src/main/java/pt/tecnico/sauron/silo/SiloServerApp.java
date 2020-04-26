@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class SiloServerApp {
 	
@@ -60,11 +61,19 @@ public class SiloServerApp {
 			// publish
 			zkNaming.rebind(path, host, portBind);
 
+
 			// Start the server
 			server.start();
 
 			// Server threads are running in the background.
 			System.out.println("Server started");
+
+			//Server terminates when user presses enter
+			new Thread(()->{
+				System.out.println("Enter to terminate");
+				new Scanner(System.in).nextLine();
+				server.shutdown();
+			}).start();
 
 			// Do not exit the main thread. Wait until server is terminated.
 			server.awaitTermination();

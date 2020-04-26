@@ -16,31 +16,21 @@ import java.util.stream.Collectors;
 
 
 public class SiloFrontend implements AutoCloseable {
-    private final ManagedChannel channel;
-    private final SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
+    private  ManagedChannel channel;
+    private String host;
+    private String port;
+
+    private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
     public SiloFrontend(String zooHost, String zooPort, String repN) throws ZKNamingException {
 
-        Random random = new Random();
-        final String path;
-        ZKNaming zkNaming = new ZKNaming(zooHost,zooPort);
-        ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
+        this.host = zooHost;
+        this.port = zooPort;
 
-        if(repN.equals(""))
-            path = recs.get(random.nextInt(recs.size())).getPath();
-        else
-            path = "/grpc/sauron/silo/" + repN;
-
-        System.out.println(path);
-
-        // lookup
-        ZKRecord record = zkNaming.lookup(path);
-        String target = record.getURI();
-
-        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+        this.channel = ManagedChannelBuilder.forTarget(getServerTarget(zooHost,zooPort,repN)).usePlaintext().build();
 
         // Create a blocking stub.
-        stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+        this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
@@ -69,6 +59,40 @@ public class SiloFrontend implements AutoCloseable {
 
     public InitResponse ctrlInit(InitRequest request) { return stub.ctrlInit(request); }
 
+    private String getServerTarget(String zooHost, String zooPort, String repN) throws ZKNamingException {
+
+        Random random = new Random();
+        final String path;
+        ZKNaming zkNaming = new ZKNaming(zooHost,zooPort);
+        ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
+
+        if(repN.equals(""))
+            path = recs.get(random.nextInt(recs.size())).getPath();
+        else
+            path = "/grpc/sauron/silo/" + repN;
+
+        System.out.println(path);
+
+        // lookup
+        ZKRecord record = zkNaming.lookup(path);
+        return record.getURI();
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
 
     @Override
     public final void close() {

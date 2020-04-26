@@ -24,6 +24,12 @@ message CamJoinRequest {
 
 }
 
+//Request
+message CliRequest {
+    string opId = 1;
+    string update = 2;
+}
+
 message CamJoinResponse {
 
 }
