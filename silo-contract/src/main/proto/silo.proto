@@ -24,10 +24,19 @@ message CamJoinRequest {
 
 }
 
-//Request
-message CliRequest {
+//Client Request operation
+message ClientRequest {
     string opId = 1;
-    string update = 2;
+    CamJoinRequest camJoinRequest = 2;
+    CamInfoRequest camInfoRequest = 3;
+    ReportRequest reportRequest = 4;
+    TrackRequest trackRequest = 5;
+    TrackMatchRequest trackMatchRequest = 6;
+    TraceRequest traceRequest = 7;
+    PingRequest pingRequest = 8;
+    InitRequest initRequest = 9;
+    ClearRequest clearRequest = 10;
+    repeated int32 prevTS = 11;
 }
 
 message CamJoinResponse {
