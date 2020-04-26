@@ -39,6 +39,10 @@ message ClientRequest {
     repeated int32 prevTS = 11;
 }
 
+message ClientResponse {
+    repeated int32 updateTS = 1;
+}
+
 message CamJoinResponse {
 
 }
@@ -140,4 +144,5 @@ service SiloOperationsService {
     rpc ctrlPing(PingRequest) returns (PingResponse);
     rpc ctrlClear(ClearRequest) returns (ClearResponse);
     rpc ctrlInit(InitRequest) returns (InitResponse);
+    rpc clientRequest(ClientRequest) returns (ClientResponse);
 }
