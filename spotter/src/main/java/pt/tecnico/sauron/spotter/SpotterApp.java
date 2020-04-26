@@ -141,7 +141,7 @@ public class SpotterApp {
 					//Change server when the previous goes down
 					if(e.getStatus().getCode() == Status.Code.UNAVAILABLE){
 						System.out.println("Server is down, reconnecting...");
-						siloFrontend = new SiloFrontend(siloFrontend.getHost(),siloFrontend.getPort(),"");
+						siloFrontend = new SiloFrontend(siloFrontend.getHost(),siloFrontend.getPort(),"",siloFrontend.getPrevTS());
 						System.out.println("Reconnected");
 					}
 					else

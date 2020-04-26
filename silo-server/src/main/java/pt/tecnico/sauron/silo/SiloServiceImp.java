@@ -9,7 +9,6 @@ import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,27 +22,28 @@ import static io.grpc.Status.NOT_FOUND;
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
     private Integer replicaNumber;
+
     private Silo silo = new Silo();
 
-    private Map<Integer, Integer> replicaTS = new ConcurrentHashMap<Integer, Integer>();
+    private Map<Integer, Integer> replicaTS = new ConcurrentHashMap<>();
 
     private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
 
-    private Map<Integer, Integer> valueTS = new ConcurrentHashMap<Integer, Integer>();
+    private Map<Integer, Integer> valueTS = new ConcurrentHashMap<>();
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
 
-    private Map<Integer, Integer> prevTS = new ConcurrentHashMap<Integer, Integer>();
+    private Map<Integer, Integer> prevTS = new ConcurrentHashMap<>();
 
-    private List<ClientRequest> pendingQueries = new CopyOnWriteArrayList<>();
+    private Map<ClientRequest, StreamObserver<ClientResponse>> pendingQueries = new ConcurrentHashMap<>();
 
 
     public SiloServiceImp(Integer repN) {
         this.replicaNumber = repN;
     }
 
-    @Override
-    public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+
+    public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
@@ -68,7 +68,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processUpdateRequest(request, responseObserver);
+
+    }
+
+    public void camInfoAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
             String camName = request.getCamInfoRequest().getCamName();
@@ -97,9 +102,16 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processReadRequest(request, responseObserver);
+
+    }
+
+
+    public void trackAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
+
 
             String type = request.getTrackRequest().getType();
             checkType(type);
@@ -143,10 +155,18 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processReadRequest(request, responseObserver);
+
+    }
+
+
+    public void trackMatchAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
 
         try {
+
+
             String type = request.getTrackMatchRequest().getType();
             checkType(type);
 
@@ -192,9 +212,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     }
 
-
     @Override
-    public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processReadRequest(request, responseObserver);
+
+    }
+
+
+    public void traceAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
@@ -244,7 +269,14 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processReadRequest(request, responseObserver);
+
+    }
+
+
+
+    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
             String camName = request.getReportRequest().getCamName();
@@ -292,7 +324,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processUpdateRequest(request, responseObserver);
+
+    }
+
+    public void ctrlPingAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         String inputText = request.getPingRequest().getInputCommand();
 
@@ -314,6 +351,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        processReadRequest(request, responseObserver);
+
+    }
+
 
     @Override
     public void ctrlClear(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
@@ -349,26 +393,29 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     }
 
-    public synchronized void updateSiloState(Integer replicaNumber, ClientRequest request) {
 
-        if (isInExecutedUpdates(request.getOpId())) {}
+    //respond to an update request by the client
+    public synchronized void processUpdateRequest(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        increaseReplicaTS(replicaNumber);
+        if (isInExecutedUpdates(request.getOpId())) { /*TODO: o que fazer neste caso?*/}
+
+        increaseReplicaTS(this.replicaNumber);
 
         Map<Integer,Integer> updateTS = this.replicaTS;
-        LogRecords logRecord = new LogRecords(replicaNumber, updateTS,request, this.prevTS,request.getOpId());
+        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request, this.prevTS,request.getOpId(), responseObserver);
 
         updateLog.add(logRecord);
 
 
     }
 
-    public synchronized boolean processReadRequest(ClientRequest e) {
+    //respond to a read request by the client
+    public synchronized boolean processReadRequest(ClientRequest e, StreamObserver<ClientResponse> responseObserver) {
         if (happensBefore(this.prevTS, this.valueTS)) {
             return true;
         }
         else {
-            this.pendingQueries.add(e);
+            this.pendingQueries.put(e,responseObserver);
             return false;
         }
     }
@@ -406,14 +453,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         }
     }
 
-    public Integer getReplicaNumber() {
-        return replicaNumber;
-    }
-
-    public void setReplicaNumber(Integer replicaNumber) {
-        this.replicaNumber = replicaNumber;
-    }
-
     public Silo getSilo() {
         return silo;
     }
@@ -422,43 +461,4 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         this.silo = silo;
     }
 
-    public Map<Integer, Integer> getReplicaTS() {
-        return replicaTS;
-    }
-
-    public void setReplicaTS(Map<Integer, Integer> replicaTS) {
-        this.replicaTS = replicaTS;
-    }
-
-    public List<LogRecords> getUpdateLog() {
-        return updateLog;
-    }
-
-    public void setUpdateLog(List<LogRecords> updateLog) {
-        this.updateLog = updateLog;
-    }
-
-    public Map<Integer, Integer> getValueTS() {
-        return valueTS;
-    }
-
-    public void setValueTS(Map<Integer, Integer> valueTS) {
-        this.valueTS = valueTS;
-    }
-
-    public List<String> getExecutedOpsTable() {
-        return executedOpsTable;
-    }
-
-    public void setExecutedOpsTable(List<String> executedOpsTable) {
-        this.executedOpsTable = executedOpsTable;
-    }
-
-    public Map<Integer, Integer> getPrevTS() {
-        return prevTS;
-    }
-
-    public void setPrevTS(Map<Integer, Integer> prevTS) {
-        this.prevTS = prevTS;
-    }
 }

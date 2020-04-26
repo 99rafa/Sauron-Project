@@ -8,8 +8,6 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 
 public class SiloFrontend implements AutoCloseable {
@@ -31,6 +29,21 @@ public class SiloFrontend implements AutoCloseable {
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
+
+    public SiloFrontend(String zooHost, String zooPort, String repN, Map<Integer,Integer> preTS) throws ZKNamingException {
+
+        this.host = zooHost;
+        this.port = zooPort;
+        this.prevTS = preTS;
+        String target = getServerTarget(zooHost,zooPort,repN);
+
+        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+
+        // Create a blocking stub.
+        this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+    }
+
+
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
@@ -73,7 +86,7 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getUpdateTSMap());
 
-        return response.getTrackRequest();
+        return response.getTrackResponse();
     }
 
     public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {
@@ -167,6 +180,14 @@ public class SiloFrontend implements AutoCloseable {
 
     public void setPort(String port) {
         this.port = port;
+    }
+
+    public Map<Integer, Integer> getPrevTS() {
+        return prevTS;
+    }
+
+    public void setPrevTS(Map<Integer, Integer> prevTS) {
+        this.prevTS = prevTS;
     }
 
     private String getUUID(){

@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 public class EyeApp {
 
-    public static void main(String[] args) throws ZKNamingException {
+    public static void main(String[] args) {
 
         try {
             System.out.println(EyeApp.class.getSimpleName());
@@ -151,7 +151,7 @@ public class EyeApp {
                 //Change server when the previous goes down
                 if(e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)){
                     System.out.println("Server is down, reconnecting...");
-                    siloFrontend = new SiloFrontend(siloFrontend.getHost(),siloFrontend.getPort(),"");
+                    siloFrontend = new SiloFrontend(siloFrontend.getHost(),siloFrontend.getPort(),"",siloFrontend.getPrevTS());
                     System.out.println("Reconnected");
 
                     CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)

@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GossipMessage {
     private LogRecords log;
-    private Map<Integer, Integer> repTs = new ConcurrentHashMap<Integer, Integer>();
+    private Map<Integer, Integer> repTs = new ConcurrentHashMap<>();
 
     public GossipMessage() {
     }
