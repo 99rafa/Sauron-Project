@@ -41,6 +41,16 @@ message ClientRequest {
 
 message ClientResponse {
     repeated int32 updateTS = 1;
+    CamJoinResponse camJoinResponse = 2;
+    CamInfoResponse camInfoResponse = 3;
+    ReportResponse reportResponse = 4;
+    TrackResponse trackRequest = 5;
+    TrackMatchResponse trackMatchResponse = 6;
+    TraceResponse traceResponse = 7;
+    PingResponse pingResponse = 8;
+    InitResponse initResponse = 9;
+    ClearResponse clearResponse = 10;
+
 }
 
 message CamJoinResponse {
@@ -135,14 +145,13 @@ enum ServerStatus {
 
 service SiloOperationsService {
     // Define a RPC operation
-    rpc camJoin(CamJoinRequest) returns (CamJoinResponse);
-    rpc camInfo(CamInfoRequest) returns (CamInfoResponse);
-    rpc report(ReportRequest) returns (ReportResponse);
-    rpc track(TrackRequest) returns (TrackResponse);
-    rpc trackMatch(TrackMatchRequest) returns (TrackMatchResponse);
-    rpc trace(TraceRequest) returns (TraceResponse);
-    rpc ctrlPing(PingRequest) returns (PingResponse);
-    rpc ctrlClear(ClearRequest) returns (ClearResponse);
-    rpc ctrlInit(InitRequest) returns (InitResponse);
-    rpc clientRequest(ClientRequest) returns (ClientResponse);
+    rpc camJoin(ClientRequest) returns (ClientResponse);
+    rpc camInfo(ClientRequest) returns (ClientResponse);
+    rpc report(ClientRequest) returns (ClientResponse);
+    rpc track(ClientRequest) returns (ClientResponse);
+    rpc trackMatch(ClientRequest) returns (ClientResponse);
+    rpc trace(ClientRequest) returns (ClientResponse);
+    rpc ctrlPing(ClientRequest) returns (ClientResponse);
+    rpc ctrlClear(ClientRequest) returns (ClientResponse);
+    rpc ctrlInit(ClientRequest) returns (ClientResponse);
 }

@@ -299,47 +299,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     }
-
-    @Override
-    public void clientRequest(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-
-
-        if (request.hasCamJoinRequest()) {
-            camJoin(request.getCamJoinRequest(),);
-        }
-        else if (request.hasCamInfoRequest()) {
-
-        }
-        else if (request.hasReportRequest()) {
-
-        }
-        else if (request.hasTrackRequest()) {
-
-        }
-        else if (request.hasTrackMatchRequest()) {
-
-        }
-        else if (request.hasTraceRequest()) {
-
-        }
-        else if (request.hasPingRequest()) {
-
-        }
-        else if (request.hasInitRequest()) {
-
-        }
-        else if (request.hasClearRequest()) {
-
-        }
-
-
-            ClientResponse response = ClientResponse.newBuilder().build();
-
-            // Send a single response through the stream.
-            responseObserver.onNext(response);
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-    }
+    
 
     //Checks if type is valid
     private void checkType(String type){
