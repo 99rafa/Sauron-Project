@@ -1,9 +1,7 @@
 package pt.tecnico.sauron.silo;
 
 import io.grpc.stub.StreamObserver;
-import pt.tecnico.sauron.silo.domain.Camera;
-import pt.tecnico.sauron.silo.domain.LogRecords;
-import pt.tecnico.sauron.silo.domain.Observation;
+import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
@@ -32,8 +30,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     private Map<Integer, Integer> valueTS = new ConcurrentHashMap<>();
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
-
-    private Map<Integer, Integer> prevTS = new ConcurrentHashMap<>();
 
     private Map<ClientRequest, StreamObserver<ClientResponse>> pendingQueries = new ConcurrentHashMap<>();
 
@@ -70,7 +66,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         processUpdateRequest(request, responseObserver);
-
     }
 
     public void camInfoAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
@@ -401,22 +396,37 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         increaseReplicaTS(this.replicaNumber);
 
-        Map<Integer,Integer> updateTS = this.replicaTS;
-        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request, this.prevTS,request.getOpId(), responseObserver);
+        // timestamp associated with update is prevTS and the entry i associated with the current replica is = replicaTS[i]
+        Map<Integer,Integer> updateTS = request.getPrevTSMap();
+        updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
+
+        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request, request.getPrevTSMap(),request.getOpId(), responseObserver);
 
         updateLog.add(logRecord);
 
 
     }
 
+
     //respond to a read request by the client
     public synchronized boolean processReadRequest(ClientRequest e, StreamObserver<ClientResponse> responseObserver) {
-        if (happensBefore(this.prevTS, this.valueTS)) {
+        if (happensBefore(e.getPrevTSMap(), this.valueTS)) {
             return true;
         }
         else {
             this.pendingQueries.put(e,responseObserver);
             return false;
+        }
+    }
+
+    public synchronized void updateReplicaState() {
+
+    }
+
+    public synchronized void mergeIncomingLog(GossipMessage g) {
+        for ( LogRecords r: g.getLog()) {
+            if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp())) this.updateLog.add(r);
+                /*TODO: equals nao sei se o equals faz sentido tendo em conta os maps podem ser diferentes*/
         }
     }
 
@@ -435,11 +445,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         boolean isBefore = true;
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
-            Integer valueB = b.get(entryA.getKey());
+            Integer valueB = b.getOrDefault(entryA.getKey(), 0);
             if ( entryA.getValue() > valueB) isBefore = false;
         }
         return isBefore;
     }
+
 
     //Checks if type is valid
     private void checkType(String type){

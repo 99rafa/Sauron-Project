@@ -11,7 +11,6 @@ public class Silo {
 
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    //our replica current value is the state of this list of cameras
     private List<Camera> cameras = new CopyOnWriteArrayList<>();
 
 

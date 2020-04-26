@@ -6,22 +6,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GossipMessage {
-    private LogRecords log;
+    private List<LogRecords> log;
     private Map<Integer, Integer> repTs = new ConcurrentHashMap<>();
 
     public GossipMessage() {
     }
 
-    public GossipMessage(LogRecords log, Map<Integer, Integer> repTs) {
+    public GossipMessage(List<LogRecords> log, Map<Integer, Integer> repTs) {
         this.log = log;
         this.repTs = repTs;
     }
 
-    public LogRecords getLog() {
+    public List<LogRecords> getLog() {
         return log;
     }
 
-    public void setLog(LogRecords log) {
+    public void setLog(List<LogRecords> log) {
         this.log = log;
     }
 

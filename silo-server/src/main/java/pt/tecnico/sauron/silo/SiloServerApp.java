@@ -54,6 +54,7 @@ public class SiloServerApp {
 			int repN = Integer.parseInt(args[2]);
 			final BindableService impl = new SiloServiceImp(repN);
 
+
 			// Create a new server to listen on port
 			Server server = ServerBuilder.forPort(port).addService(impl).build();
 
