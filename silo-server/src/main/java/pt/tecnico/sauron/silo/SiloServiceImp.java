@@ -428,6 +428,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp())) this.updateLog.add(r);
                 /*TODO: equals nao sei se o equals faz sentido tendo em conta os maps podem ser diferentes*/
         }
+        mergeTS(this.replicaTS, g.getRepTs());
+
     }
 
     public synchronized void increaseReplicaTS(Integer replicaNumber) {
@@ -461,6 +463,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
           if( !type.equals("PERSON") &&
               !type.equals("CAR") ){
               throw new InvalidTypeException(type);
+        }
+    }
+
+
+    //merge 2 timestamps
+    private synchronized void mergeTS(Map<Integer,Integer> map1, Map<Integer,Integer> map2) {
+        for (Integer key : map2.keySet()) {
+            if (map1.containsKey(key))
+                map1.put(key, Integer.max(map1.get(key), map2.get(key)));
+            else
+                map1.put(key, map2.get(key));
         }
     }
 
