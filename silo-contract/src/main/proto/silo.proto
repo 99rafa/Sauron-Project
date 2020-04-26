@@ -31,16 +31,16 @@ message CamJoinResponse {
 //Client Request operation
 message ClientRequest {
     string opId = 1;
-    CamJoinRequest camJoinRequest = 2;
-    CamInfoRequest camInfoRequest = 3;
-    ReportRequest reportRequest = 4;
-    TrackRequest trackRequest = 5;
-    TrackMatchRequest trackMatchRequest = 6;
-    TraceRequest traceRequest = 7;
-    PingRequest pingRequest = 8;
-    InitRequest initRequest = 9;
-    ClearRequest clearRequest = 10;
-    map<int32,int32> prevTS = 11;
+    map<int32,int32> prevTS = 2;
+    CamJoinRequest camJoinRequest = 3;
+    CamInfoRequest camInfoRequest = 4;
+    ReportRequest reportRequest = 5;
+    TrackRequest trackRequest = 6;
+    TrackMatchRequest trackMatchRequest = 7;
+    TraceRequest traceRequest = 8;
+    PingRequest pingRequest = 9;
+    InitRequest initRequest = 10;
+    ClearRequest clearRequest = 11;
 }
 
 message ClientResponse {

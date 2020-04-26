@@ -7,10 +7,7 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -19,6 +16,7 @@ public class SiloFrontend implements AutoCloseable {
     private  ManagedChannel channel;
     private String host;
     private String port;
+    private Map<Integer,Integer> prevTS = new HashMap<>();
 
     private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
@@ -26,38 +24,113 @@ public class SiloFrontend implements AutoCloseable {
 
         this.host = zooHost;
         this.port = zooPort;
+        String target = getServerTarget(zooHost,zooPort,repN);
 
-        this.channel = ManagedChannelBuilder.forTarget(getServerTarget(zooHost,zooPort,repN)).usePlaintext().build();
+        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
-        return stub.camJoin(request);
+        ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getCamJoinResponse();
     }
 
     public CamInfoResponse getCamInfo(CamInfoRequest request) {
-        return stub.camInfo(request);
+        ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getCamInfoResponse();
     }
 
     public ReportResponse reportObs(ReportRequest request) {
-        return stub.report(request);
+        ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getReportResponse();
     }
 
-    public TrackResponse trackObj(TrackRequest request) { return stub.track(request); }
+    public TrackResponse trackObj(TrackRequest request) {
+        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {return stub.trackMatch(request);}
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getTrackRequest();
+    }
+
+    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {
+        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getTrackMatchResponse();
+    }
 
     public TraceResponse traceObj(TraceRequest request) {
-        return stub.trace(request);
+        ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getTraceResponse();
     }
 
-    public PingResponse ctrlPing(PingRequest request) { return stub.ctrlPing(request);}
+    public PingResponse ctrlPing(PingRequest request) {
+        ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-    public ClearResponse ctrlClear(ClearRequest request) { return stub.ctrlClear(request); }
+        ClientResponse response = stub.camJoin(cliRequest);
 
-    public InitResponse ctrlInit(InitRequest request) { return stub.ctrlInit(request); }
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getPingResponse();
+    }
+
+    public ClearResponse ctrlClear(ClearRequest request) {
+        ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getClearResponse();
+    }
+
+    public InitResponse ctrlInit(InitRequest request) {
+        ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+
+        ClientResponse response = stub.camJoin(cliRequest);
+
+        //Merge Timestamps
+        mergeTS(response.getUpdateTSMap());
+
+        return response.getInitResponse();
+
+    }
 
     private String getServerTarget(String zooHost, String zooPort, String repN) throws ZKNamingException {
 
@@ -70,6 +143,8 @@ public class SiloFrontend implements AutoCloseable {
             path = recs.get(random.nextInt(recs.size())).getPath();
         else
             path = "/grpc/sauron/silo/" + repN;
+
+        //this.instance = Integer.parseInt(path.split("/")[4]);
 
         System.out.println(path);
 
@@ -93,6 +168,20 @@ public class SiloFrontend implements AutoCloseable {
     public void setPort(String port) {
         this.port = port;
     }
+
+    private String getUUID(){
+        return UUID.randomUUID().toString();
+    }
+
+    private void mergeTS(Map<Integer,Integer> map){
+        for(Integer key : map.keySet()){
+            if(this.prevTS.containsKey(key))
+                this.prevTS.put(key,Integer.max(this.prevTS.get(key),map.get(key)));
+            else
+                this.prevTS.put(key,map.get(key));
+        }
+    }
+
 
     @Override
     public final void close() {
