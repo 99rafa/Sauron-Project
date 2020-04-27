@@ -26,8 +26,6 @@ public class ResponseCache {
 
     public void addEntry(List<String> list, ClientResponse response) {
         this.cacheMap.put(list, response);
-        System.out.println("TAMANHO-->" + this.cacheMap.size());
-        System.out.println(this.cacheMap);
     }
 
     public ClientResponse getLastRead(List<String> list, ClientResponse response) {

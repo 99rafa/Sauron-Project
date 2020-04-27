@@ -5,22 +5,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GossipMessage {
-    private List<LogRecords> log;
+    private List<LogRecord> log;
     private Map<Integer, Integer> repTs = new ConcurrentHashMap<>();
 
     public GossipMessage() {
     }
 
-    public GossipMessage(List<LogRecords> log, Map<Integer, Integer> repTs) {
+    public GossipMessage(List<LogRecord> log, Map<Integer, Integer> repTs) {
         this.log = log;
         this.repTs = repTs;
     }
 
-    public List<LogRecords> getLog() {
+    public List<LogRecord> getLog() {
         return log;
     }
 
-    public void setLog(List<LogRecords> log) {
+    public void setLog(List<LogRecord> log) {
         this.log = log;
     }
 

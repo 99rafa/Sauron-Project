@@ -1,8 +1,9 @@
 package pt.tecnico.sauron.silo;
 
 import io.grpc.stub.StreamObserver;
+import org.apache.zookeeper.Op;
 import pt.tecnico.sauron.silo.api.GossipMessage;
-import pt.tecnico.sauron.silo.api.LogRecords;
+import pt.tecnico.sauron.silo.api.LogRecord;
 import pt.tecnico.sauron.silo.api.Operation;
 import pt.tecnico.sauron.silo.api.ServerRequestHandler;
 import pt.tecnico.sauron.silo.domain.Camera;
@@ -34,15 +35,53 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
 
+    public void runUpdates(List<LogRecord> logRecords){
+        for(LogRecord logRecord : logRecords){
+            Operation operation = logRecord.getOperation();
+            ClientRequest request = operation.getRequest();
+            StreamObserver<ClientResponse> observer = operation.getObserver();
+            String function = operation.getOperation();
+
+            switch (function) {
+                case "CamJoin":
+                    if(operation.getObserver() == null)
+                        camJoinAux(operation.getRequest());
+                    else
+                        camJoin(request,observer);
+                    break;
+                case "Report":
+                    if(operation.getObserver() == null)
+                        reportAux(operation.getRequest());
+                    else
+                        report(request,observer);
+                    break;
+
+                case "CtrlClear":
+                    if(operation.getObserver() == null)
+                        ctrlClearAux();
+                    else
+                        ctrlClear(request,observer);
+                    break;
+                case "CtrlInit":
+                    if(operation.getObserver() == null)
+                        ctrlInitAux();
+                    else
+                        ctrlInit(request,observer);
+                    break;
+            }
+            this.serverRequestHandler.updateReplicaState(logRecord);
+        }
+    }
+
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         System.out.println("Gossip Received");
-
+        List<LogRecord> stableUpdates = new ArrayList<>();
         //Build gossip object
-        List<LogRecords> lr = new ArrayList<>();
+        List<LogRecord> lr = new ArrayList<>();
         for (LogRecordsRequest lrr : request.getLogList()) {
             OperationRequest opr = lrr.getOperation();
-            lr.add(new LogRecords(lrr.getRepN(),
+            lr.add(new LogRecord(lrr.getRepN(),
                     lrr.getTimestampMap(),
                     lrr.getPrevTSMap(),
                     lrr.getId(),
@@ -52,7 +91,16 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         //Merge replica log with gossip log
         this.serverRequestHandler.mergeIncomingLog(new GossipMessage(lr, request.getRepTsMap()));
 
-        //TODO Rest of gossip
+        //Get stable updates
+        stableUpdates = this.serverRequestHandler.getStableUpdates();
+
+        while(stableUpdates.size() > 0) {
+            //Run stable updates while they exist
+            runUpdates(stableUpdates);
+            //Recalculate stable updates
+            stableUpdates = this.serverRequestHandler.getStableUpdates();
+        }
+
 
         // Send a single response through the stream.
         responseObserver.onNext(GossipResponse.newBuilder().build());
@@ -62,7 +110,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     //CamJoin domain logic
-    public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void camJoinAux(ClientRequest request) {
 
         Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
         silo.addCamera(camera);
@@ -73,29 +121,25 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
-            LogRecords logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
+            LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
 
-            while (notHappensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
-                try {
-                    wait(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+
+
+                //implements domain logic
+                camJoinAux(request);
+
+                //Builds response
+                CamJoinResponse response = CamJoinResponse.newBuilder().build();
+                ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
+
+                // Send a single response through the stream.
+                responseObserver.onNext(clientResponse);
+                // Notify the client that the operation has been completed.
+                responseObserver.onCompleted();
+
+                this.serverRequestHandler.updateReplicaState(logRecord);
             }
-
-            //implements domain logic
-            camJoinAux(request, responseObserver);
-
-            //Builds response
-            CamJoinResponse response = CamJoinResponse.newBuilder().build();
-            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
-
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-
-            this.serverRequestHandler.updateReplicaState(logRecord);
 
         } catch (DuplicateOperationException | CameraNameNotUniqueException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
@@ -107,7 +151,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //Report domain logic
-    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void reportAux(ClientRequest request) {
 
         String camName = request.getReportRequest().getCamName();
         List<ObservationMessage> observationMessages;
@@ -138,29 +182,24 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             this.serverRequestHandler.processUpdateRequest("Report", request, responseObserver);
 
-            while (notHappensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
-                try {
-                    wait(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            if(happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+
+
+                //Implements domain logic
+                reportAux(request);
+
+                //Builds response
+                ReportResponse response = ReportResponse.newBuilder().build();
+                ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
+
+
+                // Send a single response through the stream.
+                responseObserver.onNext(clientResponse);
+
+                // Notify the client that the operation has been completed.
+                responseObserver.onCompleted();
+
             }
-
-
-            //Implements domain logic
-            reportAux(request, responseObserver);
-
-            //Builds response
-            ReportResponse response = ReportResponse.newBuilder().build();
-            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
-
-
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-
 
         } catch (DuplicateOperationException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
@@ -378,40 +417,60 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         responseObserver.onCompleted();
     }
 
+    public void ctrlClearAux(){
+        //Clears server info
+        this.silo = new Silo();
+        this.serverRequestHandler  = new ServerRequestHandler(this.replicaNumber);
+
+        System.out.println("System state cleared");
+    }
 
     @Override
     public void ctrlClear(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        //silo.clearData();
-        ClearResponse response = ClearResponse.newBuilder().build();
+        this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
 
-        //Clears server info
-        this.silo = new Silo();
-        this.serverRequestHandler = this.serverRequestHandler = new ServerRequestHandler(this.replicaNumber);
+        if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
 
-        System.out.println("System state cleared");
+            //silo.clearData();
+            ClearResponse response = ClearResponse.newBuilder().build();
 
-        ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).build();
+            //Clears server info
+            ctrlClearAux();
 
-        // Send a single response through the stream.
-        responseObserver.onNext(clientResponse);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).build();
+
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+        }
+    }
+
+    public void ctrlInitAux(){
+
     }
 
     @Override
     public void ctrlInit(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        InitResponse response = InitResponse.newBuilder().build();
+        this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
 
-        ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).build();
+        if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
 
 
-        // Send a single response through the stream.
-        responseObserver.onNext(clientResponse);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            ctrlInitAux();
 
+            InitResponse response = InitResponse.newBuilder().build();
+
+            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).build();
+
+
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+        }
 
     }
 
@@ -440,13 +499,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //checks if a happens before b
-    private boolean notHappensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
+    private boolean happensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
 
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
             Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if (entryA.getValue() > valueB) return true;
+            if (entryA.getValue() > valueB) return false;
         }
-        return false;
+        return true;
     }
 
 }

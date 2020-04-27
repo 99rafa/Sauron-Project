@@ -4,17 +4,17 @@ package pt.tecnico.sauron.silo.api;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LogRecords {
+public class LogRecord {
     Operation operation;
     private int repN;
     private Map<Integer, Integer> timestamp = new ConcurrentHashMap<>();
     private Map<Integer, Integer> prevTS = new ConcurrentHashMap<>();
     private String id;
 
-    public LogRecords() {
+    public LogRecord() {
     }
 
-    public LogRecords(int repN, Map<Integer, Integer> timestamp, Map<Integer, Integer> prev, String id, Operation operation) {
+    public LogRecord(int repN, Map<Integer, Integer> timestamp, Map<Integer, Integer> prev, String id, Operation operation) {
         this.repN = repN;
         this.timestamp = timestamp;
         this.prevTS = prev;

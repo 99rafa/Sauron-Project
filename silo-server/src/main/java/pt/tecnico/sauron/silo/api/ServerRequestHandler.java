@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class ServerRequestHandler {
 
@@ -16,7 +17,7 @@ public class ServerRequestHandler {
 
     private Map<Integer, Integer> replicaTS = new ConcurrentHashMap<>();
 
-    private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
+    private List<LogRecord> updateLog = new CopyOnWriteArrayList<>();
 
     private Map<Integer, Integer> valueTS = new ConcurrentHashMap<>();
 
@@ -28,7 +29,7 @@ public class ServerRequestHandler {
     }
 
     //respond to an update request by the client
-    public synchronized LogRecords processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public synchronized LogRecord processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
 
         //Sends Exception when operation Id is in the executed operations--> Protects duplicate requests
@@ -42,7 +43,7 @@ public class ServerRequestHandler {
         Map<Integer, Integer> updateTS = new HashMap<>(request.getPrevTSMap());
         updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
 
-        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
+        LogRecord logRecord = new LogRecord(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
 
         updateLog.add(logRecord);
 
@@ -50,18 +51,18 @@ public class ServerRequestHandler {
 
     }
 
-    //processing update log after receiving gossip message
-    public synchronized void processLog() {
-        //sorting list by timestamp
+    //Get Stable updates
+    public synchronized List<LogRecord> getStableUpdates() {
 
-        //TODO:sacar apenas os que tem prevTS <= valueTS
-        this.updateLog.sort((l1, l2) -> happensBeforeInteger(l1.getPrevTS(), l2.getPrevTS()));
-        //TODO:fazer os updates
-        //TODO:update replica state
+        //Filter and sort updates
+        return this.updateLog.stream()
+                .filter(update -> happensBefore(update.getPrevTS(), this.valueTS))
+                .sorted((l1, l2) -> happensBeforeInteger(l1.getPrevTS(), l2.getPrevTS()))
+                .collect(Collectors.toList());
     }
 
     //apply updates to the replica
-    public synchronized void updateReplicaState(LogRecords logRecord) {
+    public synchronized void updateReplicaState(LogRecord logRecord) {
         mergeTS(this.valueTS, logRecord.getTimestamp());
         this.executedOpsTable.add(logRecord.getId());
 
@@ -69,7 +70,7 @@ public class ServerRequestHandler {
 
     //merging the updates from gossip with the replica own pending updates
     public synchronized void mergeIncomingLog(GossipMessage g) {
-        for (LogRecords r : g.getLog()) {
+        for (LogRecord r : g.getLog()) {
             if (happensBefore(this.replicaTS, r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
                 this.updateLog.add(r);
         }
@@ -101,7 +102,7 @@ public class ServerRequestHandler {
 
     public GossipRequest buildGossipRequest() {
         GossipRequest.Builder gRequest = GossipRequest.newBuilder().putAllRepTs(this.replicaTS);
-        for (LogRecords lr : this.updateLog) {
+        for (LogRecord lr : this.updateLog) {
             Operation op = lr.getOperation();
 
             OperationRequest opRequest = OperationRequest.newBuilder()
@@ -136,11 +137,11 @@ public class ServerRequestHandler {
         this.replicaTS = replicaTS;
     }
 
-    public List<LogRecords> getUpdateLog() {
+    public List<LogRecord> getUpdateLog() {
         return updateLog;
     }
 
-    public void setUpdateLog(List<LogRecords> updateLog) {
+    public void setUpdateLog(List<LogRecord> updateLog) {
         this.updateLog = updateLog;
     }
 
