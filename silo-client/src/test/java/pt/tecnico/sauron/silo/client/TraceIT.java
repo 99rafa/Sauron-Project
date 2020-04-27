@@ -19,7 +19,7 @@ public class TraceIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }

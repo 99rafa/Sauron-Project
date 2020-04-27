@@ -5,16 +5,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LogRecords {
+    Operation operation;
     private int repN;
     private Map<Integer, Integer> timestamp = new ConcurrentHashMap<>();
     private Map<Integer, Integer> prevTS = new ConcurrentHashMap<>();
     private String id;
-    Operation operation;
 
     public LogRecords() {
     }
 
-    public LogRecords(int repN, Map<Integer, Integer> timestamp, Map<Integer, Integer> prev, String id,Operation operation) {
+    public LogRecords(int repN, Map<Integer, Integer> timestamp, Map<Integer, Integer> prev, String id, Operation operation) {
         this.repN = repN;
         this.timestamp = timestamp;
         this.prevTS = prev;

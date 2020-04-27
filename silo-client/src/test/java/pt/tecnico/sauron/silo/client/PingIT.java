@@ -3,13 +3,13 @@ package pt.tecnico.sauron.silo.client;
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.grpc.PingRequest;
+import pt.tecnico.sauron.silo.grpc.PingResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static io.grpc.Status.INVALID_ARGUMENT;
-
 
 
 public class PingIT extends BaseIT {
@@ -18,7 +18,7 @@ public class PingIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -27,7 +27,7 @@ public class PingIT extends BaseIT {
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
     }
 

@@ -1,9 +1,11 @@
 package pt.tecnico.sauron.silo.domain;
 
 import pt.tecnico.sauron.silo.exceptions.*;
+
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -23,20 +25,20 @@ public class Silo {
     }
 
 
-    public Observation trackObject(String type, String id){
+    public Observation trackObject(String type, String id) {
 
         List<Observation> observations = new ArrayList<>();
 
         //Null or empty string id
-        if(id == null || id.strip().length() == 0)
+        if (id == null || id.strip().length() == 0)
             throw new InvalidIdException();
 
         //Null type
-        if(type == null || type.strip().length() == 0)
+        if (type == null || type.strip().length() == 0)
             throw new InvalidTypeException();
 
         //Retrieves observations with given type and id
-        for(Camera c : this.cameras){
+        for (Camera c : this.cameras) {
             for (Observation o : c.getObservations()) {
                 if (o.getType().equals(type) && o.getId().equals(id))
                     observations.add(o);
@@ -44,7 +46,7 @@ public class Silo {
         }
 
         //No observations matched
-        if(observations.isEmpty())
+        if (observations.isEmpty())
             throw new NoSuchObjectException(id);
 
         //Order observations
@@ -54,59 +56,59 @@ public class Silo {
         return observations.get(0);
     }
 
-    public List<Observation> trackMatchObject(String type, String  partialId){
+    public List<Observation> trackMatchObject(String type, String partialId) {
 
         List<Observation> observations = new ArrayList<>();
 
         //Null or empty string id
-        if(partialId == null || partialId.strip().length() == 0)
+        if (partialId == null || partialId.strip().length() == 0)
             throw new InvalidIdException();
 
         //Null type
-        if(type == null || type.strip().length() == 0)
+        if (type == null || type.strip().length() == 0)
             throw new InvalidTypeException();
 
         //If it doesnt have *, it is a simple track
-        if(!partialId.contains("*")){
-            observations.add(trackObject(type,partialId));
+        if (!partialId.contains("*")) {
+            observations.add(trackObject(type, partialId));
             return observations;
         }
 
 
         //If it just *, throw error
-        if(partialId.equals("*"))
+        if (partialId.equals("*"))
             throw new InvalidIdException(type);
 
 
         //Gets prefix and suffix from partial ID
-        String[] arr = partialId.split("\\*",2);
+        String[] arr = partialId.split("\\*", 2);
         String pre = arr[0];
         String suf = arr[1];
 
 
         //More than 1 * throw error
-        if(pre.contains("*") || suf.contains("*"))
+        if (pre.contains("*") || suf.contains("*"))
             throw new InvalidIdException(type);
 
         //Retrieves observations with given type and partial id
-        for(Camera c : this.cameras){
-            for(Observation o : c.getObservations()) {
+        for (Camera c : this.cameras) {
+            for (Observation o : c.getObservations()) {
 
                 if (o.getType().equals(type)) {
 
                     //No prefix ex-> *77
                     if (pre.length() == 0 && o.getId().endsWith(suf)) {
-                         assertMostRecentObservation(observations,o);
+                        assertMostRecentObservation(observations, o);
                     }
 
                     //No suffix ex-> 77*
                     else if (suf.length() == 0 && o.getId().startsWith(pre)) {
-                        assertMostRecentObservation(observations,o);
+                        assertMostRecentObservation(observations, o);
                     }
 
                     //Having both prefix and suffix ex-> 22*7
                     else if (o.getId().startsWith(pre) && o.getId().endsWith(suf) && o.getId().length() >= (suf.length() + pre.length())) {
-                        assertMostRecentObservation(observations,o);
+                        assertMostRecentObservation(observations, o);
                     }
 
                 }
@@ -114,7 +116,7 @@ public class Silo {
         }
 
         //No Observations Matched
-        if(observations.isEmpty())
+        if (observations.isEmpty())
             throw new NoSuchObjectException(partialId);
 
         //Order observations
@@ -129,9 +131,9 @@ public class Silo {
         int i = 0;
         boolean changed = false;
 
-        for(Observation o : observations) {
+        for (Observation o : observations) {
 
-            if(o.getId().equals(obs.getId())) {
+            if (o.getId().equals(obs.getId())) {
                 changed = true;
                 if (o.getDateTime().isBefore(obs.getDateTime())) {
                     observations.set(i, obs);
@@ -142,27 +144,27 @@ public class Silo {
         if (!changed) observations.add(obs);
     }
 
-    public List<Observation> traceObject(String type, String id){
+    public List<Observation> traceObject(String type, String id) {
 
         List<Observation> res = new ArrayList<>();
 
         //Null id or empty string id
-        if(id == null || id.strip().length() == 0)
+        if (id == null || id.strip().length() == 0)
             throw new InvalidIdException();
 
         //Null type
-        if(type == null || type.strip().length() == 0)
+        if (type == null || type.strip().length() == 0)
             throw new InvalidTypeException();
 
         //Retrieve observations for the given type nad id
-        for(Camera c : this.cameras) {
+        for (Camera c : this.cameras) {
             for (Observation o : c.getObservations())
                 if (o.getType().equals(type) && o.getId().equals(id))
                     res.add(o);
         }
 
         //No matched objects
-        if(res.isEmpty())
+        if (res.isEmpty())
             throw new NoSuchObjectException(id);
 
         //Order observations
@@ -172,23 +174,23 @@ public class Silo {
         return res;
     }
 
-    public boolean checkIfCameraExists(String camName){
-        for(Camera c : this.cameras){
-            if(c.getName().equals(camName))
+    public boolean checkIfCameraExists(String camName) {
+        for (Camera c : this.cameras) {
+            if (c.getName().equals(camName))
                 return true;
         }
         return false;
     }
 
-    public synchronized Camera getCameraByName(String camName){
+    public synchronized Camera getCameraByName(String camName) {
 
         //Camera name null
-        if(camName.equals(null))
+        if (camName.equals(null))
             throw new CameraNameNullException();
 
         //Find camera for the given name
-        for(Camera c : this.cameras){
-            if(c.getName().equals(camName))
+        for (Camera c : this.cameras) {
+            if (c.getName().equals(camName))
                 return c;
         }
 
@@ -196,21 +198,21 @@ public class Silo {
         throw new NoSuchCameraNameException(camName);
     }
 
-    public synchronized void  addCamera(Camera camera) {
+    public synchronized void addCamera(Camera camera) {
 
         //Checks for duplicate cameras
-        for(Camera c : this.cameras){
+        for (Camera c : this.cameras) {
             //Same name different coordinates
-            if(c.getName().equals(camera.getName()) && !c.equals(camera))
+            if (c.getName().equals(camera.getName()) && !c.equals(camera))
                 throw new CameraNameNotUniqueException();
             //Same name same coordinates
-            if(c.getName().equals(camera.getName()))
+            if (c.getName().equals(camera.getName()))
                 return;
         }
 
         //Just a system message
         System.out.println("Camera with name:" + camera.getName() + " and latitude:" + camera.getLat() + " and longitude:"
-                + camera.getLog()+ " added to silo");
+                + camera.getLog() + " added to silo");
 
         //Add camera to lot of cameras
         this.cameras.add(camera);

@@ -2,9 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.ClearRequest;
-import pt.tecnico.sauron.silo.grpc.ClearResponse;
 import pt.tecnico.sauron.silo.grpc.InitRequest;
-import pt.tecnico.sauron.silo.grpc.InitResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 public class InitIT extends BaseIT {
@@ -13,7 +11,7 @@ public class InitIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -22,7 +20,7 @@ public class InitIT extends BaseIT {
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
     }
 
@@ -44,6 +42,7 @@ public class InitIT extends BaseIT {
     public void tearDown() {
 
     }
+
     @Test
     public void initTest() {
         InitRequest request = InitRequest.newBuilder().build();

@@ -6,6 +6,6 @@ public class InvalidIdException extends RuntimeException {
     }
 
     public InvalidIdException(String type) {
-        super(String.format(ErrorMessage.INVALID_ID.label,type));
+        super(String.format(ErrorMessage.INVALID_ID.label, type));
     }
 }

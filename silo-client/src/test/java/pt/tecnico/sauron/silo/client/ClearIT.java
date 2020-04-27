@@ -1,10 +1,8 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.grpc.ClearRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
-
-import static org.junit.Assert.assertEquals;
 
 public class ClearIT extends BaseIT {
 
@@ -12,7 +10,7 @@ public class ClearIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -21,7 +19,7 @@ public class ClearIT extends BaseIT {
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
     }
 

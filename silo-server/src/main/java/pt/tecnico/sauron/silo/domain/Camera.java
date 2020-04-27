@@ -1,7 +1,9 @@
 package pt.tecnico.sauron.silo.domain;
 
 
-import pt.tecnico.sauron.silo.exceptions.*;
+import pt.tecnico.sauron.silo.exceptions.CameraNameInvalidException;
+import pt.tecnico.sauron.silo.exceptions.CameraNameNullException;
+import pt.tecnico.sauron.silo.exceptions.InvalidCoordinatesException;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -70,10 +72,10 @@ public class Camera {
         this.observations.add(observation);
         //Just a system message
         System.out.println("Added observation for object id:" + observation.getId() + " and Type:" + observation.getType() +
-               " on " + observation.getDateTime()+ " in camera " + this.name);
+                " on " + observation.getDateTime() + " in camera " + this.name);
     }
 
-    public void sortObservations(){
+    public void sortObservations() {
         this.observations.sort(Observation::compareTo);
     }
 

@@ -18,7 +18,7 @@ public class CamJoinIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -27,7 +27,7 @@ public class CamJoinIT extends BaseIT {
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
     }
 
@@ -51,7 +51,7 @@ public class CamJoinIT extends BaseIT {
     }
 
     @Test
-    public void joinNonUniqueCamera(){
+    public void joinNonUniqueCamera() {
         String camName = "Vale das Mos";
 
         CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName).setLatitude(13.3).setLongitude(51.2).build();
@@ -60,7 +60,7 @@ public class CamJoinIT extends BaseIT {
     }
 
     @Test
-    public void join2CamerasWithSameNameDifferentLocation(){
+    public void join2CamerasWithSameNameDifferentLocation() {
         String camName = "Vale das Mos";
         double lat1 = 13.2;
         double lat2 = 11.2;
@@ -81,7 +81,7 @@ public class CamJoinIT extends BaseIT {
     }
 
     @Test
-    public void join2CamerasWithSameNameSameLocation(){
+    public void join2CamerasWithSameNameSameLocation() {
         String camName = "Vale das Mos";
         double lat = 13.2;
         double log = 31.2;
@@ -94,7 +94,7 @@ public class CamJoinIT extends BaseIT {
 
 
     @Test
-    public void joinCameraWithMoreThan15CharsName(){
+    public void joinCameraWithMoreThan15CharsName() {
         String camName = "UMACOISARANDOMQUEMELEMBREIETEMMUITOMAISQUE15";
         double lat = 13.2;
         double log = 31.2;
@@ -109,7 +109,7 @@ public class CamJoinIT extends BaseIT {
     }
 
     @Test
-    public void joinCameraWithLessThan3CharsName(){
+    public void joinCameraWithLessThan3CharsName() {
         String camName = "te";
         double lat = 13.2;
         double log = 31.2;
@@ -124,7 +124,7 @@ public class CamJoinIT extends BaseIT {
     }
 
     @Test
-    public void joinCameraWithInvalidCoords(){
+    public void joinCameraWithInvalidCoords() {
         String camName = "Vale das Mos";
         double log1 = 200.2;
         double log2 = -10.2;

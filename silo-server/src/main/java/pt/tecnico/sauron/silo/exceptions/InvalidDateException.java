@@ -7,6 +7,6 @@ public class InvalidDateException extends RuntimeException {
     }
 
     public InvalidDateException(String date) {
-        super(String.format(ErrorMessage.INVALID_DATE.label,date));
+        super(String.format(ErrorMessage.INVALID_DATE.label, date));
     }
 }

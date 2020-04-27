@@ -17,7 +17,7 @@ public class CamInfoIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -26,7 +26,7 @@ public class CamInfoIT extends BaseIT {
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
         CamJoinRequest camJoinRequest = CamJoinRequest.newBuilder()
                 .setCamName("Vale das Mos")
                 .setLatitude(12.2)
@@ -46,7 +46,7 @@ public class CamInfoIT extends BaseIT {
     @BeforeEach
     public void setUp() {
 
-}
+    }
 
     @AfterEach
     public void tearDown() {
@@ -54,11 +54,11 @@ public class CamInfoIT extends BaseIT {
     }
 
     @Test
-    public void camInfoFromExistingCam(){
+    public void camInfoFromExistingCam() {
         String camName = "Vale das Mos";
         CamInfoRequest camInfoRequest = CamInfoRequest.newBuilder().setCamName(camName).build();
 
-        CamInfoResponse response =  frontend.getCamInfo(camInfoRequest);
+        CamInfoResponse response = frontend.getCamInfo(camInfoRequest);
 
         assertEquals((Double) 12.2, (Double) response.getLatitude());
         assertEquals((Double) 12.2, (Double) response.getLongitude());
@@ -67,7 +67,7 @@ public class CamInfoIT extends BaseIT {
     }
 
     @Test
-    public void camInfoFromNonExistingCam(){
+    public void camInfoFromNonExistingCam() {
         String camName = "Not Vale";
         CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(camName).build();
 

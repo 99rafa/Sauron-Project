@@ -16,7 +16,7 @@ public class TrackMatchIT extends BaseIT {
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -47,10 +47,10 @@ public class TrackMatchIT extends BaseIT {
         frontend.camJoin(joinRequest1);
         frontend.camJoin(joinRequest2);
 
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date1).build();
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR" ).setId(id2).setDatetime(date2).build();
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date3).build();
-        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON" ).setId(id3).setDatetime(date4).build();
+        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date1).build();
+        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR").setId(id2).setDatetime(date2).build();
+        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date3).build();
+        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON").setId(id3).setDatetime(date4).build();
         ObservationMessage observationMessage5 = ObservationMessage.newBuilder().setType("PERSON").setId(id4).setDatetime(date4).build();
 
         ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
@@ -87,25 +87,24 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //correct trackMatch 2 object that start with id 12*
     public void trackMatchObjectRegular() {
-        String type = "CAR" ;
+        String type = "CAR";
         String subId = "12*";
 
 
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
-        assertEquals(2,response.getObservationList().size());
+        assertEquals(2, response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
             if (o.getId().equals("12DL12")) {
-                assertEquals("Vale das Mos",o.getCamName());
-                assertEquals("CAR" , o.getType());
+                assertEquals("Vale das Mos", o.getCamName());
+                assertEquals("CAR", o.getType());
                 assertEquals("2015-09-12 12:12:12", o.getDatetime());
-            }
-            else if (o.getId().equals("12AR12")) {
-                assertEquals("Alcobaca",o.getCamName());
-                assertEquals("CAR" , o.getType());
+            } else if (o.getId().equals("12AR12")) {
+                assertEquals("Alcobaca", o.getCamName());
+                assertEquals("CAR", o.getType());
                 assertEquals("2020-03-12 12:12:12", o.getDatetime());
             }
         }
@@ -122,17 +121,16 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
-        assertEquals(2,response.getObservationList().size());
+        assertEquals(2, response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("15");
             if (o.getId().equals("151212")) {
-                assertEquals("Alcobaca",o.getCamName());
+                assertEquals("Alcobaca", o.getCamName());
                 assertEquals("PERSON", o.getType());
                 assertEquals("2010-09-12 12:12:12", o.getDatetime());
-            }
-            else if (o.getId().equals("151213")) {
-                assertEquals("Alcobaca",o.getCamName());
+            } else if (o.getId().equals("151213")) {
+                assertEquals("Alcobaca", o.getCamName());
                 assertEquals("PERSON", o.getType());
                 assertEquals("2010-09-12 12:12:12", o.getDatetime());
             }
@@ -142,26 +140,25 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //correct trackMatch objects with prefix and sufix
     public void trackMatchObjectPrefixSufix() {
-        String type = "CAR" ;
+        String type = "CAR";
         String subId = "12*12";
 
 
         TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).setSubId(subId).build();
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
-        assertEquals(2,response.getObservationList().size());
+        assertEquals(2, response.getObservationList().size());
         for (ObservationMessage o : response.getObservationList()) {
 
             assert o.getId().startsWith("12");
             assert o.getId().endsWith("12");
             if (o.getId().equals("12DL12")) {
-                assertEquals("Vale das Mos",o.getCamName());
-                assertEquals("CAR" , o.getType());
+                assertEquals("Vale das Mos", o.getCamName());
+                assertEquals("CAR", o.getType());
                 assertEquals("2015-09-12 12:12:12", o.getDatetime());
-            }
-            else if (o.getId().equals("12AR12")) {
-                assertEquals("Alcobaca",o.getCamName());
-                assertEquals("CAR" , o.getType());
+            } else if (o.getId().equals("12AR12")) {
+                assertEquals("Alcobaca", o.getCamName());
+                assertEquals("CAR", o.getType());
                 assertEquals("2020-03-12 12:12:12", o.getDatetime());
             }
         }
@@ -170,7 +167,7 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //correct trackMatch of id with no asterisk
     public void trackObject() {
-        String type = "CAR" ;
+        String type = "CAR";
         String subId = "12DL12";
 
 
@@ -178,9 +175,9 @@ public class TrackMatchIT extends BaseIT {
         TrackMatchResponse response = frontend.trackMatchObj(request);
 
         assertEquals(1, response.getObservationList().size());
-        assertEquals("12DL12",response.getObservationList().get(0).getId());
-        assertEquals("Vale das Mos",response.getObservationList().get(0).getCamName());
-        assertEquals("CAR" , response.getObservationList().get(0).getType());
+        assertEquals("12DL12", response.getObservationList().get(0).getId());
+        assertEquals("Vale das Mos", response.getObservationList().get(0).getCamName());
+        assertEquals("CAR", response.getObservationList().get(0).getType());
     }
 
 
@@ -204,7 +201,7 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //testing subId with more than one *
     public void twoAsterisks() {
-        String type = "CAR" ;
+        String type = "CAR";
         String subId = "*12*";
 
 
@@ -220,7 +217,7 @@ public class TrackMatchIT extends BaseIT {
     @Test
     //testing subId with more than one *
     public void onlyOneAsterisksId() {
-        String type = "CAR" ;
+        String type = "CAR";
         String subId = "*";
 
 

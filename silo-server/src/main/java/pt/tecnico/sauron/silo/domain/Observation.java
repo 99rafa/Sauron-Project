@@ -1,11 +1,9 @@
 package pt.tecnico.sauron.silo.domain;
 
-import com.google.protobuf.DoubleValue;
-import pt.tecnico.sauron.silo.exceptions.*;
+import pt.tecnico.sauron.silo.exceptions.InvalidDateException;
+import pt.tecnico.sauron.silo.exceptions.InvalidIdException;
 
 import java.time.LocalDateTime;
-
-import static java.lang.Integer.parseInt;
 
 public class Observation implements Comparable<Observation> {
 
@@ -20,7 +18,7 @@ public class Observation implements Comparable<Observation> {
     public Observation() {
     }
 
-    public Observation(String type, String id, LocalDateTime dateTime,String camName) {
+    public Observation(String type, String id, LocalDateTime dateTime, String camName) {
 
         this.type = type;
         //Checks if valid date
@@ -157,5 +155,7 @@ public class Observation implements Comparable<Observation> {
         return this.dateTime.compareTo(observation.getDateTime());
     }
 
-    public int customSort(Observation observation) { return this.getId().compareTo(observation.getId());}
+    public int customSort(Observation observation) {
+        return this.getId().compareTo(observation.getId());
+    }
 }

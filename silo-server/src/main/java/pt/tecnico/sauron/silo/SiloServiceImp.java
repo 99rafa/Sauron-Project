@@ -5,7 +5,8 @@ import pt.tecnico.sauron.silo.api.GossipMessage;
 import pt.tecnico.sauron.silo.api.LogRecords;
 import pt.tecnico.sauron.silo.api.Operation;
 import pt.tecnico.sauron.silo.api.ServerRequestHandler;
-import pt.tecnico.sauron.silo.domain.*;
+import pt.tecnico.sauron.silo.domain.Camera;
+import pt.tecnico.sauron.silo.domain.Observation;
 import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
@@ -15,9 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.grpc.Status.ALREADY_EXISTS;
-import static io.grpc.Status.INVALID_ARGUMENT;
-import static io.grpc.Status.NOT_FOUND;
+import static io.grpc.Status.*;
 
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
@@ -27,28 +26,31 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     private ServerRequestHandler serverRequestHandler;
 
+    private int replicaNumber;
+
     public SiloServiceImp(Integer repN) {
         this.serverRequestHandler = new ServerRequestHandler(repN);
+        this.replicaNumber = repN;
     }
 
 
     @Override
-    public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver){
+    public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         System.out.println("Gossip Received");
 
         //Build gossip object
         List<LogRecords> lr = new ArrayList<>();
-        for(LogRecordsRequest lrr : request.getLogList()){
+        for (LogRecordsRequest lrr : request.getLogList()) {
             OperationRequest opr = lrr.getOperation();
             lr.add(new LogRecords(lrr.getRepN(),
                     lrr.getTimestampMap(),
                     lrr.getPrevTSMap(),
                     lrr.getId(),
-                    new Operation(opr.getOp(),opr.getRequest())));
+                    new Operation(opr.getOp(), opr.getRequest())));
         }
 
         //Merge replica log with gossip log
-        this.serverRequestHandler.mergeIncomingLog(new GossipMessage(lr,request.getRepTsMap()));
+        this.serverRequestHandler.mergeIncomingLog(new GossipMessage(lr, request.getRepTsMap()));
 
         //TODO Rest of gossip
 
@@ -58,28 +60,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         responseObserver.onCompleted();
     }
 
+
+    //CamJoin domain logic
     public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        try {
+        Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
+        silo.addCamera(camera);
 
-            Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
-            silo.addCamera(camera);
-            CamJoinResponse response = CamJoinResponse.newBuilder().build();
-
-            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
-
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-
-        } catch ( CameraNameNotUniqueException e){
-            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( CameraNameInvalidException  |
-                  CameraNameNullException     |
-                  InvalidCoordinatesException e ) {
-            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        }
     }
 
     @Override
@@ -88,29 +75,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             LogRecords logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
 
-        while(!happensBefore(request.getPrevTSMap(),this.serverRequestHandler.getValueTS())){
-            try {
-                wait(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        camJoinAux(request,responseObserver);
-        this.serverRequestHandler.updateReplicaState(logRecord);
-        System.out.println("Cam join done");
-
-        } catch (DuplicateOperationException e){
-            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
-        }
-    }
-
-    @Override
-    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        try {
-
-            this.serverRequestHandler.processUpdateRequest("Report",request, responseObserver);
-
-            while(!happensBefore(request.getPrevTSMap(),this.serverRequestHandler.getValueTS())){
+            while (notHappensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
                 try {
                     wait(5000);
                 } catch (InterruptedException e) {
@@ -118,11 +83,98 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 }
             }
 
-            reportAux(request,responseObserver);
+            //implements domain logic
+            camJoinAux(request, responseObserver);
 
-        } catch (DuplicateOperationException e){
+            //Builds response
+            CamJoinResponse response = CamJoinResponse.newBuilder().build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
+
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+            this.serverRequestHandler.updateReplicaState(logRecord);
+
+        } catch (DuplicateOperationException | CameraNameNotUniqueException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        } catch (CameraNameInvalidException |
+                CameraNameNullException |
+                InvalidCoordinatesException e) {
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
+    }
+
+    //Report domain logic
+    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+
+        String camName = request.getReportRequest().getCamName();
+        List<ObservationMessage> observationMessages;
+
+        if (silo.checkIfCameraExists(camName)) {
+
+            Camera cam = silo.getCameraByName(camName);
+
+            observationMessages = request.getReportRequest().getObservationList();
+            for (ObservationMessage om : observationMessages) {
+                checkType(om.getType());
+                cam.addObservation(new Observation(om.getType()
+                        , om.getId()
+                        , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                        , camName
+                ));
+            }
+        } else {
+            //TODO throw exception
+        }
+
+
+    }
+
+    @Override
+    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        try {
+
+            this.serverRequestHandler.processUpdateRequest("Report", request, responseObserver);
+
+            while (notHappensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+                try {
+                    wait(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+            //Implements domain logic
+            reportAux(request, responseObserver);
+
+            //Builds response
+            ReportResponse response = ReportResponse.newBuilder().build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
+
+
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
+
+
+        } catch (DuplicateOperationException e) {
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        } catch (NoSuchCameraNameException e) {
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (CameraNameNullException |
+                InvalidTypeException |
+                InvalidIdException |
+                InvalidDateException e) {
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }//TODO
+        /*catch( exctp e ){
+            responseObserver.onError(NOT_FOUND.withDescription("No such camera").asRuntimeException());
+        }*/
 
     }
 
@@ -146,9 +198,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch ( NoSuchCameraNameException e ){
+        } catch (NoSuchCameraNameException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( CameraNameNullException e ){
+        } catch (CameraNameNullException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -180,7 +232,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setObservation(observationMessage)
                     .build();
 
-            System.out.println("Sending most recent observation of object with id:" + id + " and type:" +type + "..." );
+            System.out.println("Sending most recent observation of object with id:" + id + " and type:" + type + "...");
 
             ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTrackResponse(response).build();
 
@@ -191,10 +243,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch( InvalidIdException   |
-                InvalidTypeException e ){
+        } catch (InvalidIdException |
+                InvalidTypeException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( NoSuchObjectException e ){
+        } catch (NoSuchObjectException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -232,7 +284,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             TrackMatchResponse response = builder.build();
 
-            System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" +type + "...");
+            System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" + type + "...");
 
             ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTrackMatchResponse(response).build();
 
@@ -243,10 +295,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch ( InvalidTypeException   |
-                InvalidIdException     e ){
+        } catch (InvalidTypeException |
+                InvalidIdException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( NoSuchObjectException e ){
+        } catch (NoSuchObjectException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -283,7 +335,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             TraceResponse response = builder.build();
 
 
-            System.out.println("Sending trace path of object with id:" + id + " and type:" +type + "...");
+            System.out.println("Sending trace path of object with id:" + id + " and type:" + type + "...");
 
             ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTraceResponse(response).build();
 
@@ -293,63 +345,15 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch ( InvalidIdException   |
-                InvalidTypeException e ){
+        } catch (InvalidIdException |
+                InvalidTypeException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( NoSuchObjectException e){
+        } catch (NoSuchObjectException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
     }
 
-
-
-    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        try {
-
-            String camName = request.getReportRequest().getCamName();
-            List<ObservationMessage> observationMessages;
-
-            if (silo.checkIfCameraExists(camName)) {
-
-                Camera cam = silo.getCameraByName(camName);
-
-                observationMessages = request.getReportRequest().getObservationList();
-                for (ObservationMessage om : observationMessages) {
-                    checkType(om.getType());
-                    cam.addObservation(new Observation(om.getType()
-                            , om.getId()
-                            , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
-                            , camName
-                    ));
-                }
-            }
-            else{
-                responseObserver.onError(NOT_FOUND.withDescription("No such camera").asRuntimeException());
-                return;
-            }
-
-            ReportResponse response = ReportResponse.newBuilder().build();
-
-            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
-
-
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-
-        } catch ( NoSuchCameraNameException e ){
-            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-        } catch ( CameraNameNullException  |
-                  InvalidTypeException     |
-                  InvalidIdException       |
-                  InvalidDateException     e){
-            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        }
-
-    }
 
     @Override
     public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
@@ -382,7 +386,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         ClearResponse response = ClearResponse.newBuilder().build();
 
         //Clears server info
-        silo = new Silo();
+        this.silo = new Silo();
+        this.serverRequestHandler = this.serverRequestHandler = new ServerRequestHandler(this.replicaNumber);
+
         System.out.println("System state cleared");
 
         ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).build();
@@ -418,30 +424,29 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //Checks if type is valid
-    private void checkType(String type){
+    private void checkType(String type) {
 
-        if(type == null || type.strip().length() == 0) {
+        if (type == null || type.strip().length() == 0) {
             throw new InvalidTypeException();
         }
-        if( !type.equals("PERSON") &&
-                !type.equals("CAR") ){
+        if (!type.equals("PERSON") &&
+                !type.equals("CAR")) {
             throw new InvalidTypeException(type);
         }
     }
 
-    public GossipRequest buildGossipRequest(){
+    public GossipRequest buildGossipRequest() {
         return this.serverRequestHandler.buildGossipRequest();
     }
 
     //checks if a happens before b
-    private boolean happensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
+    private boolean notHappensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
 
-        boolean isBefore = true;
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
             Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if ( entryA.getValue() > valueB) isBefore = false;
+            if (entryA.getValue() > valueB) return true;
         }
-        return isBefore;
+        return false;
     }
 
 }

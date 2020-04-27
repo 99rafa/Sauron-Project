@@ -10,13 +10,13 @@ import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ReportIT extends BaseIT{
+public class ReportIT extends BaseIT {
 
     static SiloFrontend frontend;
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -25,7 +25,7 @@ public class ReportIT extends BaseIT{
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
         CamJoinRequest camJoinRequest = CamJoinRequest.newBuilder()
                 .setCamName("Vale das Mos")
                 .setLatitude(12.2)
@@ -53,7 +53,7 @@ public class ReportIT extends BaseIT{
     }
 
     @Test
-    public void report3CorrectObservations(){
+    public void report3CorrectObservations() {
         String date = "2019-12-12 12:12:12";
         String camName = "Vale das Mos";
         String car = "CAR";
@@ -87,7 +87,7 @@ public class ReportIT extends BaseIT{
     }
 
     @Test
-    public void reportInvalidObsId(){
+    public void reportInvalidObsId() {
         String date = "2019-12-12 12:12:12";
         String camName = "Vale das Mos";
         String car = "CAR";
@@ -131,7 +131,7 @@ public class ReportIT extends BaseIT{
     }
 
     @Test
-    public void reportInvalidDate(){
+    public void reportInvalidDate() {
         String date = "2021-12-12 12:12:12";
         String camName = "Vale das Mos";
         String person = "PERSON";
@@ -155,7 +155,7 @@ public class ReportIT extends BaseIT{
     }
 
     @Test
-    public void reportNonExistingCamera(){
+    public void reportNonExistingCamera() {
         String date = "2019-12-12 12:12:12";
         String camName = "NOT Mos";
         String person = "PERSON";

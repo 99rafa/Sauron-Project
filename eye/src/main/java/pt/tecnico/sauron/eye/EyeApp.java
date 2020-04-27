@@ -51,7 +51,7 @@ public class EyeApp {
                 final String target = host + ":" + port;
                 final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
-               	SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
+                SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
 
                 CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
                         .setLatitude(latitude).setLongitude(longitude).build();
@@ -149,16 +149,15 @@ public class EyeApp {
                 observations.clear();
 
                 //Change server when the previous goes down
-                if(e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)){
+                if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
                     System.out.println("Server is down, reconnecting...");
-                    siloFrontend = new SiloFrontend(siloFrontend.getHost(),siloFrontend.getPort(),"",siloFrontend.getPrevTS());
+                    siloFrontend = new SiloFrontend(siloFrontend.getHost(), siloFrontend.getPort(), "", siloFrontend.getPrevTS());
                     System.out.println("Reconnected");
 
                     CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
                             .setLatitude(lat).setLongitude(log).build();
                     siloFrontend.camJoin(request);
-                }
-                else
+                } else
                     System.out.println(e.getStatus().getDescription());
 
             } catch (IOException e) {

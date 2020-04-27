@@ -14,10 +14,10 @@ public class SiloFrontend implements AutoCloseable {
 
     private ResponseCache responseCache = new ResponseCache();
 
-    private  ManagedChannel channel;
+    private ManagedChannel channel;
     private String host;
     private String port;
-    private Map<Integer,Integer> prevTS = new HashMap<>();
+    private Map<Integer, Integer> prevTS = new HashMap<>();
 
     private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
@@ -25,7 +25,7 @@ public class SiloFrontend implements AutoCloseable {
 
         this.host = zooHost;
         this.port = zooPort;
-        String target = getServerTarget(zooHost,zooPort,repN);
+        String target = getServerTarget(zooHost, zooPort, repN);
 
         this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
@@ -33,19 +33,18 @@ public class SiloFrontend implements AutoCloseable {
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
 
-    public SiloFrontend(String zooHost, String zooPort, String repN, Map<Integer,Integer> preTS) throws ZKNamingException {
+    public SiloFrontend(String zooHost, String zooPort, String repN, Map<Integer, Integer> preTS) throws ZKNamingException {
 
         this.host = zooHost;
         this.port = zooPort;
         this.prevTS = preTS;
-        String target = getServerTarget(zooHost,zooPort,repN);
+        String target = getServerTarget(zooHost, zooPort, repN);
 
         this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
-
 
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
@@ -75,10 +74,10 @@ public class SiloFrontend implements AutoCloseable {
         ClientResponse response = stub.camInfo(cliRequest);
 
         //Send response in cache if received response aint updated
-        if(happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc,response);
+        if (happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc,response).getCamInfoResponse();
+            return this.responseCache.getLastRead(serviceDesc, response).getCamInfoResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -110,8 +109,8 @@ public class SiloFrontend implements AutoCloseable {
         ClientResponse response = stub.track(cliRequest);
 
         //Send response in cache if received response aint updated
-        if(happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc,response);
+        if (happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc, response);
         else
             return this.responseCache.getLastRead(serviceDesc, response).getTrackResponse();
 
@@ -134,10 +133,10 @@ public class SiloFrontend implements AutoCloseable {
         ClientResponse response = stub.trackMatch(cliRequest);
 
         //Send response in cache if received response aint updated
-        if(happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc,response);
+        if (happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc,response).getTrackMatchResponse();
+            return this.responseCache.getLastRead(serviceDesc, response).getTrackMatchResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -158,10 +157,10 @@ public class SiloFrontend implements AutoCloseable {
         ClientResponse response = stub.trace(cliRequest);
 
         //Send response in cache if received response aint updated
-        if(happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc,response);
+        if (happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc,response).getTraceResponse();
+            return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -208,10 +207,10 @@ public class SiloFrontend implements AutoCloseable {
 
         Random random = new Random();
         final String path;
-        ZKNaming zkNaming = new ZKNaming(zooHost,zooPort);
+        ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
 
-        if(repN.equals(""))
+        if (repN.equals(""))
             path = recs.get(random.nextInt(recs.size())).getPath();
         else
             path = "/grpc/sauron/silo/" + repN;
@@ -249,25 +248,25 @@ public class SiloFrontend implements AutoCloseable {
         this.prevTS = prevTS;
     }
 
-    private String getUUID(){
+    private String getUUID() {
         return UUID.randomUUID().toString();
     }
 
-    private void mergeTS(Map<Integer,Integer> map){
-        for(Integer key : map.keySet()){
-            if(this.prevTS.containsKey(key))
-                this.prevTS.put(key,Integer.max(this.prevTS.get(key),map.get(key)));
+    private void mergeTS(Map<Integer, Integer> map) {
+        for (Integer key : map.keySet()) {
+            if (this.prevTS.containsKey(key))
+                this.prevTS.put(key, Integer.max(this.prevTS.get(key), map.get(key)));
             else
-                this.prevTS.put(key,map.get(key));
+                this.prevTS.put(key, map.get(key));
         }
     }
 
 
-    private boolean happensBefore(Map<Integer,Integer> map){
+    private boolean happensBefore(Map<Integer, Integer> map) {
         boolean isBefore = true;
         for (Map.Entry<Integer, Integer> entryA : this.prevTS.entrySet()) {
             Integer valueB = map.getOrDefault(entryA.getKey(), 0);
-            if ( entryA.getValue() > valueB) isBefore = false;
+            if (entryA.getValue() > valueB) isBefore = false;
         }
         return isBefore;
     }

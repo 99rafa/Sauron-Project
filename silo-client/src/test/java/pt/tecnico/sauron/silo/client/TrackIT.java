@@ -5,19 +5,18 @@ import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
-
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class TrackIT extends BaseIT{
+public class TrackIT extends BaseIT {
 
     static SiloFrontend frontend;
 
     static {
         try {
-            frontend = new SiloFrontend("localhost", "2181","");
+            frontend = new SiloFrontend("localhost", "2181", "");
         } catch (ZKNamingException e) {
             e.printStackTrace();
         }
@@ -26,7 +25,7 @@ public class TrackIT extends BaseIT{
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
         ClearRequest request = ClearRequest.newBuilder().build();
         frontend.ctrlClear(request);
@@ -46,10 +45,10 @@ public class TrackIT extends BaseIT{
         CamJoinRequest joinRequest2 = CamJoinRequest.newBuilder().setCamName(camName2).setLatitude(15.3).setLongitude(53.2).build();
         frontend.camJoin(joinRequest1);
         frontend.camJoin(joinRequest2);
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date1).build();
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR" ).setId(id2).setDatetime(date2).build();
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR" ).setId(id1).setDatetime(date3).build();
-        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON" ).setId(id3).setDatetime(date4).build();
+        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date1).build();
+        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR").setId(id2).setDatetime(date2).build();
+        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date3).build();
+        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON").setId(id3).setDatetime(date4).build();
         ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
         ReportRequest request2 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage2).build();
         ReportRequest request3 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage3).build();
@@ -82,17 +81,17 @@ public class TrackIT extends BaseIT{
     @Test
     //correct track of one object
     public void trackOneObject() {
-        String type = "CAR" ;
+        String type = "CAR";
         String id = "12AR12";
 
 
         TrackRequest request = TrackRequest.newBuilder().setType(type).setId(id).build();
         TrackResponse response = frontend.trackObj(request);
 
-            assertEquals("CAR" , response.getObservation().getType());
-            assertEquals(id, response.getObservation().getId());
-            assertEquals("Vale das Mos", response.getObservation().getCamName());
-            assertEquals("2015-09-12 12:12:12", response.getObservation().getDatetime());
+        assertEquals("CAR", response.getObservation().getType());
+        assertEquals(id, response.getObservation().getId());
+        assertEquals("Vale das Mos", response.getObservation().getCamName());
+        assertEquals("2015-09-12 12:12:12", response.getObservation().getDatetime());
     }
 
     @Test

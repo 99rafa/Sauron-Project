@@ -7,6 +7,6 @@ public class InvalidTypeException extends RuntimeException {
     }
 
     public InvalidTypeException(String type) {
-        super(String.format(ErrorMessage.INVALID_TYPE.label,type));
+        super(String.format(ErrorMessage.INVALID_TYPE.label, type));
     }
 }

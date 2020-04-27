@@ -8,7 +8,7 @@ package pt.tecnico.sauron.silo.grpc;
 option java_multiple_files = true;
 
 //observation object message
-message ObservationMessage{
+message ObservationMessage {
     string type = 1;
     string id = 2;
     string datetime = 3;
@@ -31,7 +31,7 @@ message CamJoinResponse {
 //Client Request operation
 message ClientRequest {
     string opId = 1;
-    map<int32,int32> prevTS = 2;
+    map<int32, int32> prevTS = 2;
     CamJoinRequest camJoinRequest = 3;
     CamInfoRequest camInfoRequest = 4;
     ReportRequest reportRequest = 5;
@@ -44,7 +44,7 @@ message ClientRequest {
 }
 
 message ClientResponse {
-    map<int32,int32> responseTS = 1;
+    map<int32, int32> responseTS = 1;
     CamJoinResponse camJoinResponse = 2;
     CamInfoResponse camInfoResponse = 3;
     ReportResponse reportResponse = 4;
@@ -57,7 +57,6 @@ message ClientResponse {
 
 }
 
-
 //cam_info silo operation
 
 message CamInfoRequest {
@@ -65,8 +64,8 @@ message CamInfoRequest {
 }
 
 message CamInfoResponse {
-   double latitude = 1;
-   double longitude = 2;
+    double latitude = 1;
+    double longitude = 2;
 }
 
 //report silo operation
@@ -83,8 +82,8 @@ message ReportResponse {
 //track silo operation
 
 message TrackRequest {
-   string type = 1;
-   string id = 2;
+    string type = 1;
+    string id = 2;
 }
 
 message TrackResponse {
@@ -147,11 +146,11 @@ message GossipRequest {
     map<int32, int32> repTs = 2;
 }
 
-message GossipResponse{
+message GossipResponse {
 
 }
 
-message LogRecordsRequest{
+message LogRecordsRequest {
     int32 repN = 1;
     map<int32, int32> timestamp = 2;
     map<int32, int32> prevTS = 3;
@@ -159,22 +158,22 @@ message LogRecordsRequest{
     OperationRequest operation = 5;
 }
 
-message OperationRequest{
+message OperationRequest {
     string op = 1;
     ClientRequest request = 2;
 }
 
 service SiloOperationsService {
     // Define a RPC operation
-    rpc camJoin(ClientRequest) returns (ClientResponse);
-    rpc camInfo(ClientRequest) returns (ClientResponse);
-    rpc report(ClientRequest) returns (ClientResponse);
-    rpc track(ClientRequest) returns (ClientResponse);
-    rpc trackMatch(ClientRequest) returns (ClientResponse);
-    rpc trace(ClientRequest) returns (ClientResponse);
-    rpc ctrlPing(ClientRequest) returns (ClientResponse);
-    rpc ctrlClear(ClientRequest) returns (ClientResponse);
-    rpc ctrlInit(ClientRequest) returns (ClientResponse);
-    rpc gossip(GossipRequest) returns (GossipResponse);
+    rpc camJoin (ClientRequest) returns (ClientResponse);
+    rpc camInfo (ClientRequest) returns (ClientResponse);
+    rpc report (ClientRequest) returns (ClientResponse);
+    rpc track (ClientRequest) returns (ClientResponse);
+    rpc trackMatch (ClientRequest) returns (ClientResponse);
+    rpc trace (ClientRequest) returns (ClientResponse);
+    rpc ctrlPing (ClientRequest) returns (ClientResponse);
+    rpc ctrlClear (ClientRequest) returns (ClientResponse);
+    rpc ctrlInit (ClientRequest) returns (ClientResponse);
+    rpc gossip (GossipRequest) returns (GossipResponse);
 
 }

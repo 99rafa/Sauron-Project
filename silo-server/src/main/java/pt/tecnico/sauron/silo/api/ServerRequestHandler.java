@@ -1,16 +1,14 @@
 package pt.tecnico.sauron.silo.api;
 
 import io.grpc.stub.StreamObserver;
-import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.DuplicateOperationException;
-import pt.tecnico.sauron.silo.exceptions.InvalidTypeException;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import static io.grpc.Status.ALREADY_EXISTS;
 
 public class ServerRequestHandler {
 
@@ -165,12 +163,11 @@ public class ServerRequestHandler {
     //checks if a happens before b
     private boolean happensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
 
-        boolean isBefore = true;
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
             Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if (entryA.getValue() > valueB) isBefore = false;
+            if (entryA.getValue() > valueB) return false;
         }
-        return isBefore;
+        return true;
     }
 
     private int happensBeforeInteger(Map<Integer, Integer> a, Map<Integer, Integer> b) {
@@ -181,7 +178,6 @@ public class ServerRequestHandler {
         }
         return 1;
     }
-
 
 
 }
