@@ -10,6 +10,11 @@ public class Operation {
     ClientRequest request;
     StreamObserver<ClientResponse> observer;
 
+    public Operation(String operation, ClientRequest request) {
+        this.operation = operation;
+        this.request = request;
+    }
+
     public Operation(String operation, ClientRequest request, StreamObserver<ClientResponse> observer) {
         this.operation = operation;
         this.request = request;

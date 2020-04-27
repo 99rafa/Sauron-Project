@@ -54,4 +54,19 @@ public class LogRecords {
         this.id = id;
     }
 
+    public Map<Integer, Integer> getPrevTS() {
+        return prevTS;
+    }
+
+    public void setPrevTS(Map<Integer, Integer> prevTS) {
+        this.prevTS = prevTS;
+    }
+
+    public Operation getOperation() {
+        return operation;
+    }
+
+    public void setOperation(Operation operation) {
+        this.operation = operation;
+    }
 }

@@ -142,7 +142,27 @@ enum ServerStatus {
     DOWN = 1;
 }
 
+message GossipRequest {
+    repeated LogRecordsRequest log = 1;
+    map<int32, int32> repTs = 2;
+}
 
+message GossipResponse{
+
+}
+
+message LogRecordsRequest{
+    int32 repN = 1;
+    map<int32, int32> timestamp = 2;
+    map<int32, int32> prevTS = 3;
+    string id = 4;
+    OperationRequest operation = 5;
+}
+
+message OperationRequest{
+    string op = 1;
+    ClientRequest request = 2;
+}
 
 service SiloOperationsService {
     // Define a RPC operation
@@ -155,4 +175,6 @@ service SiloOperationsService {
     rpc ctrlPing(ClientRequest) returns (ClientResponse);
     rpc ctrlClear(ClientRequest) returns (ClientResponse);
     rpc ctrlInit(ClientRequest) returns (ClientResponse);
+    rpc gossip(GossipRequest) returns (GossipResponse);
+
 }

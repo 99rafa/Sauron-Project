@@ -43,6 +43,32 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
 
+    @Override
+    public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver){
+        System.out.println("Gossip Received");
+
+        //Build gossip object
+        List<LogRecords> lr = new ArrayList<>();
+        for(LogRecordsRequest lrr : request.getLogList()){
+            OperationRequest opr = lrr.getOperation();
+            lr.add(new LogRecords(lrr.getRepN(),
+                    lrr.getTimestampMap(),
+                    lrr.getPrevTSMap(),
+                    lrr.getId(),
+                    new Operation(opr.getOp(),opr.getRequest())));
+        }
+
+        //Merge replica log with gossip log
+        mergeIncomingLog(new GossipMessage(lr,request.getRepTsMap()));
+
+        //TODO Rest of gossip
+
+        // Send a single response through the stream.
+        responseObserver.onNext(GossipResponse.newBuilder().build());
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+    }
+
     public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
@@ -429,8 +455,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     public synchronized void mergeIncomingLog(GossipMessage g) {
         for ( LogRecords r: g.getLog()) {
-            if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp())) this.updateLog.add(r);
-                /*TODO: equals nao sei se o equals faz sentido tendo em conta os maps podem ser diferentes*/
+            if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
+                this.updateLog.add(r);
         }
         mergeTS(this.replicaTS, g.getRepTs());
 
@@ -487,6 +513,27 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     public void setSilo(Silo silo) {
         this.silo = silo;
+    }
+
+    public GossipRequest buildGossipRequest(){
+        GossipRequest.Builder gRequest = GossipRequest.newBuilder().putAllRepTs(this.replicaTS);
+        for(LogRecords lr : this.updateLog){
+            Operation op = lr.getOperation();
+
+            OperationRequest opRequest = OperationRequest.newBuilder()
+                    .setRequest(op.getRequest())
+                    .setOp(op.getOperation()).build();
+
+            LogRecordsRequest lrRequest = LogRecordsRequest.newBuilder()
+                    .setOperation(opRequest)
+                    .setId(lr.getId())
+                    .setRepN(lr.getRepN())
+                    .putAllPrevTS(lr.getPrevTS())
+                    .putAllTimestamp(lr.getTimestamp()).build();
+            gRequest.addLog(lrRequest);
+        }
+
+        return gRequest.build();
     }
 
 }
