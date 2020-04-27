@@ -38,14 +38,6 @@ public class LogRecords {
         this.timestamp = timestamp;
     }
 
-    public Map<Integer, Integer> getPrev() {
-        return prevTS;
-    }
-
-    public void setPrev(Map<Integer, Integer> prev) {
-        this.prevTS = prev;
-    }
-
     public String getId() {
         return id;
     }

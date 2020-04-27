@@ -86,7 +86,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
-            this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
+            LogRecords logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
 
         while(!happensBefore(request.getPrevTSMap(),this.serverRequestHandler.getValueTS())){
             try {
@@ -96,6 +96,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             }
         }
         camJoinAux(request,responseObserver);
+        this.serverRequestHandler.updateReplicaState(logRecord);
         System.out.println("Cam join done");
 
         } catch (DuplicateOperationException e){

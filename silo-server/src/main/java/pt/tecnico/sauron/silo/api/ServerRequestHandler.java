@@ -6,15 +6,13 @@ import pt.tecnico.sauron.silo.exceptions.DuplicateOperationException;
 import pt.tecnico.sauron.silo.exceptions.InvalidTypeException;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static io.grpc.Status.ALREADY_EXISTS;
 
-public class ServerRequestHandler {
+public class ServerRequestHandler<o1, l1, l2> {
 
     private Integer replicaNumber;
 
@@ -32,7 +30,7 @@ public class ServerRequestHandler {
     }
 
     //respond to an update request by the client
-    public synchronized void processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public synchronized LogRecords processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
 
         //Sends Exception when operation Id is in the executed operations--> Protects duplicate requests
@@ -46,25 +44,42 @@ public class ServerRequestHandler {
         Map<Integer, Integer> updateTS = new HashMap<>(request.getPrevTSMap());
         updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
 
-        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request.getPrevTSMap(),request.getOpId(), new Operation(op,request,responseObserver));
+        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
 
         updateLog.add(logRecord);
 
-    }
-
-    public synchronized void updateReplicaState() {
+        return logRecord;
 
     }
 
+    //processing update log after receiving gossip message
+    public synchronized void processLog() {
+        //sorting list by timestamp
+
+        //TODO:sacar apenas os que tem prevTS <= valueTS
+        this.updateLog.sort((l1, l2) -> happensBeforeInteger(l1.getPrevTS(), l2.getPrevTS()));
+        //TODO:fazer os updates
+        //TODO:update replica state
+    }
+
+    //apply updates to the replica
+    public synchronized void updateReplicaState(LogRecords logRecord) {
+        mergeTS(this.valueTS, logRecord.getTimestamp());
+        executedOpsTable.add(logRecord.getId());
+
+    }
+
+    //merging the updates from gossip with the replica own pending updates
     public synchronized void mergeIncomingLog(GossipMessage g) {
-        for ( LogRecords r: g.getLog()) {
-            if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
+        for (LogRecords r : g.getLog()) {
+            if (happensBefore(this.replicaTS, r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
                 this.updateLog.add(r);
         }
         mergeTS(this.replicaTS, g.getRepTs());
 
     }
 
+    //increase replica's timestamp by one
     public synchronized void increaseReplicaTS(Integer replicaNumber) {
         this.replicaTS.merge(replicaNumber, 1, Integer::sum);
     }
@@ -76,7 +91,7 @@ public class ServerRequestHandler {
     }
 
     //merge 2 timestamps
-    private synchronized void mergeTS(Map<Integer,Integer> map1, Map<Integer,Integer> map2) {
+    private synchronized void mergeTS(Map<Integer, Integer> map1, Map<Integer, Integer> map2) {
         for (Integer key : map2.keySet()) {
             if (map1.containsKey(key))
                 map1.put(key, Integer.max(map1.get(key), map2.get(key)));
@@ -86,9 +101,9 @@ public class ServerRequestHandler {
     }
 
 
-    public GossipRequest buildGossipRequest(){
+    public GossipRequest buildGossipRequest() {
         GossipRequest.Builder gRequest = GossipRequest.newBuilder().putAllRepTs(this.replicaTS);
-        for(LogRecords lr : this.updateLog){
+        for (LogRecords lr : this.updateLog) {
             Operation op = lr.getOperation();
 
             OperationRequest opRequest = OperationRequest.newBuilder()
@@ -153,8 +168,20 @@ public class ServerRequestHandler {
         boolean isBefore = true;
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
             Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if ( entryA.getValue() > valueB) isBefore = false;
+            if (entryA.getValue() > valueB) isBefore = false;
         }
         return isBefore;
     }
+
+    private int happensBeforeInteger(Map<Integer, Integer> a, Map<Integer, Integer> b) {
+
+        for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
+            Integer valueB = b.getOrDefault(entryA.getKey(), 0);
+            if (entryA.getValue() > valueB) return -1;
+        }
+        return 1;
+    }
+
+
+
 }
