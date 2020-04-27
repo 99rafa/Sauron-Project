@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static io.grpc.Status.ALREADY_EXISTS;
 
-public class ServerRequestHandler<o1, l1, l2> {
+public class ServerRequestHandler {
 
     private Integer replicaNumber;
 
@@ -65,7 +65,7 @@ public class ServerRequestHandler<o1, l1, l2> {
     //apply updates to the replica
     public synchronized void updateReplicaState(LogRecords logRecord) {
         mergeTS(this.valueTS, logRecord.getTimestamp());
-        executedOpsTable.add(logRecord.getId());
+        this.executedOpsTable.add(logRecord.getId());
 
     }
 
