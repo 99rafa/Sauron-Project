@@ -11,6 +11,9 @@ import java.util.*;
 
 
 public class SiloFrontend implements AutoCloseable {
+
+    private ResponseCache responseCache = new ResponseCache();
+
     private  ManagedChannel channel;
     private String host;
     private String port;
@@ -48,21 +51,37 @@ public class SiloFrontend implements AutoCloseable {
     public CamJoinResponse camJoin(CamJoinRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.camJoin(cliRequest);//Uodate reuqest
+
+        //Nova thread
+        //GetResponse
+
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getCamJoinResponse();
     }
 
     public CamInfoResponse getCamInfo(CamInfoRequest request) {
+
+        //Entry for response cache -> funtion name, args...
+        List<String> serviceDesc = new ArrayList<>();
+        serviceDesc.add("CamInfo");
+        serviceDesc.add(request.getCamName());
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.camInfo(cliRequest);
+
+        //Send response in cache if received response aint updated
+        if(happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc,response);
+        else
+            return this.responseCache.getLastRead(serviceDesc,response).getCamInfoResponse();
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getCamInfoResponse();
     }
@@ -70,54 +89,94 @@ public class SiloFrontend implements AutoCloseable {
     public ReportResponse reportObs(ReportRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.report(cliRequest);
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getReportResponse();
     }
 
     public TrackResponse trackObj(TrackRequest request) {
+
+        //Entry for response cache -> funtion name, args...
+        List<String> serviceDesc = new ArrayList<>();
+        serviceDesc.add("TrackObject");
+        serviceDesc.add(request.getId());
+        serviceDesc.add(request.getType());
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.track(cliRequest);
+
+        //Send response in cache if received response aint updated
+        if(happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc,response);
+        else
+            return this.responseCache.getLastRead(serviceDesc, response).getTrackResponse();
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getTrackResponse();
     }
 
     public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {
+
+        //Entry for response cache -> funtion name, args...
+        List<String> serviceDesc = new ArrayList<>();
+        serviceDesc.add("TrackMatchObject");
+        serviceDesc.add(request.getSubId());
+        serviceDesc.add(request.getType());
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.trackMatch(cliRequest);
+
+        //Send response in cache if received response aint updated
+        if(happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc,response);
+        else
+            return this.responseCache.getLastRead(serviceDesc,response).getTrackMatchResponse();
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getTrackMatchResponse();
     }
 
     public TraceResponse traceObj(TraceRequest request) {
+
+        //Entry for response cache -> funtion name, args...
+        List<String> serviceDesc = new ArrayList<>();
+        serviceDesc.add("TraceObject");
+        serviceDesc.add(request.getId());
+        serviceDesc.add(request.getType());
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.trace(cliRequest);
+
+        //Send response in cache if received response aint updated
+        if(happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc,response);
+        else
+            return this.responseCache.getLastRead(serviceDesc,response).getTraceResponse();
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getTraceResponse();
     }
 
     public PingResponse ctrlPing(PingRequest request) {
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.ctrlPing(cliRequest);
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getPingResponse();
     }
@@ -125,10 +184,10 @@ public class SiloFrontend implements AutoCloseable {
     public ClearResponse ctrlClear(ClearRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.ctrlClear(cliRequest);
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getClearResponse();
     }
@@ -136,10 +195,10 @@ public class SiloFrontend implements AutoCloseable {
     public InitResponse ctrlInit(InitRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);
+        ClientResponse response = stub.ctrlInit(cliRequest);
 
         //Merge Timestamps
-        mergeTS(response.getUpdateTSMap());
+        mergeTS(response.getResponseTSMap());
 
         return response.getInitResponse();
 
@@ -203,6 +262,15 @@ public class SiloFrontend implements AutoCloseable {
         }
     }
 
+
+    private boolean happensBefore(Map<Integer,Integer> map){
+        boolean isBefore = true;
+        for (Map.Entry<Integer, Integer> entryA : this.prevTS.entrySet()) {
+            Integer valueB = map.getOrDefault(entryA.getKey(), 0);
+            if ( entryA.getValue() > valueB) isBefore = false;
+        }
+        return isBefore;
+    }
 
     @Override
     public final void close() {

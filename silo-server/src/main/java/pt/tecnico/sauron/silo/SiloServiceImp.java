@@ -4,6 +4,7 @@ import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.api.GossipMessage;
 import pt.tecnico.sauron.silo.api.LogRecords;
 import pt.tecnico.sauron.silo.api.Operation;
+import pt.tecnico.sauron.silo.api.ServerRequestHandler;
 import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.Silo;
 import pt.tecnico.sauron.silo.exceptions.*;
@@ -13,8 +14,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static io.grpc.Status.ALREADY_EXISTS;
 import static io.grpc.Status.INVALID_ARGUMENT;
@@ -23,23 +22,13 @@ import static io.grpc.Status.NOT_FOUND;
 
 public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServiceImplBase {
 
-    private Integer replicaNumber;
 
     private Silo silo = new Silo();
 
-    private Map<Integer, Integer> replicaTS = new ConcurrentHashMap<>();
-
-    private List<LogRecords> updateLog = new CopyOnWriteArrayList<>();
-
-    private Map<Integer, Integer> valueTS = new ConcurrentHashMap<>();
-
-    private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
-
-    private List<Operation> pendingQueries = new ArrayList<>();
-
+    private ServerRequestHandler serverRequestHandler;
 
     public SiloServiceImp(Integer repN) {
-        this.replicaNumber = repN;
+        this.serverRequestHandler = new ServerRequestHandler(repN);
     }
 
 
@@ -59,7 +48,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         }
 
         //Merge replica log with gossip log
-        mergeIncomingLog(new GossipMessage(lr,request.getRepTsMap()));
+        this.serverRequestHandler.mergeIncomingLog(new GossipMessage(lr,request.getRepTsMap()));
 
         //TODO Rest of gossip
 
@@ -95,11 +84,50 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processUpdateRequest("CamJoin", request, responseObserver);
+        try {
+
+            this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
+
+        while(!happensBefore(request.getPrevTSMap(),this.serverRequestHandler.getValueTS())){
+            try {
+                wait(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        camJoinAux(request,responseObserver);
+        System.out.println("Cam join done");
+
+        } catch (DuplicateOperationException e){
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        }
     }
 
-    public void camInfoAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    @Override
+    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        try {
 
+            this.serverRequestHandler.processUpdateRequest("Report",request, responseObserver);
+
+            while(!happensBefore(request.getPrevTSMap(),this.serverRequestHandler.getValueTS())){
+                try {
+                    wait(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            reportAux(request,responseObserver);
+
+        } catch (DuplicateOperationException e){
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        }
+
+    }
+
+
+    @Override
+    public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
             String camName = request.getCamInfoRequest().getCamName();
             Camera camera = silo.getCameraByName(camName);
@@ -109,7 +137,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setLongitude(camera.getLog())
                     .build();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setCamInfoResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setCamInfoResponse(response).putAllResponseTS(this.serverRequestHandler.getValueTS()).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
@@ -123,18 +151,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
-
     }
 
     @Override
-    public void camInfo(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest("CamInfo", request, responseObserver);
-
-    }
-
-
-    public void trackAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-
+    public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
 
@@ -161,7 +181,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             System.out.println("Sending most recent observation of object with id:" + id + " and type:" +type + "..." );
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setTrackResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTrackResponse(response).build();
 
 
             // Send a single response through the stream.
@@ -171,7 +191,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch( InvalidIdException   |
-                 InvalidTypeException e ){
+                InvalidTypeException e ){
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         } catch ( NoSuchObjectException e ){
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -180,13 +200,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest("Track", request, responseObserver);
-
-    }
-
-
-    public void trackMatchAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
 
         try {
@@ -219,7 +233,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" +type + "...");
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setTrackMatchResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTrackMatchResponse(response).build();
 
 
             // Send a single response through the stream.
@@ -229,7 +243,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch ( InvalidTypeException   |
-                  InvalidIdException     e ){
+                InvalidIdException     e ){
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         } catch ( NoSuchObjectException e ){
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -237,14 +251,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     }
 
+
     @Override
-    public void trackMatch(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest("TrackMatch", request, responseObserver);
-
-    }
-
-
-    public void traceAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
 
@@ -275,7 +284,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             System.out.println("Sending trace path of object with id:" + id + " and type:" +type + "...");
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setTraceResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTraceResponse(response).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
@@ -284,18 +293,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onCompleted();
 
         } catch ( InvalidIdException   |
-                  InvalidTypeException e ){
+                InvalidTypeException e ){
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         } catch ( NoSuchObjectException e){
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
-
-
-    }
-
-    @Override
-    public void trace(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest("Trace", request, responseObserver);
 
     }
 
@@ -349,13 +351,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processUpdateRequest("Report",request, responseObserver);
-
-    }
-
-    public void ctrlPingAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-
+    public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         String inputText = request.getPingRequest().getInputCommand();
 
         if (inputText == null || inputText.isBlank()) {
@@ -368,19 +364,13 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
         System.out.println("Ping request received");
 
-        ClientResponse clientResponse = ClientResponse.newBuilder().setPingResponse(response).build();
+        ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setPingResponse(response).build();
 
 
         // Send a single response through the stream.
         responseObserver.onNext(clientResponse);
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
-    }
-
-    @Override
-    public void ctrlPing(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        processReadRequest("Ping" ,request, responseObserver);
-
     }
 
 
@@ -418,58 +408,28 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     }
 
-
-    //respond to an update request by the client
-    public synchronized void processUpdateRequest(String op,ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-
-        if (isInExecutedUpdates(request.getOpId())) { /*TODO: o que fazer neste caso?*/}
-
-        increaseReplicaTS(this.replicaNumber);
-
-        // timestamp associated with update is prevTS and the entry i associated with the current replica is = replicaTS[i]
-        Map<Integer,Integer> updateTS = request.getPrevTSMap();
-        updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
-
-        LogRecords logRecord = new LogRecords(this.replicaNumber, updateTS,request.getPrevTSMap(),request.getOpId(), new Operation(op,request,responseObserver));
-
-        updateLog.add(logRecord);
-
-
+    public Silo getSilo() {
+        return silo;
     }
 
+    public void setSilo(Silo silo) {
+        this.silo = silo;
+    }
 
-    //respond to a read request by the client
-    public synchronized boolean processReadRequest(String operation,ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        if (happensBefore(request.getPrevTSMap(), this.valueTS)) {
-            return true;
+    //Checks if type is valid
+    private void checkType(String type){
+
+        if(type == null || type.strip().length() == 0) {
+            throw new InvalidTypeException();
         }
-        else {
-            this.pendingQueries.add(new Operation(operation,request,responseObserver));
-            return false;
+        if( !type.equals("PERSON") &&
+                !type.equals("CAR") ){
+            throw new InvalidTypeException(type);
         }
     }
 
-    public synchronized void updateReplicaState() {
-
-    }
-
-    public synchronized void mergeIncomingLog(GossipMessage g) {
-        for ( LogRecords r: g.getLog()) {
-            if (happensBefore(this.replicaTS,r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
-                this.updateLog.add(r);
-        }
-        mergeTS(this.replicaTS, g.getRepTs());
-
-    }
-
-    public synchronized void increaseReplicaTS(Integer replicaNumber) {
-        this.replicaTS.merge(replicaNumber, 1, Integer::sum);
-    }
-
-
-    //checks if update has already been done
-    private synchronized boolean isInExecutedUpdates(String operationID) {
-        return !this.executedOpsTable.contains(operationID);
+    public GossipRequest buildGossipRequest(){
+        return this.serverRequestHandler.buildGossipRequest();
     }
 
     //checks if a happens before b
@@ -481,59 +441,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             if ( entryA.getValue() > valueB) isBefore = false;
         }
         return isBefore;
-    }
-
-
-    //Checks if type is valid
-    private void checkType(String type){
-
-          if(type == null || type.strip().length() == 0) {
-              throw new InvalidTypeException();
-          }
-          if( !type.equals("PERSON") &&
-              !type.equals("CAR") ){
-              throw new InvalidTypeException(type);
-        }
-    }
-
-
-    //merge 2 timestamps
-    private synchronized void mergeTS(Map<Integer,Integer> map1, Map<Integer,Integer> map2) {
-        for (Integer key : map2.keySet()) {
-            if (map1.containsKey(key))
-                map1.put(key, Integer.max(map1.get(key), map2.get(key)));
-            else
-                map1.put(key, map2.get(key));
-        }
-    }
-
-    public Silo getSilo() {
-        return silo;
-    }
-
-    public void setSilo(Silo silo) {
-        this.silo = silo;
-    }
-
-    public GossipRequest buildGossipRequest(){
-        GossipRequest.Builder gRequest = GossipRequest.newBuilder().putAllRepTs(this.replicaTS);
-        for(LogRecords lr : this.updateLog){
-            Operation op = lr.getOperation();
-
-            OperationRequest opRequest = OperationRequest.newBuilder()
-                    .setRequest(op.getRequest())
-                    .setOp(op.getOperation()).build();
-
-            LogRecordsRequest lrRequest = LogRecordsRequest.newBuilder()
-                    .setOperation(opRequest)
-                    .setId(lr.getId())
-                    .setRepN(lr.getRepN())
-                    .putAllPrevTS(lr.getPrevTS())
-                    .putAllTimestamp(lr.getTimestamp()).build();
-            gRequest.addLog(lrRequest);
-        }
-
-        return gRequest.build();
     }
 
 }

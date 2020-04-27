@@ -44,7 +44,7 @@ message ClientRequest {
 }
 
 message ClientResponse {
-    map<int32,int32> updateTS = 1;
+    map<int32,int32> responseTS = 1;
     CamJoinResponse camJoinResponse = 2;
     CamInfoResponse camInfoResponse = 3;
     ReportResponse reportResponse = 4;

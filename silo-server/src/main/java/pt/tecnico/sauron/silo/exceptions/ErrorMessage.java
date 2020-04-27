@@ -20,7 +20,9 @@ public enum ErrorMessage {
     NULL_DATE("The date cannot be null"),
     INVALID_DATE("The date %s is invalid"),
 
-    NO_SUCH_OBJECT("The object with id %s does not exist");
+    NO_SUCH_OBJECT("The object with id %s does not exist"),
+
+    DUPLICATE_OPERATION("Duplicate request sent");
 
     public final String label;
 
