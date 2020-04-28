@@ -48,7 +48,7 @@ public class SiloFrontend implements AutoCloseable {
     }
 
     //when a replica crashes, frontend reconnects to a random other replica
-    public void renewConnection() throws ZKNamingException {
+    public ClientResponse renewConnection() throws ZKNamingException {
         this.channel.shutdownNow();
         String target = getServerTarget(this.host, this.port, "");
 
@@ -58,7 +58,22 @@ public class SiloFrontend implements AutoCloseable {
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
         //Run previous command
-        this.previousRequest.runRequest(stub);
+        ClientResponse response = this.previousRequest.runRequest(stub);
+
+        //Send response in cache if received response aint updated
+        if (this.previousRequest.isQuery()) {
+            if (happensBefore(response.getResponseTSMap()))
+                this.responseCache.addEntry(this.previousRequest.getFunctionAndArgs(), response);
+            else
+                return this.responseCache.getLastRead(this.previousRequest.getFunctionAndArgs(), response);
+        }
+
+        //Merge Timestamps
+        mergeTS(response.getResponseTSMap());
+
+        System.out.println("Reconnected");
+
+        return response;
 
     }
 
@@ -88,9 +103,9 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getCamName());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new CamInfo(cliRequest);
+        this.previousRequest = new CamInfo(cliRequest, serviceDesc);
 
-        ClientResponse response = stub.camInfo(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Send response in cache if received response aint updated
         if (happensBefore(response.getResponseTSMap()))
@@ -119,16 +134,16 @@ public class SiloFrontend implements AutoCloseable {
 
     public TrackResponse trackObj(TrackRequest request) {
 
-        //Entry for response cache -> funtion name, args...
+        //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackObject");
         serviceDesc.add(request.getId());
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Track(cliRequest);
+        this.previousRequest = new Track(cliRequest, serviceDesc);
 
-        ClientResponse response = stub.track(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Send response in cache if received response aint updated
         if (happensBefore(response.getResponseTSMap()))
@@ -151,9 +166,9 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new TrackMatch(cliRequest);
+        this.previousRequest = new TrackMatch(cliRequest,serviceDesc);
 
-        ClientResponse response = stub.trackMatch(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Send response in cache if received response aint updated
         if (happensBefore(response.getResponseTSMap()))
@@ -176,9 +191,9 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Trace(cliRequest);
+        this.previousRequest = new Trace(cliRequest,serviceDesc);
 
-        ClientResponse response = stub.trace(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
 
         //Send response in cache if received response aint updated
@@ -197,10 +212,20 @@ public class SiloFrontend implements AutoCloseable {
 
     public PingResponse ctrlPing(PingRequest request) {
 
+        //Entry for response cache -> function name, args...
+        List<String> serviceDesc = new ArrayList<>();
+        serviceDesc.add("Ping");
+        serviceDesc.add(request.getInputCommand());
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Ping(cliRequest);
+        this.previousRequest = new Ping(cliRequest,serviceDesc);
 
         ClientResponse response = stub.ctrlPing(cliRequest);
+
+        if (happensBefore(response.getResponseTSMap()))
+            this.responseCache.addEntry(serviceDesc, response);
+        else
+            return this.responseCache.getLastRead(serviceDesc, response).getPingResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -241,8 +266,13 @@ public class SiloFrontend implements AutoCloseable {
         ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
 
+        //hack to catch zkNaming exception because there is no server available
+        if (recs.size() == 0) repN = "1";
+
         if (repN.equals(""))
+
             path = recs.get(random.nextInt(recs.size())).getPath();
+
         else
             path = "/grpc/sauron/silo/" + repN;
 

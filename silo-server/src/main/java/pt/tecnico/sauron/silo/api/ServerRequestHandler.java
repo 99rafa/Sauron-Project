@@ -57,7 +57,6 @@ public class ServerRequestHandler {
     //Get Stable updates
     public synchronized List<LogRecord> getStableUpdates() {
 
-
         //Filter and sort updates
         return this.updateLog.stream()
                 .filter(update -> !executedOpsTable.contains(update.getId()))

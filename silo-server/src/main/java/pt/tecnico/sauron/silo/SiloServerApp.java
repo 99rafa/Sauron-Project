@@ -111,6 +111,7 @@ public class SiloServerApp {
             // Do not exit the main thread. Wait until server is terminated.
             server.awaitTermination();
 
+
             System.out.println("> Server Closing");
 
 

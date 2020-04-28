@@ -4,10 +4,14 @@ import pt.tecnico.sauron.silo.grpc.ClientRequest;
 import pt.tecnico.sauron.silo.grpc.ClientResponse;
 import pt.tecnico.sauron.silo.grpc.SiloOperationsServiceGrpc;
 
+import java.util.List;
+
 public class Trace extends Request {
 
-    public Trace(ClientRequest request) {
-        super(request);
+    public Trace(ClientRequest request, List<String> functionAndArgs) {
+
+        super(request, functionAndArgs);
+
     }
 
     @Override

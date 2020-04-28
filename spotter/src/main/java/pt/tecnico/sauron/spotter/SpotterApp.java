@@ -52,7 +52,7 @@ public class SpotterApp {
 
                     //verifies if the command and arguments are valid. If not, asks for next command
                     while (!checkCommand(spotterTokens)) {
-                        System.out.println("Invalid Arguments!");
+                        System.err.println("Invalid Arguments!");
                         spotterTokens = scanner.nextLine().split(" ");
                     }
 
@@ -141,9 +141,12 @@ public class SpotterApp {
                     //Change server when the previous goes down
                     if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
                         System.out.println("Server is down, reconnecting...");
-                        siloFrontend.renewConnection();
-                        //siloFrontend = new SiloFrontend(siloFrontend.getHost(), siloFrontend.getPort(), "", siloFrontend.getPrevTS());
-                        System.out.println("Reconnected");
+
+                        ClientResponse response = siloFrontend.renewConnection();
+
+                        checkResponse(response,siloFrontend);
+
+
                     } else
                         System.out.println(e.getStatus().getDescription());
 
@@ -153,7 +156,7 @@ public class SpotterApp {
             channel.shutdownNow();
 
         } catch (IOException e) {
-            System.out.println("Caught exception with description: Invalid input");
+            System.err.println("Invalid input");
         }
     }
 
@@ -240,4 +243,30 @@ public class SpotterApp {
         return true;
 
     }
+
+    private static void checkResponse(ClientResponse response, SiloFrontend frontend) {
+
+        if (response.getPingResponse().toByteArray().length != 0) {
+            System.out.println(response.getPingResponse().getOutputText());
+        }
+
+        else if (response.getTrackResponse().toByteArray().length != 0) {
+            trackResponseToString(response.getTrackResponse(), frontend);
+        }
+
+        else if(response.getTraceResponse() != null) {
+            traceResponseToString(response.getTraceResponse(), frontend);
+
+        }
+        else if (response.getTrackMatchResponse() != null) {
+            trackMatchResponseToString(response.getTrackMatchResponse(),frontend);
+        }
+        else if (response.getInitResponse() != null) {
+            System.out.println("Nothing to be configured!");
+        }
+        else if (response.getClearResponse() != null) {
+            System.out.println("System is now empty!");
+        }
+
+        }
 }

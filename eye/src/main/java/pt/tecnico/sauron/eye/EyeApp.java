@@ -66,11 +66,11 @@ public class EyeApp {
 
             } catch (InterruptedException e) {
 
-                System.out.println("Caught exception with description: Timeout interrupted");
+                System.err.println("Timeout interrupted");
 
             } catch (IOException e) {
 
-                System.out.println("Caught exception with description: Argument(s) missing or more than expected!");
+                System.err.println("Argument(s) missing or more than expected!");
 
             } catch (StatusRuntimeException e) {
 
@@ -78,7 +78,7 @@ public class EyeApp {
                         e.getStatus().getDescription());
 
             } catch (ZKNamingException e) {
-                e.printStackTrace();
+               System.err.println("Server could not be found or no servers available");
             }
         } finally {
             System.out.println("> Client Closing");
@@ -153,9 +153,10 @@ public class EyeApp {
 
                 //renew server when the previous goes down
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
-                    System.out.println("Server is down, reconnecting...");
+                    System.err.println("Server is down, reconnecting...");
+
                     siloFrontend.renewConnection();
-                    System.out.println("Reconnected");
+
 
                     CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
                             .setLatitude(lat).setLongitude(log).build();
@@ -165,7 +166,7 @@ public class EyeApp {
 
             } catch (IOException e) {
 
-                System.out.println("Caught exception with description: Invalid input");
+                System.err.println("Invalid input");
 
             }
         }
