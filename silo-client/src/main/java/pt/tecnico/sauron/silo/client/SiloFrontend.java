@@ -2,6 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import pt.tecnico.sauron.silo.client.requests.*;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
@@ -13,7 +14,7 @@ import java.util.*;
 public class SiloFrontend implements AutoCloseable {
 
     private ResponseCache responseCache = new ResponseCache();
-
+    private Request previousRequest;
     private ManagedChannel channel;
     private String host;
     private String port;
@@ -56,11 +57,17 @@ public class SiloFrontend implements AutoCloseable {
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
+        //Run previous command
+        this.previousRequest.runRequest(stub);
+
     }
 
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
+
+        //Builds request and saves it in case of lost connection
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new CamJoin(cliRequest);
 
         ClientResponse response = stub.camJoin(cliRequest);//Update request
 
@@ -81,6 +88,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getCamName());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new CamInfo(cliRequest);
 
         ClientResponse response = stub.camInfo(cliRequest);
 
@@ -99,6 +107,7 @@ public class SiloFrontend implements AutoCloseable {
     public ReportResponse reportObs(ReportRequest request) {
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Report(cliRequest);
 
         ClientResponse response = stub.report(cliRequest);
 
@@ -117,6 +126,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Track(cliRequest);
 
         ClientResponse response = stub.track(cliRequest);
 
@@ -141,6 +151,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new TrackMatch(cliRequest);
 
         ClientResponse response = stub.trackMatch(cliRequest);
 
@@ -165,6 +176,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Trace(cliRequest);
 
         ClientResponse response = stub.trace(cliRequest);
 
@@ -186,6 +198,7 @@ public class SiloFrontend implements AutoCloseable {
     public PingResponse ctrlPing(PingRequest request) {
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Ping(cliRequest);
 
         ClientResponse response = stub.ctrlPing(cliRequest);
 
@@ -197,6 +210,7 @@ public class SiloFrontend implements AutoCloseable {
 
     public ClearResponse ctrlClear(ClearRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Clear(cliRequest);
 
         ClientResponse response = stub.ctrlClear(cliRequest);
 
@@ -206,8 +220,10 @@ public class SiloFrontend implements AutoCloseable {
         return response.getClearResponse();
     }
 
+
     public InitResponse ctrlInit(InitRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        this.previousRequest = new Init(cliRequest);
 
         ClientResponse response = stub.ctrlInit(cliRequest);
 
