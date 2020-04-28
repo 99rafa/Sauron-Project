@@ -39,9 +39,11 @@ public class ServerRequestHandler {
 
         increaseReplicaTS(this.replicaNumber);
 
+
         // timestamp associated with update is prevTS and the entry i associated with the current replica is = replicaTS[i]
         Map<Integer, Integer> updateTS = new HashMap<>(request.getPrevTSMap());
         updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
+
 
         LogRecord logRecord = new LogRecord(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
 
@@ -56,9 +58,14 @@ public class ServerRequestHandler {
 
         //Filter and sort updates
         return this.updateLog.stream()
-                .filter(update -> happensBefore(update.getPrevTS(), this.valueTS))
+                .filter(update -> happensBefore(update.getPrevTS(), this.valueTS) && !executedOpsTable.contains(update.getId()))
                 .sorted((l1, l2) -> happensBeforeInteger(l1.getPrevTS(), l2.getPrevTS()))
                 .collect(Collectors.toList());
+    }
+
+    public synchronized void removeStableUpdate(LogRecord logRecord) {
+
+        this.updateLog.remove(logRecord);
     }
 
     //apply updates to the replica

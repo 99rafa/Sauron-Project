@@ -36,6 +36,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     public void runUpdates(List<LogRecord> logRecords){
+
         for(LogRecord logRecord : logRecords){
             Operation operation = logRecord.getOperation();
             ClientRequest request = operation.getRequest();
@@ -70,7 +71,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     break;
             }
             this.serverRequestHandler.updateReplicaState(logRecord);
+            this.serverRequestHandler.removeStableUpdate(logRecord);
         }
+
     }
 
     @Override
@@ -131,7 +134,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
                 //Builds response
                 CamJoinResponse response = CamJoinResponse.newBuilder().build();
-                ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).build();
+                ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
                 // Send a single response through the stream.
                 responseObserver.onNext(clientResponse);
@@ -180,17 +183,18 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void report(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
-            this.serverRequestHandler.processUpdateRequest("Report", request, responseObserver);
+            LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("Report", request, responseObserver);
+
 
             if(happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
-
 
                 //Implements domain logic
                 reportAux(request);
 
                 //Builds response
                 ReportResponse response = ReportResponse.newBuilder().build();
-                ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).build();
+
+                ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
 
                 // Send a single response through the stream.
@@ -198,6 +202,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
                 // Notify the client that the operation has been completed.
                 responseObserver.onCompleted();
+
+                this.serverRequestHandler.updateReplicaState(logRecord);
 
             }
 
@@ -428,7 +434,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlClear(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
+        LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
 
         if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
 
@@ -438,7 +444,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             //Clears server info
             ctrlClearAux();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
@@ -454,7 +460,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlInit(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
+        LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
 
         if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
 
@@ -463,7 +469,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             InitResponse response = InitResponse.newBuilder().build();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
 
             // Send a single response through the stream.

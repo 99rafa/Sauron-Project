@@ -148,10 +148,10 @@ public class EyeApp {
             } catch (StatusRuntimeException e) {
                 observations.clear();
 
-                //Change server when the previous goes down
+                //renew server when the previous goes down
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
                     System.out.println("Server is down, reconnecting...");
-                    siloFrontend = new SiloFrontend(siloFrontend.getHost(), siloFrontend.getPort(), "", siloFrontend.getPrevTS());
+                    siloFrontend.renewConnection();
                     System.out.println("Reconnected");
 
                     CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)

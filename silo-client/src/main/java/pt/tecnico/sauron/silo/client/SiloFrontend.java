@@ -46,15 +46,26 @@ public class SiloFrontend implements AutoCloseable {
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
     }
 
+    //when a replica crashes, frontend reconnects to a random other replica
+    public void renewConnection() throws ZKNamingException {
+        this.channel.shutdownNow();
+        String target = getServerTarget(this.host, this.port, "");
+
+        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+
+        // Create a blocking stub.
+        this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+
+    }
+
 
     public CamJoinResponse camJoin(CamJoinRequest request) {
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
-        ClientResponse response = stub.camJoin(cliRequest);//Uodate reuqest
+        ClientResponse response = stub.camJoin(cliRequest);//Update request
 
         //Nova thread
         //GetResponse
-
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -86,6 +97,7 @@ public class SiloFrontend implements AutoCloseable {
     }
 
     public ReportResponse reportObs(ReportRequest request) {
+
         ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
 
         ClientResponse response = stub.report(cliRequest);
@@ -156,7 +168,10 @@ public class SiloFrontend implements AutoCloseable {
 
         ClientResponse response = stub.trace(cliRequest);
 
+
         //Send response in cache if received response aint updated
+
+
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
         else
