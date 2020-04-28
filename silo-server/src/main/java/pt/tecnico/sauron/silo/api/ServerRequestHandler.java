@@ -45,27 +45,34 @@ public class ServerRequestHandler {
         updateTS.put(this.replicaNumber, this.replicaTS.get(this.replicaNumber));
 
 
-        LogRecord logRecord = new LogRecord(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
+        return new LogRecord(this.replicaNumber, updateTS, request.getPrevTSMap(), request.getOpId(), new Operation(op, request, responseObserver));
 
-        updateLog.add(logRecord);
+    }
 
-        return logRecord;
-
+    //add record to log
+    public synchronized void addRecordToLog(LogRecord logRecord) {
+        this.updateLog.add(logRecord);
     }
 
     //Get Stable updates
     public synchronized List<LogRecord> getStableUpdates() {
 
+
         //Filter and sort updates
         return this.updateLog.stream()
-                .filter(update -> happensBefore(update.getPrevTS(), this.valueTS) && !executedOpsTable.contains(update.getId()))
+                .filter(update -> !executedOpsTable.contains(update.getId()))
                 .sorted((l1, l2) -> happensBeforeInteger(l1.getPrevTS(), l2.getPrevTS()))
                 .collect(Collectors.toList());
     }
 
-    public synchronized void removeStableUpdate(LogRecord logRecord) {
+    public synchronized void removeFromUpdateLog(LogRecord logRecord) {
 
         this.updateLog.remove(logRecord);
+    }
+
+    public synchronized void cleanUpdateLog() {
+
+        this.updateLog.clear();
     }
 
     //apply updates to the replica
@@ -78,6 +85,7 @@ public class ServerRequestHandler {
     //merging the updates from gossip with the replica own pending updates
     public synchronized void mergeIncomingLog(GossipMessage g) {
         for (LogRecord r : g.getLog()) {
+
             if (happensBefore(this.replicaTS, r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
                 this.updateLog.add(r);
         }
@@ -124,6 +132,9 @@ public class ServerRequestHandler {
                     .putAllTimestamp(lr.getTimestamp()).build();
             gRequest.addLog(lrRequest);
         }
+
+        //clear update log after sending a gossip to all the replicas containing the update log
+        cleanUpdateLog();
 
         return gRequest.build();
     }
@@ -180,11 +191,13 @@ public class ServerRequestHandler {
 
     private int happensBeforeInteger(Map<Integer, Integer> a, Map<Integer, Integer> b) {
 
+        if (a.equals(b)) return 0;
+
         for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
             Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if (entryA.getValue() > valueB) return -1;
+            if (entryA.getValue() > valueB) return 1;
         }
-        return 1;
+        return -1;
     }
 
 

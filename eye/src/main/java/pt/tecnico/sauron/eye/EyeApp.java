@@ -105,7 +105,10 @@ public class EyeApp {
                 //when line is empty, do a reportRequest with the observation to this point
                 if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
 
-                    saveGivenObservations(siloFrontend, camName, observations);
+                    //does not send request if there's nothing to add to silo server
+                    if (observations.size() == 0) throw new IOException();
+
+                    else saveGivenObservations(siloFrontend, camName, observations);
 
                 } //do nothing when there is a comment line
                 else if (observationLine[0].startsWith("#")) {

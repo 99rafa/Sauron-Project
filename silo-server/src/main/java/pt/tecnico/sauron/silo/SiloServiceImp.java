@@ -40,38 +40,25 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         for(LogRecord logRecord : logRecords){
             Operation operation = logRecord.getOperation();
             ClientRequest request = operation.getRequest();
-            StreamObserver<ClientResponse> observer = operation.getObserver();
             String function = operation.getOperation();
+
 
             switch (function) {
                 case "CamJoin":
-                    if(operation.getObserver() == null)
-                        camJoinAux(operation.getRequest());
-                    else
-                        camJoin(request,observer);
+                    camJoinAux(request);
                     break;
                 case "Report":
-                    if(operation.getObserver() == null)
-                        reportAux(operation.getRequest());
-                    else
-                        report(request,observer);
+                    reportAux(request);
                     break;
 
                 case "CtrlClear":
-                    if(operation.getObserver() == null)
-                        ctrlClearAux();
-                    else
-                        ctrlClear(request,observer);
+                    ctrlClearAux();
                     break;
                 case "CtrlInit":
-                    if(operation.getObserver() == null)
-                        ctrlInitAux();
-                    else
-                        ctrlInit(request,observer);
+                    ctrlInitAux();
                     break;
             }
             this.serverRequestHandler.updateReplicaState(logRecord);
-            this.serverRequestHandler.removeStableUpdate(logRecord);
         }
 
     }
@@ -79,7 +66,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         System.out.println("Gossip Received");
-        List<LogRecord> stableUpdates = new ArrayList<>();
+        List<LogRecord> stableUpdates;
         //Build gossip object
         List<LogRecord> lr = new ArrayList<>();
         for (LogRecordsRequest lrr : request.getLogList()) {
@@ -97,13 +84,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         //Get stable updates
         stableUpdates = this.serverRequestHandler.getStableUpdates();
 
-        while(stableUpdates.size() > 0) {
-            //Run stable updates while they exist
-            runUpdates(stableUpdates);
-            //Recalculate stable updates
-            stableUpdates = this.serverRequestHandler.getStableUpdates();
-        }
-
+        //Run stable updates
+        runUpdates(stableUpdates);
 
         // Send a single response through the stream.
         responseObserver.onNext(GossipResponse.newBuilder().build());
@@ -126,23 +108,22 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
 
-            if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
 
+            //implements domain logic
+            camJoinAux(request);
 
-                //implements domain logic
-                camJoinAux(request);
+            //Builds response
+            CamJoinResponse response = CamJoinResponse.newBuilder().build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
-                //Builds response
-                CamJoinResponse response = CamJoinResponse.newBuilder().build();
-                ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
 
-                // Send a single response through the stream.
-                responseObserver.onNext(clientResponse);
-                // Notify the client that the operation has been completed.
-                responseObserver.onCompleted();
+            this.serverRequestHandler.addRecordToLog(logRecord);
 
-                this.serverRequestHandler.updateReplicaState(logRecord);
-            }
+            this.serverRequestHandler.updateReplicaState(logRecord);
 
         } catch (DuplicateOperationException | CameraNameNotUniqueException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
@@ -158,6 +139,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         String camName = request.getReportRequest().getCamName();
         List<ObservationMessage> observationMessages;
+
 
         if (silo.checkIfCameraExists(camName)) {
 
@@ -186,26 +168,25 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("Report", request, responseObserver);
 
 
-            if(happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+            //Implements domain logic
+            reportAux(request);
 
-                //Implements domain logic
-                reportAux(request);
+            //Builds response
+            ReportResponse response = ReportResponse.newBuilder().build();
 
-                //Builds response
-                ReportResponse response = ReportResponse.newBuilder().build();
-
-                ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
 
-                // Send a single response through the stream.
-                responseObserver.onNext(clientResponse);
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
 
-                // Notify the client that the operation has been completed.
-                responseObserver.onCompleted();
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
 
-                this.serverRequestHandler.updateReplicaState(logRecord);
+            this.serverRequestHandler.addRecordToLog(logRecord);
 
-            }
+            this.serverRequestHandler.updateReplicaState(logRecord);
+
 
         } catch (DuplicateOperationException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
@@ -436,21 +417,23 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
 
-        if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+        //silo.clearData();
+        ClearResponse response = ClearResponse.newBuilder().build();
 
-            //silo.clearData();
-            ClearResponse response = ClearResponse.newBuilder().build();
+        //Clears server info
+        ctrlClearAux();
 
-            //Clears server info
-            ctrlClearAux();
+        ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+        // Send a single response through the stream.
+        responseObserver.onNext(clientResponse);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
 
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-        }
+        this.serverRequestHandler.addRecordToLog(logRecord);
+
+        this.serverRequestHandler.updateReplicaState(logRecord);
+
     }
 
     public void ctrlInitAux(){
@@ -462,21 +445,22 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
 
-        if (happensBefore(request.getPrevTSMap(), this.serverRequestHandler.getValueTS())) {
+
+        ctrlInitAux();
+
+        InitResponse response = InitResponse.newBuilder().build();
+
+        ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
 
-            ctrlInitAux();
+        // Send a single response through the stream.
+        responseObserver.onNext(clientResponse);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
 
-            InitResponse response = InitResponse.newBuilder().build();
+         this.serverRequestHandler.addRecordToLog(logRecord);
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
-
-
-            // Send a single response through the stream.
-            responseObserver.onNext(clientResponse);
-            // Notify the client that the operation has been completed.
-            responseObserver.onCompleted();
-        }
+        this.serverRequestHandler.updateReplicaState(logRecord);
 
     }
 
