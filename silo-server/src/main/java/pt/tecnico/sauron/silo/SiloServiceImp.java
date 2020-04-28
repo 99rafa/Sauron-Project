@@ -155,7 +155,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 ));
             }
         } else {
-            //TODO throw exception
+           throw new NoSuchCameraNameException(camName);
         }
 
 
@@ -197,11 +197,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 InvalidIdException |
                 InvalidDateException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        }//TODO
-        /*catch( exctp e ){
-            responseObserver.onError(NOT_FOUND.withDescription("No such camera").asRuntimeException());
-        }*/
-
+        }
     }
 
 
