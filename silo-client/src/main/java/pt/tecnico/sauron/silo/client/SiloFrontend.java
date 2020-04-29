@@ -54,7 +54,9 @@ public class SiloFrontend implements AutoCloseable {
 
         this.channel.shutdownNow();
 
+
         this.target = getServerTarget(this.host, this.port, "");
+
 
         this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
 

@@ -155,7 +155,10 @@ public class EyeApp {
                     System.err.println("Replica " + siloFrontend.getRepN() + " at " + siloFrontend.getTarget() +" is down");
                     System.out.println("Trying to reconnect to another replica" );
 
+                    siloFrontend.renewConnection();
+
                     siloFrontend.camJoin(camName, lat, log);
+
                     siloFrontend.runPreviousCommand();
 
                 } else

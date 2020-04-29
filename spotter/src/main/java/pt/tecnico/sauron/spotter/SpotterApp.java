@@ -159,21 +159,21 @@ public class SpotterApp {
     }
 
     //Prints the responses to the trail command
-    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend) throws ZKNamingException {
+    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend)  {
 
         List<ObservationMessage> observationList = response.getObservationList();
         printResponses(observationList, siloFrontend);
     }
 
     //Prints the responses to the spot * command
-    private static void trackMatchResponseToString(TrackMatchResponse response, SiloFrontend siloFrontend) throws ZKNamingException {
+    private static void trackMatchResponseToString(TrackMatchResponse response, SiloFrontend siloFrontend) {
 
         List<ObservationMessage> observationList = response.getObservationList();
         printResponses(observationList, siloFrontend);
     }
 
     //Prints the responses to the spot command
-    private static void trackResponseToString(TrackResponse response, SiloFrontend siloFrontend) throws ZKNamingException {
+    private static void trackResponseToString(TrackResponse response, SiloFrontend siloFrontend) {
         CamInfoResponse camResponse = siloFrontend.getCamInfo(response.getObservation().getCamName());
 
         if (response.getObservation().getType().equals("CAR")) {
@@ -191,7 +191,7 @@ public class SpotterApp {
     }
 
     //Auxiliary function to print a list of observations
-    private static void printResponses(List<ObservationMessage> observationList, SiloFrontend siloFrontend) throws  ZKNamingException {
+    private static void printResponses(List<ObservationMessage> observationList, SiloFrontend siloFrontend) {
 
         for (ObservationMessage om : observationList) {
             if (om.getType().equals("CAR")) {
@@ -226,20 +226,16 @@ public class SpotterApp {
             if (args.length == 1 && (args[0].equals("exit") || args[0].equals("help") ||
                     args[0].equals("init") || args[0].equals("clear"))) return true;
 
-            else if (args.length == 2 && args[0].equals("ping")) return true;
-
-            return false;
+            else return args.length == 2 && args[0].equals("ping");
         }
 
         if (args.length > 3) return false;
 
-        if (!(args[0].equals("spot") || args[0].equals("trail"))) return false;
-
-        return true;
+        return args[0].equals("spot") || args[0].equals("trail");
 
     }
 
-    private static void checkResponse(ClientResponse response, SiloFrontend frontend) throws ZKNamingException {
+    private static void checkResponse(ClientResponse response, SiloFrontend frontend) {
 
         if (response.getPingResponse().toByteArray().length != 0) {
             System.out.println(response.getPingResponse().getOutputText());
