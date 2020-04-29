@@ -5,9 +5,6 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
-import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
-import pt.tecnico.sauron.silo.grpc.ObservationMessage;
-import pt.tecnico.sauron.silo.grpc.ReportRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
@@ -53,9 +50,7 @@ public class EyeApp {
 
                 SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
 
-                CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
-                        .setLatitude(latitude).setLongitude(longitude).build();
-                siloFrontend.camJoin(request);
+                siloFrontend.camJoin(camName, latitude, longitude);
 
 
                 processInputData(siloFrontend, camName, latitude, longitude);
@@ -89,7 +84,7 @@ public class EyeApp {
     private static void processInputData(SiloFrontend siloFrontend, String camName, double lat, double log) throws InterruptedException, ZKNamingException {
 
         Scanner scanner;
-        List<ObservationMessage.Builder> observations = new ArrayList<>();
+        List<List<String>> observations = new ArrayList<>();
 
         scanner = new Scanner(System.in);
         String[] observationLine;
@@ -122,16 +117,19 @@ public class EyeApp {
 
 
                         String id = observationLine[1];
-
-                        observations.add(ObservationMessage.newBuilder().setType("CAR")
-                                .setId(id));
+                        List<String> obs = new ArrayList<>();
+                        obs.add("CAR");
+                        obs.add(id);
+                        observations.add(obs);
 
                     } else if (firstToken.equals("person") && observationLine.length == 2) {
 
                         String id = observationLine[1];
+                        List<String> obs = new ArrayList<>();
+                        obs.add("PERSON");
+                        obs.add(id);
 
-                        observations.add(ObservationMessage.newBuilder().setType("PERSON")
-                                .setId(id));
+                        observations.add(obs);
 
                     }
                     //timeout when line starts with zzz
@@ -157,10 +155,7 @@ public class EyeApp {
 
                     siloFrontend.renewConnection();
 
-
-                    CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
-                            .setLatitude(lat).setLongitude(log).build();
-                    siloFrontend.camJoin(request);
+                    siloFrontend.camJoin(camName, lat, log);
                 } else
                     System.out.println(e.getStatus().getDescription());
 
@@ -176,21 +171,18 @@ public class EyeApp {
         scanner.close();
     }
 
-    private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<ObservationMessage.Builder> observations) {
-        ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
+    private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<List<String>> observations) {
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
 
-        for (ObservationMessage.Builder om : observations) {
-            System.out.println("Sending observation for id " + om.getId() +
-                    " of type " + om.getType().toString() + "... ");
-            om.setDatetime(dateFormat.format(date)).build();
-            builder.addObservation(om).build();
+        for (List<String> om : observations) {
+            System.out.println("Sending observation for id " + om.get(1) +
+                    " of type " + om.get(0) + "... ");
+            om.add(dateFormat.format(date));
         }
 
-        ReportRequest request = builder.build();
-        siloFrontend.reportObs(request);
+        siloFrontend.reportObs(camName, observations);
         observations.clear();
         System.out.println("Observations successfully saved!");
     }

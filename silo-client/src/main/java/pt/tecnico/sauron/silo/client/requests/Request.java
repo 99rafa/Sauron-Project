@@ -14,23 +14,23 @@ public abstract class Request {
 
     private List<String> functionAndArgs;
 
-    public Request(ClientRequest request) {
-        this.request = request;
+    public Request() {
         this.isQuery = false;
     }
 
-    public Request(ClientRequest request, List<String> functionAndArgs) {
-
-        this.request = request;
-        this.functionAndArgs = functionAndArgs;
+    public Request(List<String> functionAndArgs) {
         this.isQuery = true;
-
+        this.functionAndArgs = functionAndArgs;
     }
 
     public abstract ClientResponse runRequest(SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub);
 
     public ClientRequest getRequest() {
         return request;
+    }
+
+    public void setRequest(ClientRequest request) {
+        this.request = request;
     }
 
     public boolean isQuery() {

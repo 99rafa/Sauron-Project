@@ -68,22 +68,19 @@ public class SpotterApp {
 
                             final String name = spotterTokens[1];
 
-                            PingRequest request = PingRequest.newBuilder().setInputCommand(name).build();
-                            PingResponse response = siloFrontend.ctrlPing(request);
+                            PingResponse response = siloFrontend.ctrlPing(name);
                             System.out.println(response.getOutputText());
                             break;
                         }
                         case "init": {
 
-                            InitRequest request = InitRequest.newBuilder().build();
-                            siloFrontend.ctrlInit(request);
+                            siloFrontend.ctrlInit();
                             System.out.println("Nothing to be configured!");
                             break;
                         }
                         case "clear": {
 
-                            ClearRequest request = ClearRequest.newBuilder().clear().build();
-                            siloFrontend.ctrlClear(request);
+                            siloFrontend.ctrlClear();
                             System.out.println("System is now empty!");
 
                             break;
@@ -112,14 +109,12 @@ public class SpotterApp {
 
                                 if (id.contains("*")) {
 
-                                    TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(t).setSubId(id).build();
-                                    TrackMatchResponse response = siloFrontend.trackMatchObj(request);
+                                    TrackMatchResponse response = siloFrontend.trackMatchObj(t, id);
                                     trackMatchResponseToString(response, siloFrontend);
 
                                 } else {
 
-                                    TrackRequest request = TrackRequest.newBuilder().setType(t).setId(id).build();
-                                    TrackResponse response = siloFrontend.trackObj(request);
+                                    TrackResponse response = siloFrontend.trackObj(t, id);
                                     trackResponseToString(response, siloFrontend);
                                 }
                             }
@@ -128,8 +123,7 @@ public class SpotterApp {
 
                                 String t = verifyType(type);
 
-                                TraceRequest request = TraceRequest.newBuilder().setType(t).setId(id).build();
-                                TraceResponse response = siloFrontend.traceObj(request);
+                                TraceResponse response = siloFrontend.traceObj(t, id);
                                 traceResponseToString(response, siloFrontend);
 
                             }
@@ -176,8 +170,7 @@ public class SpotterApp {
 
     //Prints the responses to the spot command
     private static void trackResponseToString(TrackResponse response, SiloFrontend siloFrontend) {
-        CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(response.getObservation().getCamName()).build();
-        CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
+        CamInfoResponse camResponse = siloFrontend.getCamInfo(response.getObservation().getCamName());
 
         if (response.getObservation().getType().equals("CAR")) {
             System.out.println("car" + "," +
@@ -199,16 +192,14 @@ public class SpotterApp {
         for (ObservationMessage om : observationList) {
             if (om.getType().equals("CAR")) {
 
-                CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
-                CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
+                CamInfoResponse camResponse = siloFrontend.getCamInfo(om.getCamName());
 
                 System.out.println("car" + "," +
                         om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +
                         camResponse.getLatitude() + "," + camResponse.getLongitude());
             } else if (om.getType().equals("PERSON")) {
 
-                CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(om.getCamName()).build();
-                CamInfoResponse camResponse = siloFrontend.getCamInfo(request);
+                CamInfoResponse camResponse = siloFrontend.getCamInfo(om.getCamName());
 
                 System.out.println("person" + "," +
                         om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +

@@ -78,16 +78,16 @@ public class SiloFrontend implements AutoCloseable {
     }
 
 
-    public CamJoinResponse camJoin(CamJoinRequest request) {
+    public CamJoinResponse camJoin(String camName, double latitude, double longitude) {
 
         //Builds request and saves it in case of lost connection
-        ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new CamJoin(cliRequest);
+        CamJoin request = new CamJoin();
+        //Builds grpc request
+        request.buildRequest(camName, latitude, longitude, this.prevTS, getUUID());
+        this.previousRequest = request;
 
-        ClientResponse response = stub.camJoin(cliRequest);//Update request
 
-        //Nova thread
-        //GetResponse
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -95,15 +95,18 @@ public class SiloFrontend implements AutoCloseable {
         return response.getCamJoinResponse();
     }
 
-    public CamInfoResponse getCamInfo(CamInfoRequest request) {
+    public CamInfoResponse getCamInfo(String camName) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("CamInfo");
-        serviceDesc.add(request.getCamName());
+        serviceDesc.add(camName);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new CamInfo(cliRequest, serviceDesc);
+        CamInfo request = new CamInfo(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(camName, this.prevTS, getUUID());
+        this.previousRequest = request;
+
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -119,12 +122,15 @@ public class SiloFrontend implements AutoCloseable {
         return response.getCamInfoResponse();
     }
 
-    public ReportResponse reportObs(ReportRequest request) {
+    public ReportResponse reportObs(String camName, List<List<String>> observations) {
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Report(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Report request = new Report();
+        //Builds grpc request
+        request.buildRequest(camName, observations, this.prevTS, getUUID());
+        this.previousRequest = request;
 
-        ClientResponse response = stub.report(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -132,16 +138,20 @@ public class SiloFrontend implements AutoCloseable {
         return response.getReportResponse();
     }
 
-    public TrackResponse trackObj(TrackRequest request) {
+    public TrackResponse trackObj(String type, String id) {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackObject");
-        serviceDesc.add(request.getId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Track(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Track request = new Track(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        ClientRequest cliRequest = request.getRequest();
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -157,16 +167,19 @@ public class SiloFrontend implements AutoCloseable {
         return response.getTrackResponse();
     }
 
-    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {
+    public TrackMatchResponse trackMatchObj(String type, String id) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackMatchObject");
-        serviceDesc.add(request.getSubId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new TrackMatch(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        TrackMatch request = new TrackMatch(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -182,16 +195,19 @@ public class SiloFrontend implements AutoCloseable {
         return response.getTrackMatchResponse();
     }
 
-    public TraceResponse traceObj(TraceRequest request) {
+    public TraceResponse traceObj(String type, String id) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TraceObject");
-        serviceDesc.add(request.getId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Trace(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Trace request = new Trace(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -210,17 +226,20 @@ public class SiloFrontend implements AutoCloseable {
         return response.getTraceResponse();
     }
 
-    public PingResponse ctrlPing(PingRequest request) {
+    public PingResponse ctrlPing(String inputCommand) {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("Ping");
-        serviceDesc.add(request.getInputCommand());
+        serviceDesc.add(inputCommand);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Ping(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Ping request = new Ping(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(inputCommand, this.prevTS, getUUID());
+        this.previousRequest = request;
 
-        ClientResponse response = stub.ctrlPing(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
@@ -233,11 +252,14 @@ public class SiloFrontend implements AutoCloseable {
         return response.getPingResponse();
     }
 
-    public ClearResponse ctrlClear(ClearRequest request) {
-        ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Clear(cliRequest);
+    public ClearResponse ctrlClear() {
 
-        ClientResponse response = stub.ctrlClear(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Clear request = new Clear();
+        //Builds grpc request
+        request.buildRequest(this.prevTS, getUUID());
+        this.previousRequest = request;
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -246,11 +268,15 @@ public class SiloFrontend implements AutoCloseable {
     }
 
 
-    public InitResponse ctrlInit(InitRequest request) {
-        ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Init(cliRequest);
+    public InitResponse ctrlInit() {
 
-        ClientResponse response = stub.ctrlInit(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Init request = new Init();
+        //Builds grpc request
+        request.buildRequest(this.prevTS, getUUID());
+        this.previousRequest = request;
+
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
