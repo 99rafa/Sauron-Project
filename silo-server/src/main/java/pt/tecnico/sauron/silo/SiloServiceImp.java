@@ -1,7 +1,6 @@
 package pt.tecnico.sauron.silo;
 
 import io.grpc.stub.StreamObserver;
-import org.apache.zookeeper.Op;
 import pt.tecnico.sauron.silo.api.GossipMessage;
 import pt.tecnico.sauron.silo.api.LogRecord;
 import pt.tecnico.sauron.silo.api.Operation;
@@ -35,9 +34,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
 
-    public void runUpdates(List<LogRecord> logRecords){
+    public void runUpdates(List<LogRecord> logRecords) {
 
-        for(LogRecord logRecord : logRecords){
+        for (LogRecord logRecord : logRecords) {
             Operation operation = logRecord.getOperation();
             ClientRequest request = operation.getRequest();
             String function = operation.getOperation();
@@ -155,7 +154,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 ));
             }
         } else {
-           throw new NoSuchCameraNameException(camName);
+            throw new NoSuchCameraNameException(camName);
         }
 
 
@@ -400,10 +399,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         responseObserver.onCompleted();
     }
 
-    public void ctrlClearAux(){
+    public void ctrlClearAux() {
         //Clears server info
         this.silo = new Silo();
-        this.serverRequestHandler  = new ServerRequestHandler(this.replicaNumber);
+        this.serverRequestHandler = new ServerRequestHandler(this.replicaNumber);
 
         System.out.println("System state cleared");
     }
@@ -432,7 +431,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     }
 
-    public void ctrlInitAux(){
+    public void ctrlInitAux() {
 
     }
 
@@ -454,7 +453,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
 
-         this.serverRequestHandler.addRecordToLog(logRecord);
+        this.serverRequestHandler.addRecordToLog(logRecord);
 
         this.serverRequestHandler.updateReplicaState(logRecord);
 

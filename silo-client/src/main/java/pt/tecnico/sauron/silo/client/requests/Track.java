@@ -13,8 +13,9 @@ public class Track extends Request {
         super(request, functionAndArgs);
 
     }
+
     @Override
-    public ClientResponse runRequest( SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub) {
+    public ClientResponse runRequest(SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub) {
         return stub.track(getRequest());
     }
 }

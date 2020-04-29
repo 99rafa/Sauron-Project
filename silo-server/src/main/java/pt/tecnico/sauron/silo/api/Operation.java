@@ -4,7 +4,7 @@ import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.grpc.ClientRequest;
 import pt.tecnico.sauron.silo.grpc.ClientResponse;
 
-public class Operation {
+public class Operation extends GossipMessage {
 
     String operation;
     ClientRequest request;

@@ -166,7 +166,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new TrackMatch(cliRequest,serviceDesc);
+        this.previousRequest = new TrackMatch(cliRequest, serviceDesc);
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -191,7 +191,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getType());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Trace(cliRequest,serviceDesc);
+        this.previousRequest = new Trace(cliRequest, serviceDesc);
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -218,7 +218,7 @@ public class SiloFrontend implements AutoCloseable {
         serviceDesc.add(request.getInputCommand());
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Ping(cliRequest,serviceDesc);
+        this.previousRequest = new Ping(cliRequest, serviceDesc);
 
         ClientResponse response = stub.ctrlPing(cliRequest);
 
