@@ -77,7 +77,7 @@ public class SiloServerApp {
             server.start();
 
             // Server threads are running in the background.
-            System.out.println("Server started");
+            System.out.println("Replica " + repN + " starting…");
 
             //Server terminates when user presses enter
             new Thread(() -> {
@@ -98,8 +98,8 @@ public class SiloServerApp {
                         try {
                             ServerGossipGateway gateway = new ServerGossipGateway(zooHost, zooPort, args[2]);
                             if (finalZkNaming.listRecords("/grpc/sauron/silo").size() > 1) {
+                                System.out.println("Replica " + repN + " initiating gossip…");
                                 gateway.gossip(impl.buildGossipRequest());
-                                System.out.println("Sent gossip");
                             }
                         } catch (ZKNamingException e) {
                             e.printStackTrace();

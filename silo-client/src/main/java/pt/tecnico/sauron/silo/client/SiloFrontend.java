@@ -19,6 +19,8 @@ public class SiloFrontend implements AutoCloseable {
     private String host;
     private String port;
     private Map<Integer, Integer> prevTS = new HashMap<>();
+    private String target;
+    private String repN;
 
     private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
@@ -26,9 +28,9 @@ public class SiloFrontend implements AutoCloseable {
 
         this.host = zooHost;
         this.port = zooPort;
-        String target = getServerTarget(zooHost, zooPort, repN);
+        this.target = getServerTarget(zooHost, zooPort, repN);
 
-        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+        this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
@@ -39,7 +41,7 @@ public class SiloFrontend implements AutoCloseable {
         this.host = zooHost;
         this.port = zooPort;
         this.prevTS = preTS;
-        String target = getServerTarget(zooHost, zooPort, repN);
+        this.target = getServerTarget(zooHost, zooPort, repN);
 
         this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
@@ -48,17 +50,28 @@ public class SiloFrontend implements AutoCloseable {
     }
 
     //when a replica crashes, frontend reconnects to a random other replica
-    public ClientResponse renewConnection() throws ZKNamingException {
+    public void renewConnection() throws ZKNamingException {
         this.channel.shutdownNow();
-        String target = getServerTarget(this.host, this.port, "");
+        this.target = getServerTarget(this.host, this.port, "");
 
-        this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+
+        this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
+
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
+
+        System.out.println("Reconnected to replica " + this.repN + " at " + this.target);
+
+
+    }
+
+    public ClientResponse runPreviousCommand() {
+
         //Run previous command
         ClientResponse response = this.previousRequest.runRequest(stub);
+
 
         //Send response in cache if received response aint updated
         if (this.previousRequest.isQuery()) {
@@ -71,8 +84,6 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Reconnected");
-
         return response;
 
     }
@@ -82,7 +93,6 @@ public class SiloFrontend implements AutoCloseable {
 
         //Builds request and saves it in case of lost connection
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new CamJoin(cliRequest);
 
         ClientResponse response = stub.camJoin(cliRequest);//Update request
 
@@ -276,9 +286,14 @@ public class SiloFrontend implements AutoCloseable {
         else
             path = "/grpc/sauron/silo/" + repN;
 
-        //this.instance = Integer.parseInt(path.split("/")[4]);
+        //this.instance = ;
 
         System.out.println(path);
+
+        String[] segments = path.split("/");
+
+        this.repN = segments[segments.length-1];
+
 
         // lookup
         ZKRecord record = zkNaming.lookup(path);
@@ -313,6 +328,14 @@ public class SiloFrontend implements AutoCloseable {
         return UUID.randomUUID().toString();
     }
 
+    public String getTarget() {
+        return target;
+    }
+
+    public String getRepN() {
+        return repN;
+    }
+
     private void mergeTS(Map<Integer, Integer> map) {
         for (Integer key : map.keySet()) {
             if (this.prevTS.containsKey(key))
@@ -330,6 +353,19 @@ public class SiloFrontend implements AutoCloseable {
             if (entryA.getValue() > valueB) isBefore = false;
         }
         return isBefore;
+    }
+
+    private int[] convertTimestamp(Map<Integer,Integer> timestamp) throws ZKNamingException {
+
+        ZKNaming zkNaming = new ZKNaming(this.host, this.port);
+        int numberOfReplicas = (new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"))).size();
+
+        int[] timestampArray = new int[numberOfReplicas] ;
+
+        for (Map.Entry<Integer,Integer> entry : timestamp.entrySet())
+            timestampArray[entry.getKey()-1] = entry.getValue();
+
+        return timestampArray;
     }
 
     @Override

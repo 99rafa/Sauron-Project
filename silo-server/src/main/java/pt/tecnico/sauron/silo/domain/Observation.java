@@ -123,7 +123,7 @@ public class Observation implements Comparable<Observation> {
     //Checks if string is a number
     private boolean isNumber(String s) {
         try {
-            Double.parseDouble(s);
+            Long.parseLong(s);
         } catch (NumberFormatException e) {
             return false;
         }
