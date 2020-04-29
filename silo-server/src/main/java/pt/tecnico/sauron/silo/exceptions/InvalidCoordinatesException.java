@@ -1,6 +1,6 @@
 package pt.tecnico.sauron.silo.exceptions;
 
-public class InvalidCoordinatesException extends RuntimeException {
+public class InvalidCoordinatesException extends Exception {
 
     public InvalidCoordinatesException() {
         super(ErrorMessage.COORDINATES_NULL.label);

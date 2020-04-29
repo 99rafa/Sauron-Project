@@ -44,10 +44,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             switch (function) {
                 case "CamJoin":
-                    camJoinAux(request);
+                    camJoinAux(request, null);
                     break;
                 case "Report":
-                    reportAux(request);
+                    reportAux(request, null);
                     break;
 
                 case "CtrlClear":
@@ -94,22 +94,31 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     //CamJoin domain logic
-    public void camJoinAux(ClientRequest request) {
-
-        Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
-        silo.addCamera(camera);
+    public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+        try {
+            Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
+            silo.addCamera(camera);
+        } catch (CameraNameNotUniqueException e) {
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        } catch (CameraNameInvalidException |
+                CameraNameNullException |
+                InvalidCoordinatesException e) {
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }
 
     }
 
     @Override
     public void camJoin(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
-        try {
 
-            LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
+
+        LogRecord logRecord;
+        try {
+            logRecord = this.serverRequestHandler.processUpdateRequest("CamJoin", request, responseObserver);
 
 
             //implements domain logic
-            camJoinAux(request);
+            camJoinAux(request, responseObserver);
 
             //Builds response
             CamJoinResponse response = CamJoinResponse.newBuilder().build();
@@ -124,37 +133,43 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             this.serverRequestHandler.updateReplicaState(logRecord);
 
-        } catch (DuplicateOperationException | CameraNameNotUniqueException e) {
+        } catch (DuplicateOperationException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
-        } catch (CameraNameInvalidException |
-                CameraNameNullException |
-                InvalidCoordinatesException e) {
-            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
     }
 
     //Report domain logic
-    public void reportAux(ClientRequest request) {
+    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        String camName = request.getReportRequest().getCamName();
-        List<ObservationMessage> observationMessages;
+        try {
+            String camName = request.getReportRequest().getCamName();
+            List<ObservationMessage> observationMessages;
 
 
-        if (silo.checkIfCameraExists(camName)) {
+            if (silo.checkIfCameraExists(camName)) {
 
-            Camera cam = silo.getCameraByName(camName);
+                Camera cam = silo.getCameraByName(camName);
 
-            observationMessages = request.getReportRequest().getObservationList();
-            for (ObservationMessage om : observationMessages) {
-                checkType(om.getType());
-                cam.addObservation(new Observation(om.getType()
-                        , om.getId()
-                        , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
-                        , camName
-                ));
+                observationMessages = request.getReportRequest().getObservationList();
+                for (ObservationMessage om : observationMessages) {
+                    checkType(om.getType());
+                    cam.addObservation(new Observation(om.getType()
+                            , om.getId()
+                            , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                            , camName
+                    ));
+                }
+            } else {
+                throw new NoSuchCameraNameException(camName);
             }
-        } else {
-            throw new NoSuchCameraNameException(camName);
+
+        } catch (NoSuchCameraNameException e) {
+            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (CameraNameNullException |
+                InvalidTypeException |
+                InvalidIdException |
+                InvalidDateException e) {
+            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
 
@@ -168,7 +183,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //Implements domain logic
-            reportAux(request);
+            reportAux(request, responseObserver);
 
             //Builds response
             ReportResponse response = ReportResponse.newBuilder().build();
@@ -188,14 +203,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
         } catch (DuplicateOperationException e) {
-            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
-        } catch (NoSuchCameraNameException e) {
-            responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-        } catch (CameraNameNullException |
-                InvalidTypeException |
-                InvalidIdException |
-                InvalidDateException e) {
-            responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asException());
         }
     }
 
@@ -410,24 +418,30 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlClear(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
+        LogRecord logRecord = null;
+        try {
+            logRecord = this.serverRequestHandler.processUpdateRequest("CtrlClear", request, responseObserver);
 
-        //silo.clearData();
-        ClearResponse response = ClearResponse.newBuilder().build();
 
-        //Clears server info
-        ctrlClearAux();
+            //silo.clearData();
+            ClearResponse response = ClearResponse.newBuilder().build();
 
-        ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            //Clears server info
+            ctrlClearAux();
 
-        // Send a single response through the stream.
-        responseObserver.onNext(clientResponse);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
-        this.serverRequestHandler.addRecordToLog(logRecord);
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
 
-        this.serverRequestHandler.updateReplicaState(logRecord);
+            this.serverRequestHandler.addRecordToLog(logRecord);
+
+            this.serverRequestHandler.updateReplicaState(logRecord);
+        } catch (DuplicateOperationException e) {
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        }
 
     }
 
@@ -438,24 +452,28 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     @Override
     public void ctrlInit(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
-        LogRecord logRecord = this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
+        LogRecord logRecord = null;
+        try {
+            logRecord = this.serverRequestHandler.processUpdateRequest("CtrlInit", request, responseObserver);
 
 
-        ctrlInitAux();
+            ctrlInitAux();
 
-        InitResponse response = InitResponse.newBuilder().build();
+            InitResponse response = InitResponse.newBuilder().build();
 
-        ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
+            // Send a single response through the stream.
+            responseObserver.onNext(clientResponse);
+            // Notify the client that the operation has been completed.
+            responseObserver.onCompleted();
 
-        // Send a single response through the stream.
-        responseObserver.onNext(clientResponse);
-        // Notify the client that the operation has been completed.
-        responseObserver.onCompleted();
+            this.serverRequestHandler.addRecordToLog(logRecord);
 
-        this.serverRequestHandler.addRecordToLog(logRecord);
-
-        this.serverRequestHandler.updateReplicaState(logRecord);
+            this.serverRequestHandler.updateReplicaState(logRecord);
+        } catch (DuplicateOperationException e) {
+            responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        }
 
     }
 
@@ -468,7 +486,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //Checks if type is valid
-    private void checkType(String type) {
+    private void checkType(String type) throws InvalidTypeException {
 
         if (type == null || type.strip().length() == 0) {
             throw new InvalidTypeException();

@@ -1,6 +1,6 @@
 package pt.tecnico.sauron.silo.exceptions;
 
-public class InvalidDateException extends RuntimeException {
+public class InvalidDateException extends Exception {
 
     public InvalidDateException() {
         super(ErrorMessage.NULL_DATE.label);

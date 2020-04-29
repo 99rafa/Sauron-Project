@@ -18,7 +18,7 @@ public class Camera {
     public Camera() {
     }
 
-    public Camera(String name, double lat, double log) {
+    public Camera(String name, double lat, double log) throws CameraNameInvalidException, CameraNameNullException, InvalidCoordinatesException {
         //Checks if valid name
         checkName(name);
         this.name = name;
@@ -42,7 +42,7 @@ public class Camera {
         return this.name;
     }
 
-    public synchronized void setName(String name) {
+    public synchronized void setName(String name) throws CameraNameInvalidException, CameraNameNullException {
         //Checks if valid name
         checkName(name);
         this.name = name;
@@ -52,7 +52,7 @@ public class Camera {
         return this.lat;
     }
 
-    public synchronized void setLat(double lat) {
+    public synchronized void setLat(double lat) throws InvalidCoordinatesException {
         //Checks if valid latitude
         checkLatitude(lat);
         this.lat = lat;
@@ -62,7 +62,7 @@ public class Camera {
         return this.log;
     }
 
-    public synchronized void setLog(double log) {
+    public synchronized void setLog(double log) throws InvalidCoordinatesException {
         //checks if valid longitude
         checkLongitude(log);
         this.log = log;
@@ -79,7 +79,7 @@ public class Camera {
         this.observations.sort(Observation::compareTo);
     }
 
-    private void checkName(String name) {
+    private void checkName(String name) throws CameraNameNullException, CameraNameInvalidException {
         //Name cant be null
         if (name == null)
             throw new CameraNameNullException();
@@ -88,7 +88,7 @@ public class Camera {
             throw new CameraNameInvalidException();
     }
 
-    private void checkLatitude(Double lat) {
+    private void checkLatitude(Double lat) throws InvalidCoordinatesException {
         //Latitude must not be null
         if (lat == null)
             throw new InvalidCoordinatesException();
@@ -99,7 +99,7 @@ public class Camera {
 
     }
 
-    private void checkLongitude(Double log) {
+    private void checkLongitude(Double log) throws InvalidCoordinatesException {
         //Longitude must not be null
         if (log == null)
             throw new InvalidCoordinatesException();
