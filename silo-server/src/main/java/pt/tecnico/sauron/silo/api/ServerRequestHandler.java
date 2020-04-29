@@ -29,7 +29,7 @@ public class ServerRequestHandler {
     }
 
     //respond to an update request by the client
-    public synchronized LogRecord processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public synchronized LogRecord processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) throws DuplicateOperationException {
 
 
         //Sends Exception when operation Id is in the executed operations--> Protects duplicate requests

@@ -1,6 +1,6 @@
 package pt.tecnico.sauron.silo.exceptions;
 
-public class NoSuchObjectException extends RuntimeException {
+public class NoSuchObjectException extends Exception {
     public NoSuchObjectException() {
         super(ErrorMessage.NO_SUCH_OBJECT.label);
     }

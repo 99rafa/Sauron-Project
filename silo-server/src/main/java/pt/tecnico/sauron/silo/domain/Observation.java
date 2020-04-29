@@ -18,7 +18,7 @@ public class Observation implements Comparable<Observation> {
     public Observation() {
     }
 
-    public Observation(String type, String id, LocalDateTime dateTime, String camName) {
+    public Observation(String type, String id, LocalDateTime dateTime, String camName) throws InvalidDateException, InvalidIdException {
 
         this.type = type;
         //Checks if valid date
@@ -63,7 +63,7 @@ public class Observation implements Comparable<Observation> {
         this.id = id;
     }
 
-    private void checkDate(LocalDateTime date) {
+    private void checkDate(LocalDateTime date) throws InvalidDateException {
         //Null date
         if (date == null)
             throw new InvalidDateException();
@@ -74,7 +74,7 @@ public class Observation implements Comparable<Observation> {
         }
     }
 
-    private void checkId(String id) {
+    private void checkId(String id) throws InvalidIdException {
         //Null or empty ID
         if (id == null || id.strip().length() == 0)
             throw new InvalidIdException();

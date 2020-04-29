@@ -25,7 +25,7 @@ public class Silo {
     }
 
 
-    public Observation trackObject(String type, String id) {
+    public Observation trackObject(String type, String id) throws InvalidIdException, InvalidTypeException, NoSuchObjectException {
 
         List<Observation> observations = new ArrayList<>();
 
@@ -56,7 +56,8 @@ public class Silo {
         return observations.get(0);
     }
 
-    public List<Observation> trackMatchObject(String type, String partialId) {
+    public List<Observation> trackMatchObject(String type, String partialId) throws InvalidIdException,
+            InvalidTypeException, NoSuchObjectException {
 
         List<Observation> observations = new ArrayList<>();
 
@@ -144,7 +145,8 @@ public class Silo {
         if (!changed) observations.add(obs);
     }
 
-    public List<Observation> traceObject(String type, String id) {
+    public List<Observation> traceObject(String type, String id) throws InvalidIdException,
+            InvalidTypeException, NoSuchObjectException {
 
         List<Observation> res = new ArrayList<>();
 
@@ -182,7 +184,7 @@ public class Silo {
         return false;
     }
 
-    public synchronized Camera getCameraByName(String camName) {
+    public synchronized Camera getCameraByName(String camName) throws CameraNameNullException, NoSuchCameraNameException {
 
         //Camera name null
         if (camName.equals(null))
@@ -198,7 +200,7 @@ public class Silo {
         throw new NoSuchCameraNameException(camName);
     }
 
-    public synchronized void addCamera(Camera camera) {
+    public synchronized void addCamera(Camera camera) throws CameraNameNotUniqueException {
 
         //Checks for duplicate cameras
         for (Camera c : this.cameras) {
