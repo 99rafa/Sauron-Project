@@ -134,9 +134,13 @@ public class SpotterApp {
 
                     //Change server when the previous goes down
                     if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                        System.out.println("Server is down, reconnecting...");
+                        System.err.println("Replica " + siloFrontend.getRepN() + " at " + siloFrontend.getTarget() +" is down");
+                        System.out.println("Trying to reconnect to another replica" );
 
-                        ClientResponse response = siloFrontend.renewConnection();
+
+                        siloFrontend.renewConnection();
+
+                        ClientResponse response = siloFrontend.runPreviousCommand();
 
                         checkResponse(response, siloFrontend);
 

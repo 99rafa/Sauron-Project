@@ -64,7 +64,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
-        System.out.println("Gossip Received");
+        System.out.println("Gossip message Received");
         List<LogRecord> stableUpdates;
         //Build gossip object
         List<LogRecord> lr = new ArrayList<>();

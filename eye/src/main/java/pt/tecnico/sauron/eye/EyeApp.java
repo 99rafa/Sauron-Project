@@ -151,11 +151,13 @@ public class EyeApp {
 
                 //renew server when the previous goes down
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
-                    System.err.println("Server is down, reconnecting...");
 
-                    siloFrontend.renewConnection();
+                    System.err.println("Replica " + siloFrontend.getRepN() + " at " + siloFrontend.getTarget() +" is down");
+                    System.out.println("Trying to reconnect to another replica" );
 
                     siloFrontend.camJoin(camName, lat, log);
+                    siloFrontend.runPreviousCommand();
+
                 } else
                     System.out.println(e.getStatus().getDescription());
 
@@ -180,6 +182,7 @@ public class EyeApp {
             System.out.println("Sending observation for id " + om.get(1) +
                     " of type " + om.get(0) + "... ");
             om.add(dateFormat.format(date));
+
         }
 
         siloFrontend.reportObs(camName, observations);
