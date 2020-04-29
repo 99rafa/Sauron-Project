@@ -145,7 +145,7 @@ public class SpotterApp {
                         checkResponse(response, siloFrontend);
 
 
-                    } else
+                    }else
                         System.out.println(e.getStatus().getDescription());
 
                 }

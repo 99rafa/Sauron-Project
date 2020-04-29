@@ -34,8 +34,10 @@ public class ResponseCache{
 
         for (List<String> key : this.cacheMap.keySet()) {
 
-            if (list.equals(key))
+            if (list.equals(key)) {
+                System.out.println("Response outdated.\nRetrieving last stable entry from cache...");
                 return this.cacheMap.get(key);
+            }
         }
         return response;
     }
