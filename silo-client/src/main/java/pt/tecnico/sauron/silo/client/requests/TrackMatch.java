@@ -6,13 +6,14 @@ import pt.tecnico.sauron.silo.grpc.SiloOperationsServiceGrpc;
 
 import java.util.List;
 
-public class TrackMatch extends Request{
+public class TrackMatch extends Request {
 
     public TrackMatch(ClientRequest request, List<String> functionAndArgs) {
 
         super(request, functionAndArgs);
 
     }
+
     @Override
     public ClientResponse runRequest(SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub) {
         return stub.trackMatch(getRequest());

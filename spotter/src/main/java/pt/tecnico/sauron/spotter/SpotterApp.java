@@ -148,7 +148,7 @@ public class SpotterApp {
 
                         ClientResponse response = siloFrontend.runPreviousCommand();
 
-                        checkResponse(response,siloFrontend);
+                        checkResponse(response, siloFrontend);
 
 
                     } else
@@ -252,25 +252,18 @@ public class SpotterApp {
 
         if (response.getPingResponse().toByteArray().length != 0) {
             System.out.println(response.getPingResponse().getOutputText());
-        }
-
-        else if (response.getTrackResponse().toByteArray().length != 0) {
+        } else if (response.getTrackResponse().toByteArray().length != 0) {
             trackResponseToString(response.getTrackResponse(), frontend);
-        }
-
-        else if(response.getTraceResponse() != null) {
+        } else if (response.getTraceResponse() != null) {
             traceResponseToString(response.getTraceResponse(), frontend);
 
-        }
-        else if (response.getTrackMatchResponse() != null) {
-            trackMatchResponseToString(response.getTrackMatchResponse(),frontend);
-        }
-        else if (response.getInitResponse() != null) {
+        } else if (response.getTrackMatchResponse() != null) {
+            trackMatchResponseToString(response.getTrackMatchResponse(), frontend);
+        } else if (response.getInitResponse() != null) {
             System.out.println("Nothing to be configured!");
-        }
-        else if (response.getClearResponse() != null) {
+        } else if (response.getClearResponse() != null) {
             System.out.println("System is now empty!");
         }
 
-        }
+    }
 }

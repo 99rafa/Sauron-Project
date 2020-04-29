@@ -2,6 +2,7 @@ package pt.tecnico.sauron.silo.api;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import pt.tecnico.sauron.silo.exceptions.InvalidCoordinatesException;
 import pt.tecnico.sauron.silo.grpc.GossipRequest;
 import pt.tecnico.sauron.silo.grpc.SiloOperationsServiceGrpc;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ServerGossipGateway implements AutoCloseable {
+public class ServerGossipGateway extends InvalidCoordinatesException implements AutoCloseable {
 
     private List<ManagedChannel> channels = new ArrayList<>();
     private Map<String,SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stubs = new HashMap<>();

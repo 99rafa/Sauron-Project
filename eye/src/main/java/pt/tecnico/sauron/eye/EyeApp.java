@@ -78,7 +78,7 @@ public class EyeApp {
                         e.getStatus().getDescription());
 
             } catch (ZKNamingException e) {
-               System.err.println("Server could not be found or no servers available");
+                System.err.println("Server could not be found or no servers available");
             }
         } finally {
             System.out.println("> Client Closing");

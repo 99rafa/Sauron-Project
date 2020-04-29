@@ -1,6 +1,6 @@
 package pt.tecnico.sauron.silo.exceptions;
 
-public class InvalidTypeException extends RuntimeException {
+public class InvalidTypeException extends Exception {
 
     public InvalidTypeException() {
         super(ErrorMessage.NULL_TYPE.label);
