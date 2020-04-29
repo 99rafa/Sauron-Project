@@ -51,12 +51,12 @@ public class SiloFrontend implements AutoCloseable {
 
     //when a replica crashes, frontend reconnects to a random other replica
     public void renewConnection() throws ZKNamingException {
+
         this.channel.shutdownNow();
+
         this.target = getServerTarget(this.host, this.port, "");
 
-
         this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
-
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
@@ -67,7 +67,7 @@ public class SiloFrontend implements AutoCloseable {
 
     }
 
-    public ClientResponse runPreviousCommand() throws ZKNamingException {
+    public ClientResponse runPreviousCommand(){
 
         //Run previous command
         ClientResponse response = this.previousRequest.runRequest(stub);
@@ -84,41 +84,45 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
         return response;
 
     }
 
 
-    public CamJoinResponse camJoin(CamJoinRequest request) throws ZKNamingException {
+    public CamJoinResponse camJoin(String camName, double latitude, double longitude) {
 
         //Builds request and saves it in case of lost connection
-        ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
+        CamJoin request = new CamJoin();
+        //Builds grpc request
+        request.buildRequest(camName, latitude, longitude, this.prevTS, getUUID());
 
-        ClientResponse response = stub.camJoin(cliRequest);//Update request
 
-        //Nova thread
-        //GetResponse
+        ClientResponse response = request.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
         return response.getCamJoinResponse();
     }
 
-    public CamInfoResponse getCamInfo(CamInfoRequest request) throws ZKNamingException {
+    public CamInfoResponse getCamInfo(String camName) {
+
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("CamInfo");
-        serviceDesc.add(request.getCamName());
+        serviceDesc.add(camName);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setCamInfoRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new CamInfo(cliRequest, serviceDesc);
+        CamInfo request = new CamInfo(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(camName, this.prevTS, getUUID());
+        this.previousRequest = request;
+
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -131,37 +135,46 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
         return response.getCamInfoResponse();
     }
 
-    public ReportResponse reportObs(ReportRequest request) throws ZKNamingException {
+    public ReportResponse reportObs(String camName, List<List<String>> observations) {
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Report(cliRequest);
 
-        ClientResponse response = stub.report(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Report request = new Report();
+        //Builds grpc request
+        request.buildRequest(camName, observations, this.prevTS, getUUID());
+        this.previousRequest = request;
+
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println((Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
         return response.getReportResponse();
     }
 
-    public TrackResponse trackObj(TrackRequest request) throws  ZKNamingException {
+
+    public TrackResponse trackObj(String type, String id) {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackObject");
-        serviceDesc.add(request.getId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Track(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Track request = new Track(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        ClientRequest cliRequest = request.getRequest();
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -174,21 +187,24 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
         return response.getTrackResponse();
     }
 
-    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) throws ZKNamingException {
+    public TrackMatchResponse trackMatchObj(String type, String id)  {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackMatchObject");
-        serviceDesc.add(request.getSubId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTrackMatchRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new TrackMatch(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        TrackMatch request = new TrackMatch(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -201,22 +217,25 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
         return response.getTrackMatchResponse();
     }
 
-    public TraceResponse traceObj(TraceRequest request) throws ZKNamingException{
+    public TraceResponse traceObj(String type, String id) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TraceObject");
-        serviceDesc.add(request.getId());
-        serviceDesc.add(request.getType());
+        serviceDesc.add(type);
+        serviceDesc.add(id);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setTraceRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Trace(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Trace request = new Trace(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(type, id, this.prevTS, getUUID());
+        this.previousRequest = request;
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
@@ -232,23 +251,27 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
         return response.getTraceResponse();
     }
 
-    public PingResponse ctrlPing(PingRequest request) throws ZKNamingException {
+
+    public PingResponse ctrlPing(String inputCommand)  {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("Ping");
-        serviceDesc.add(request.getInputCommand());
+        serviceDesc.add(inputCommand);
 
-        ClientRequest cliRequest = ClientRequest.newBuilder().setPingRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Ping(cliRequest, serviceDesc);
+        //Builds request and saves it in case of lost connection
+        Ping request = new Ping(serviceDesc);
+        //Builds grpc request
+        request.buildRequest(inputCommand, this.prevTS, getUUID());
+        this.previousRequest = request;
 
-        ClientResponse response = stub.ctrlPing(cliRequest);
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
@@ -261,32 +284,39 @@ public class SiloFrontend implements AutoCloseable {
         return response.getPingResponse();
     }
 
-    public ClearResponse ctrlClear(ClearRequest request) throws ZKNamingException {
-        ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Clear(cliRequest);
+    public ClearResponse ctrlClear()  {
 
-        ClientResponse response = stub.ctrlClear(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Clear request = new Clear();
+        //Builds grpc request
+        request.buildRequest(this.prevTS, getUUID());
+        this.previousRequest = request;
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
         return response.getClearResponse();
     }
 
 
-    public InitResponse ctrlInit(InitRequest request) throws ZKNamingException {
-        ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
-        this.previousRequest = new Init(cliRequest);
+    public InitResponse ctrlInit() {
 
-        ClientResponse response = stub.ctrlInit(cliRequest);
+        //Builds request and saves it in case of lost connection
+        Init request = new Init();
+        //Builds grpc request
+        request.buildRequest(this.prevTS, getUUID());
+        this.previousRequest = request;
+
+        ClientResponse response = this.previousRequest.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
         return response.getInitResponse();
 
@@ -378,17 +408,23 @@ public class SiloFrontend implements AutoCloseable {
         return isBefore;
     }
 
-    private int[] convertTimestamp(Map<Integer,Integer> timestamp) throws ZKNamingException {
+    private int[] convertTimestamp(Map<Integer,Integer> timestamp) {
+        try {
+            ZKNaming zkNaming = new ZKNaming(this.host, this.port);
+            int numberOfReplicas = (new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"))).size();
 
-        ZKNaming zkNaming = new ZKNaming(this.host, this.port);
-        int numberOfReplicas = (new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"))).size();
+            int[] timestampArray = new int[numberOfReplicas];
 
-        int[] timestampArray = new int[numberOfReplicas] ;
+            for (Map.Entry<Integer, Integer> entry : timestamp.entrySet())
+                timestampArray[entry.getKey() - 1] = entry.getValue();
 
-        for (Map.Entry<Integer,Integer> entry : timestamp.entrySet())
-            timestampArray[entry.getKey()-1] = entry.getValue();
+            return timestampArray;
+        }
+        catch (ZKNamingException e) {
+            System.err.println("Server could not be found or no servers available");
+        }
 
-        return timestampArray;
+        return null;
     }
 
     @Override

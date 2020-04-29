@@ -27,18 +27,13 @@ public class CamInfoIT extends BaseIT {
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp() {
-        CamJoinRequest camJoinRequest = CamJoinRequest.newBuilder()
-                .setCamName("Vale das Mos")
-                .setLatitude(12.2)
-                .setLongitude(12.2).build();
 
-        frontend.camJoin(camJoinRequest);
+        frontend.camJoin("Vale das Mos", 12.2, 12.2);
     }
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
@@ -56,9 +51,8 @@ public class CamInfoIT extends BaseIT {
     @Test
     public void camInfoFromExistingCam() {
         String camName = "Vale das Mos";
-        CamInfoRequest camInfoRequest = CamInfoRequest.newBuilder().setCamName(camName).build();
 
-        CamInfoResponse response = frontend.getCamInfo(camInfoRequest);
+        CamInfoResponse response = frontend.getCamInfo(camName);
 
         assertEquals((Double) 12.2, (Double) response.getLatitude());
         assertEquals((Double) 12.2, (Double) response.getLongitude());
@@ -69,12 +63,11 @@ public class CamInfoIT extends BaseIT {
     @Test
     public void camInfoFromNonExistingCam() {
         String camName = "Not Vale";
-        CamInfoRequest request = CamInfoRequest.newBuilder().setCamName(camName).build();
 
         assertEquals(
                 NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.getCamInfo(request))
+                        StatusRuntimeException.class, () -> frontend.getCamInfo(camName))
                         .getStatus()
                         .getCode());
     }

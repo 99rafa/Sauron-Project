@@ -5,6 +5,9 @@ import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
@@ -26,18 +29,12 @@ public class ReportIT extends BaseIT {
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp() {
-        CamJoinRequest camJoinRequest = CamJoinRequest.newBuilder()
-                .setCamName("Vale das Mos")
-                .setLatitude(12.2)
-                .setLongitude(12.2).build();
-
-        frontend.camJoin(camJoinRequest);
+        frontend.camJoin("Vale das Mos",12.2,12.2);
     }
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
@@ -58,30 +55,30 @@ public class ReportIT extends BaseIT {
         String camName = "Vale das Mos";
         String car = "CAR";
         String person = "PERSON";
+        List<List<String>> observations = new ArrayList<>();
 
 
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(person)
-                .setId("123").build();
+       List<String> observationMessage1 = new ArrayList<>();
+       observationMessage1.add(person);
+       observationMessage1.add("123");
+       observationMessage1.add(date);
 
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(car)
-                .setId("8709OA").build();
+       List<String> observationMessage2 = new ArrayList<>();
+       observationMessage2.add(car);
+       observationMessage2.add("8709OA");
+       observationMessage2.add(date);
 
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(car)
-                .setId("1212AO").build();
+       List<String> observationMessage3 = new ArrayList<>();
+       observationMessage3.add(car);
+       observationMessage3.add("1212AO");
+       observationMessage3.add(date);
 
-        ReportRequest reportRequest = ReportRequest.newBuilder()
-                .setCamName(camName)
-                .addObservation(observationMessage1)
-                .addObservation(observationMessage2)
-                .addObservation(observationMessage3).build();
 
-        ReportResponse reportResponse = frontend.reportObs(reportRequest);
+       observations.add(observationMessage1);
+       observations.add(observationMessage2);
+       observations.add(observationMessage3);
+
+       frontend.reportObs(camName,observations);
 
 
     }
@@ -93,37 +90,37 @@ public class ReportIT extends BaseIT {
         String car = "CAR";
         String person = "PERSON";
 
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(person)
-                .setId("12A3").build();
+        List<List<String>> observations1 = new ArrayList<>();
+        List<List<String>> observations2 = new ArrayList<>();
 
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(car)
-                .setId("A709OA").build();
 
-        ReportRequest request1 = ReportRequest.newBuilder()
-                .setCamName(camName)
-                .addObservation(observationMessage1)
-                .build();
 
-        ReportRequest request2 = ReportRequest.newBuilder()
-                .setCamName(camName)
-                .addObservation(observationMessage2)
-                .build();
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add(person);
+        observationMessage1.add("123A");
+        observationMessage1.add(date);
+
+        List<String> observationMessage2 = new ArrayList<>();
+        observationMessage2.add(car);
+        observationMessage2.add("8709O");
+        observationMessage2.add(date);
+
+
+        observations1.add(observationMessage1);
+        observations2.add(observationMessage2);
+
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(request1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
                         .getStatus()
                         .getCode());
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(request2))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations2))
                         .getStatus()
                         .getCode());
 
@@ -136,20 +133,21 @@ public class ReportIT extends BaseIT {
         String camName = "Vale das Mos";
         String person = "PERSON";
 
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(person)
-                .setId("123").build();
+        List<List<String>> observations1 = new ArrayList<>();
 
-        ReportRequest request1 = ReportRequest.newBuilder()
-                .setCamName(camName)
-                .addObservation(observationMessage1)
-                .build();
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add(person);
+        observationMessage1.add("123A");
+        observationMessage1.add(date);
+
+        observations1.add(observationMessage1);
+
+
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(request1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
                         .getStatus()
                         .getCode());
     }
@@ -160,20 +158,20 @@ public class ReportIT extends BaseIT {
         String camName = "NOT Mos";
         String person = "PERSON";
 
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder()
-                .setDatetime(date)
-                .setType(person)
-                .setId("123").build();
 
-        ReportRequest request1 = ReportRequest.newBuilder()
-                .setCamName(camName)
-                .addObservation(observationMessage1)
-                .build();
+        List<List<String>> observations1 = new ArrayList<>();
+
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add(person);
+        observationMessage1.add("123A");
+        observationMessage1.add(date);
+
+        observations1.add(observationMessage1);
 
         assertEquals(
                 NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(request1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
                         .getStatus()
                         .getCode());
     }

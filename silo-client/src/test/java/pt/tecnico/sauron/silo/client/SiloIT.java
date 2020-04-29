@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -32,18 +33,9 @@ public class SiloIT extends BaseIT {
         double lg1 = 31.0;
         double lg2 = 55.5;
 
-        CamJoinRequest request = CamJoinRequest.newBuilder()
-                .setCamName(n1)
-                .setLatitude(la1)
-                .setLongitude(lg1).build();
 
-        CamJoinRequest request2 = CamJoinRequest.newBuilder()
-                .setCamName(n2)
-                .setLatitude(la2)
-                .setLongitude(lg2).build();
-
-        frontend.camJoin(request);
-        frontend.camJoin(request2);
+        frontend.camJoin(n1,la1,lg1);
+        frontend.camJoin(n2,la2,lg2);
 
         String date1 = "1999-02-12 12:12:12";
         String date2 = "2000-02-12 12:12:12";
@@ -54,31 +46,48 @@ public class SiloIT extends BaseIT {
         String id2 = "12";
         String id4 = "122";
 
-        ObservationMessage o1 = ObservationMessage.newBuilder().setDatetime(date1).setId(id1).setType("PERSON").build();
-        ObservationMessage o2 = ObservationMessage.newBuilder().setDatetime(date2).setId(id2).setType("PERSON").build();
-        ObservationMessage o3 = ObservationMessage.newBuilder().setDatetime(date3).setId(id1).setType("PERSON").build();
-        ObservationMessage o4 = ObservationMessage.newBuilder().setDatetime(date4).setId(id4).setType("PERSON").build();
-        ObservationMessage o5 = ObservationMessage.newBuilder().setDatetime(date5).setId(id4).setType("PERSON").build();
+        List<List<String>> observations1 = new ArrayList<>();
+        List<List<String>> observations2 = new ArrayList<>();
 
 
-        ReportRequest request3 = ReportRequest.newBuilder()
-                .setCamName("Vale das Mos")
-                .addObservation(o2)
-                .addObservation(o3)
-                .addObservation(o4).build();
-        ReportRequest request4 = ReportRequest.newBuilder()
-                .setCamName("Alcobaca")
-                .addObservation(o1)
-                .addObservation(o5).build();
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add("PERSON");
+        observationMessage1.add(id1);
+        observationMessage1.add(date1);
 
-        frontend.reportObs(request3);
-        frontend.reportObs(request4);
+        List<String> observationMessage2 = new ArrayList<>();
+        observationMessage2.add("PERSON");
+        observationMessage2.add(id2);
+        observationMessage2.add(date2);
+
+        List<String> observationMessage3 = new ArrayList<>();
+        observationMessage3.add("PERSON");
+        observationMessage3.add(id1);
+        observationMessage3.add(date3);
+
+        List<String> observationMessage4 = new ArrayList<>();
+        observationMessage4.add("PERSON");
+        observationMessage4.add(id4);
+        observationMessage4.add(date4);
+
+        List<String> observationMessage5 = new ArrayList<>();
+        observationMessage5.add("PERSON");
+        observationMessage5.add(id4);
+        observationMessage5.add(date5);
+
+        observations1.add(observationMessage2);
+        observations1.add(observationMessage3);
+        observations1.add(observationMessage4);
+        observations2.add(observationMessage1);
+        observations2.add(observationMessage5);
+
+        frontend.reportObs("Vale das Mos", observations1);
+        frontend.reportObs("Alcobaca", observations2);
     }
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
@@ -110,11 +119,8 @@ public class SiloIT extends BaseIT {
     @Test
     public void camInfo() {
 
-        CamInfoRequest request1 = CamInfoRequest.newBuilder().setCamName("Vale das Mos").build();
-        CamInfoRequest request2 = CamInfoRequest.newBuilder().setCamName("Alcobaca").build();
-
-        CamInfoResponse response1 = frontend.getCamInfo(request1);
-        CamInfoResponse response2 = frontend.getCamInfo(request2);
+        CamInfoResponse response1 = frontend.getCamInfo("Vale das Mos");
+        CamInfoResponse response2 = frontend.getCamInfo("Alcobaca");
 
         assertEquals((Double) 29.2, (Double) response1.getLatitude());
         assertEquals((Double) 31.0, (Double) response1.getLongitude());
@@ -125,8 +131,8 @@ public class SiloIT extends BaseIT {
 
     @Test
     public void track() {
-        TrackRequest request = TrackRequest.newBuilder().setId("1").setType("PERSON").build();
-        TrackResponse response = frontend.trackObj(request);
+
+        TrackResponse response = frontend.trackObj("PERSON","1" );
         ObservationMessage obs = response.getObservation();
         String cam = obs.getCamName();
         String t = obs.getType();
@@ -144,8 +150,7 @@ public class SiloIT extends BaseIT {
 
     @Test
     public void trackMatch() {
-        TrackMatchRequest request = TrackMatchRequest.newBuilder().setSubId("1*").setType("PERSON").build();
-        TrackMatchResponse response = frontend.trackMatchObj(request);
+        TrackMatchResponse response = frontend.trackMatchObj("PERSON", "1*");
         List<ObservationMessage> obsv = response.getObservationList();
 
         ObservationMessage obs1 = obsv.get(0);
@@ -161,8 +166,7 @@ public class SiloIT extends BaseIT {
         assertEquals("2000-02-12 12:12:12", obs2.getDatetime());
         assertEquals("Vale das Mos", obs2.getCamName());
 
-        request = TrackMatchRequest.newBuilder().setSubId("*2").setType("PERSON").build();
-        response = frontend.trackMatchObj(request);
+        response = frontend.trackMatchObj("PERSON", "*2");
         obsv = response.getObservationList();
 
         obs1 = obsv.get(0);
@@ -181,8 +185,7 @@ public class SiloIT extends BaseIT {
 
     @Test
     public void trace() {
-        TraceRequest request = TraceRequest.newBuilder().setId("1").setType("PERSON").build();
-        TraceResponse response = frontend.traceObj(request);
+        TraceResponse response = frontend.traceObj("PERSON", "1");
         List<ObservationMessage> obsv = response.getObservationList();
 
         ObservationMessage obs1 = obsv.get(0);

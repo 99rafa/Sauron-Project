@@ -25,16 +25,14 @@ public class ClearIT extends BaseIT {
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
 
     @BeforeEach
     public void setUp() {
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
     }
 
     @AfterEach
@@ -44,7 +42,6 @@ public class ClearIT extends BaseIT {
 
     @Test
     public void clearTest() {
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
     }
 }

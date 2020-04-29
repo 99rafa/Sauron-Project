@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.grpc.Status.NOT_FOUND;
@@ -30,8 +32,7 @@ public class TraceIT extends BaseIT {
     @BeforeAll
     public static void oneTimeSetUp() {
 
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
 
         String camName1 = "Vale das Mos";
         String camName2 = "Alcobaca";
@@ -43,30 +44,50 @@ public class TraceIT extends BaseIT {
         String date3 = "2015-09-12 12:12:12";
         String date4 = "2010-09-12 12:12:12";
 
+        frontend.camJoin(camName1, 13.3, 51.2);
+        frontend.camJoin(camName2, 15.3,53.2);
 
-        CamJoinRequest joinRequest1 = CamJoinRequest.newBuilder().setCamName(camName1).setLatitude(13.3).setLongitude(51.2).build();
-        CamJoinRequest joinRequest2 = CamJoinRequest.newBuilder().setCamName(camName2).setLatitude(15.3).setLongitude(53.2).build();
-        frontend.camJoin(joinRequest1);
-        frontend.camJoin(joinRequest2);
-        ObservationMessage observationMessage1 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date1).build();
-        ObservationMessage observationMessage2 = ObservationMessage.newBuilder().setType("CAR").setId(id2).setDatetime(date2).build();
-        ObservationMessage observationMessage3 = ObservationMessage.newBuilder().setType("CAR").setId(id1).setDatetime(date3).build();
-        ObservationMessage observationMessage4 = ObservationMessage.newBuilder().setType("PERSON").setId(id3).setDatetime(date4).build();
-        ReportRequest request1 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage1).build();
-        ReportRequest request2 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage2).build();
-        ReportRequest request3 = ReportRequest.newBuilder().setCamName(camName1).addObservation(observationMessage3).build();
-        ReportRequest request4 = ReportRequest.newBuilder().setCamName(camName2).addObservation(observationMessage4).build();
-        frontend.reportObs(request1);
-        frontend.reportObs(request2);
-        frontend.reportObs(request3);
-        frontend.reportObs(request4);
+        List<List<String>> observations1 = new ArrayList<>();
+        List<List<String>> observations2 = new ArrayList<>();
+        List<List<String>> observations3 = new ArrayList<>();
+        List<List<String>> observations4 = new ArrayList<>();
+
+
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add("CAR");
+        observationMessage1.add(id1);
+        observationMessage1.add(date1);
+
+        List<String> observationMessage2 = new ArrayList<>();
+        observationMessage2.add("CAR");
+        observationMessage2.add(id2);
+        observationMessage2.add(date2);
+
+        List<String> observationMessage3 = new ArrayList<>();
+        observationMessage3.add("CAR");
+        observationMessage3.add(id1);
+        observationMessage3.add(date3);
+
+        List<String> observationMessage4 = new ArrayList<>();
+        observationMessage4.add("PERSON");
+        observationMessage4.add(id3);
+        observationMessage4.add(date4);
+
+        observations1.add(observationMessage1);
+        observations2.add(observationMessage2);
+        observations3.add(observationMessage3);
+        observations4.add(observationMessage4);
+
+        frontend.reportObs(camName1, observations1);
+        frontend.reportObs(camName2,observations2);
+        frontend.reportObs(camName1,observations3);
+        frontend.reportObs(camName2,observations4);
 
     }
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
@@ -91,9 +112,7 @@ public class TraceIT extends BaseIT {
         LocalDateTime dt1 = null, dt2;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-
-        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
-        TraceResponse response = frontend.traceObj(request);
+        TraceResponse response = frontend.traceObj(type,id);
 
         for (ObservationMessage o : response.getObservationList()) {
             assertEquals("CAR", o.getType());
@@ -119,8 +138,7 @@ public class TraceIT extends BaseIT {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
-        TraceResponse response = frontend.traceObj(request);
+        TraceResponse response = frontend.traceObj(type,id);
 
         for (ObservationMessage o : response.getObservationList()) {
             assertEquals("PERSON", o.getType());
@@ -144,11 +162,9 @@ public class TraceIT extends BaseIT {
         String id = "1234521";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
-
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type, id))
                         .getStatus()
                         .getCode());
 
@@ -165,7 +181,7 @@ public class TraceIT extends BaseIT {
 
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type,id))
                         .getStatus()
                         .getCode());
 
@@ -177,12 +193,10 @@ public class TraceIT extends BaseIT {
         String id = "12AA12";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setId(id).build();
-
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        StatusRuntimeException.class, () -> frontend.traceObj("", id))
                         .getStatus()
                         .getCode());
 
@@ -194,12 +208,10 @@ public class TraceIT extends BaseIT {
         String type = "PERSON";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setType(type).build();
-
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type, ""))
                         .getStatus()
                         .getCode());
 
@@ -212,12 +224,10 @@ public class TraceIT extends BaseIT {
         String id = "12345";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setId(id).setType(type).build();
-
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(request))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type,id))
                         .getStatus()
                         .getCode());
 

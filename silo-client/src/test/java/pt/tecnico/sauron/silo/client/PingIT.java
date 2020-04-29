@@ -33,16 +33,14 @@ public class PingIT extends BaseIT {
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
 
     @BeforeEach
     public void setUp() {
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
     }
 
     @AfterEach
@@ -52,18 +50,17 @@ public class PingIT extends BaseIT {
 
     @Test
     public void pingOKTest() {
-        PingRequest request = PingRequest.newBuilder().setInputCommand("friend").build();
-        PingResponse response = frontend.ctrlPing(request);
+        PingResponse response = frontend.ctrlPing("friend");
         assertEquals("Hello friend!\nThe server is running!", response.getOutputText());
     }
 
     @Test
     public void emptyPingTest() {
-        PingRequest request = PingRequest.newBuilder().setInputCommand("").build();
+
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.ctrlPing(request))
+                        StatusRuntimeException.class, () -> frontend.ctrlPing(""))
                         .getStatus()
                         .getCode());
     }
