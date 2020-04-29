@@ -67,7 +67,7 @@ public class SiloFrontend implements AutoCloseable {
 
     }
 
-    public ClientResponse runPreviousCommand() {
+    public ClientResponse runPreviousCommand() throws ZKNamingException {
 
         //Run previous command
         ClientResponse response = this.previousRequest.runRequest(stub);
@@ -84,12 +84,14 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
         return response;
 
     }
 
 
-    public CamJoinResponse camJoin(CamJoinRequest request) {
+    public CamJoinResponse camJoin(CamJoinRequest request) throws ZKNamingException {
 
         //Builds request and saves it in case of lost connection
         ClientRequest cliRequest = ClientRequest.newBuilder().setCamJoinRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
@@ -102,10 +104,13 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+
         return response.getCamJoinResponse();
     }
 
-    public CamInfoResponse getCamInfo(CamInfoRequest request) {
+    public CamInfoResponse getCamInfo(CamInfoRequest request) throws ZKNamingException {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -126,10 +131,13 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+
         return response.getCamInfoResponse();
     }
 
-    public ReportResponse reportObs(ReportRequest request) {
+    public ReportResponse reportObs(ReportRequest request) throws ZKNamingException {
 
         ClientRequest cliRequest = ClientRequest.newBuilder().setReportRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
         this.previousRequest = new Report(cliRequest);
@@ -139,10 +147,12 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println((Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
         return response.getReportResponse();
     }
 
-    public TrackResponse trackObj(TrackRequest request) {
+    public TrackResponse trackObj(TrackRequest request) throws  ZKNamingException {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -164,10 +174,12 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
         return response.getTrackResponse();
     }
 
-    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) {
+    public TrackMatchResponse trackMatchObj(TrackMatchRequest request) throws ZKNamingException {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -189,10 +201,13 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+
         return response.getTrackMatchResponse();
     }
 
-    public TraceResponse traceObj(TraceRequest request) {
+    public TraceResponse traceObj(TraceRequest request) throws ZKNamingException{
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -217,10 +232,13 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+
         return response.getTraceResponse();
     }
 
-    public PingResponse ctrlPing(PingRequest request) {
+    public PingResponse ctrlPing(PingRequest request) throws ZKNamingException {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -243,7 +261,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getPingResponse();
     }
 
-    public ClearResponse ctrlClear(ClearRequest request) {
+    public ClearResponse ctrlClear(ClearRequest request) throws ZKNamingException {
         ClientRequest cliRequest = ClientRequest.newBuilder().setClearRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
         this.previousRequest = new Clear(cliRequest);
 
@@ -252,11 +270,14 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+
         return response.getClearResponse();
     }
 
 
-    public InitResponse ctrlInit(InitRequest request) {
+    public InitResponse ctrlInit(InitRequest request) throws ZKNamingException {
         ClientRequest cliRequest = ClientRequest.newBuilder().setInitRequest(request).putAllPrevTS(this.prevTS).setOpId(getUUID()).build();
         this.previousRequest = new Init(cliRequest);
 
@@ -264,6 +285,8 @@ public class SiloFrontend implements AutoCloseable {
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
+
+        System.out.println("Frontend received answer with TS" +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
         return response.getInitResponse();
 
