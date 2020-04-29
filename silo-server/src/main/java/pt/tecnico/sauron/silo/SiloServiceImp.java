@@ -94,10 +94,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
     //CamJoin domain logic
-    public void camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public boolean camJoinAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
             Camera camera = new Camera(request.getCamJoinRequest().getCamName(), request.getCamJoinRequest().getLatitude(), request.getCamJoinRequest().getLongitude());
             silo.addCamera(camera);
+            return true;
         } catch (CameraNameNotUniqueException e) {
             responseObserver.onError(ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
         } catch (CameraNameInvalidException |
@@ -105,7 +106,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 InvalidCoordinatesException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
-
+        return false;
     }
 
     @Override
@@ -118,7 +119,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //implements domain logic
-            camJoinAux(request, responseObserver);
+            if(!camJoinAux(request, responseObserver))
+                return;
 
             //Builds response
             CamJoinResponse response = CamJoinResponse.newBuilder().build();
@@ -139,29 +141,24 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //Report domain logic
-    public void reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
+    public boolean reportAux(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
 
         try {
             String camName = request.getReportRequest().getCamName();
             List<ObservationMessage> observationMessages;
+            Camera cam = silo.getCameraByName(camName);
 
-
-            if (silo.checkIfCameraExists(camName)) {
-
-                Camera cam = silo.getCameraByName(camName);
-
-                observationMessages = request.getReportRequest().getObservationList();
-                for (ObservationMessage om : observationMessages) {
-                    checkType(om.getType());
-                    cam.addObservation(new Observation(om.getType()
-                            , om.getId()
-                            , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
-                            , camName
-                    ));
-                }
-            } else {
-                throw new NoSuchCameraNameException(camName);
+            observationMessages = request.getReportRequest().getObservationList();
+            for (ObservationMessage om : observationMessages) {
+                checkType(om.getType());
+                cam.addObservation(new Observation(om.getType()
+                        , om.getId()
+                        , LocalDateTime.parse(om.getDatetime(), Silo.formatter)
+                        , camName
+                ));
             }
+
+            return true;
 
         } catch (NoSuchCameraNameException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
@@ -172,6 +169,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
+        return false;
 
     }
 
@@ -183,7 +181,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //Implements domain logic
-            reportAux(request, responseObserver);
+            if(!reportAux(request, responseObserver))
+                return;
 
             //Builds response
             ReportResponse response = ReportResponse.newBuilder().build();
