@@ -5,6 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
+import pt.tecnico.sauron.silo.client.requests.NoServersAvailableException;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
@@ -14,8 +15,9 @@ import java.util.Scanner;
 
 public class SpotterApp {
 
-    public static void main(String[] args) throws ZKNamingException {
+    public static void main(String[] args) {
         SiloFrontend siloFrontend;
+        ManagedChannel channel = null;
         try {
             System.out.println(SpotterApp.class.getSimpleName());
             System.out.println("> Spotter client started");
@@ -42,7 +44,7 @@ public class SpotterApp {
 
             final String target = host + ":" + port;
 
-            final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+            channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
             siloFrontend = new SiloFrontend(host, port, repN);
 
@@ -134,9 +136,6 @@ public class SpotterApp {
 
                     //Change server when the previous goes down
                     if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                        System.err.println("Replica " + siloFrontend.getRepN() + " at " + siloFrontend.getTarget() +" is down");
-                        System.out.println("Trying to reconnect to another replica" );
-
 
                         siloFrontend.renewConnection();
 
@@ -150,12 +149,15 @@ public class SpotterApp {
 
                 }
             }
-            System.out.println("> Closing client");
-            channel.shutdownNow();
-
         } catch (IOException e) {
             System.err.println("Invalid input");
+        } catch (NoServersAvailableException | ZKNamingException e) {
+            System.err.println("Server could not be found or no servers available at the moment");
+            channel.shutdownNow();
+        } finally {
+            System.out.println("> Closing client");
         }
+
     }
 
     //Prints the responses to the trail command

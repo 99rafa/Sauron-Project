@@ -5,6 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
+import pt.tecnico.sauron.silo.client.requests.NoServersAvailableException;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
@@ -72,8 +73,8 @@ public class EyeApp {
                 System.out.println("Caught exception with description: " +
                         e.getStatus().getDescription());
 
-            } catch (ZKNamingException e) {
-                System.err.println("Server could not be found or no servers available");
+            } catch (ZKNamingException | NoServersAvailableException e) {
+                System.err.println("Server could not be found or no servers available at the moment");
             }
         } finally {
             System.out.println("> Client Closing");
@@ -81,7 +82,7 @@ public class EyeApp {
 
     }
 
-    private static void processInputData(SiloFrontend siloFrontend, String camName, double lat, double log) throws InterruptedException, ZKNamingException {
+    private static void processInputData(SiloFrontend siloFrontend, String camName, double lat, double log) throws InterruptedException, ZKNamingException, NoServersAvailableException {
 
         Scanner scanner;
         List<List<String>> observations = new ArrayList<>();
@@ -152,8 +153,6 @@ public class EyeApp {
                 //renew server when the previous goes down
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
 
-                    System.err.println("Replica " + siloFrontend.getRepN() + " at " + siloFrontend.getTarget() +" is down");
-                    System.out.println("Trying to reconnect to another replica" );
 
                     siloFrontend.renewConnection();
 

@@ -2,6 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.requests.*;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
@@ -13,6 +14,8 @@ import java.util.*;
 
 public class SiloFrontend implements AutoCloseable {
 
+    private String currentPath;
+    private List<String> attempts = new ArrayList<>();
     private ResponseCache responseCache = new ResponseCache();
     private Request previousRequest;
     private ManagedChannel channel;
@@ -24,7 +27,7 @@ public class SiloFrontend implements AutoCloseable {
 
     private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
-    public SiloFrontend(String zooHost, String zooPort, String repN) throws ZKNamingException {
+    public SiloFrontend(String zooHost, String zooPort, String repN) throws ZKNamingException, NoServersAvailableException {
 
         this.host = zooHost;
         this.port = zooPort;
@@ -34,9 +37,15 @@ public class SiloFrontend implements AutoCloseable {
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+
+        try{
+            ctrlPing("Checking server availability");//PING
+        } catch (StatusRuntimeException e){
+            renewConnection();
+        }
     }
 
-    public SiloFrontend(String zooHost, String zooPort, String repN, Map<Integer, Integer> preTS) throws ZKNamingException {
+    public SiloFrontend(String zooHost, String zooPort, String repN, Map<Integer, Integer> preTS) throws ZKNamingException, NoServersAvailableException {
 
         this.host = zooHost;
         this.port = zooPort;
@@ -47,23 +56,39 @@ public class SiloFrontend implements AutoCloseable {
 
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+
+        try{
+            ctrlPing("Checking server availability");//PING
+        } catch (StatusRuntimeException e){
+            renewConnection();
+        }
+
     }
 
     //when a replica crashes, frontend reconnects to a random other replica
-    public void renewConnection() throws ZKNamingException {
+    public void renewConnection() throws ZKNamingException, NoServersAvailableException {
+        System.err.println("Replica " + getRepN() + " at " + getTarget() +" is down");
+        System.out.println("Trying to reconnect to another replica" );
 
-        this.channel.shutdownNow();
+        while(true){
+            try {
+                this.channel.shutdownNow();
 
-
-        this.target = getServerTarget(this.host, this.port, "");
-
-
-        this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
-
-        // Create a blocking stub.
-        this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+                this.target = getServerTarget(this.host, this.port, "");
 
 
+                this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
+
+                // Create a blocking stub.
+                this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
+
+                ctrlPing("Checking server availability");//PING
+                break;
+            } catch (RuntimeException e){
+                System.err.println("Replica " + getRepN() + " at " + getTarget() +" is down");
+                System.out.println("Trying to reconnect to another replica" );
+            }
+        }
         System.out.println("Reconnected to replica " + this.repN + " at " + this.target);
 
 
@@ -87,6 +112,9 @@ public class SiloFrontend implements AutoCloseable {
         mergeTS(response.getResponseTSMap());
 
         System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+
+        this.attempts.clear();
+        this.attempts.add(this.currentPath);
 
         return response;
 
@@ -324,22 +352,28 @@ public class SiloFrontend implements AutoCloseable {
 
     }
 
-    private String getServerTarget(String zooHost, String zooPort, String repN) throws ZKNamingException {
+    private String getServerTarget(String zooHost, String zooPort, String repN) throws ZKNamingException, NoServersAvailableException {
 
         Random random = new Random();
-        final String path;
+        String path;
         ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
 
-        //hack to catch zkNaming exception because there is no server available
-        if (recs.size() == 0) repN = "1";
-
-        if (repN.equals(""))
+        if (recs.size() == 0) throw new NoServersAvailableException();
+        if (recs.size() == attempts.size()) throw new NoServersAvailableException();
+        if (repN.equals("")){
 
             path = recs.get(random.nextInt(recs.size())).getPath();
+            while(attempts.contains(path)) {
+                path = recs.get(random.nextInt(recs.size())).getPath();
+            }
+        }
 
         else
             path = "/grpc/sauron/silo/" + repN;
+
+        this.attempts.add(path);
+        this.currentPath = path;
 
         //this.instance = ;
 
