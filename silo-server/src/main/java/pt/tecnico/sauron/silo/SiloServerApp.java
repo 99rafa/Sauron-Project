@@ -3,6 +3,8 @@ package pt.tecnico.sauron.silo;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.api.ServerGossipGateway;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
@@ -72,7 +74,6 @@ public class SiloServerApp {
             // publish
             zkNaming.rebind(path, host, portBind);
 
-
             // Start the server
             server.start();
 
@@ -96,10 +97,15 @@ public class SiloServerApp {
                     public void run() {
 
                         try {
+                            boolean missedGossip;
                             ServerGossipGateway gateway = new ServerGossipGateway(zooHost, zooPort, args[2]);
                             if (finalZkNaming.listRecords("/grpc/sauron/silo").size() > 1) {
                                 System.out.println("Replica " + repN + " initiating gossip…");
-                                gateway.gossip(impl.buildGossipRequest());
+                                missedGossip = gateway.gossip(impl.buildGossipRequest());
+                                if (missedGossip) impl.missedGossipHandler();
+                                else impl.successfulGossipHandler();
+                                gateway.close();
+
                             }
                         } catch (ZKNamingException e) {
                             e.printStackTrace();

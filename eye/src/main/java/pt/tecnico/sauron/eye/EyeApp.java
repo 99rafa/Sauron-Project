@@ -5,7 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
-import pt.tecnico.sauron.silo.client.requests.NoServersAvailableException;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
@@ -107,8 +107,8 @@ public class EyeApp {
                     else saveGivenObservations(siloFrontend, camName, observations);
 
                 } //do nothing when there is a comment line
-                else if (observationLine[0].startsWith("#")) {
-                } else {
+                else if (observationLine[0].startsWith("#")) { }
+                else {
 
                     //first token is first substring before the comma
                     String firstToken = observationLine[0];
@@ -175,7 +175,7 @@ public class EyeApp {
         scanner.close();
     }
 
-    private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<List<String>> observations) throws ZKNamingException {
+    private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<List<String>> observations) {
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();

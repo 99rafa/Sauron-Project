@@ -33,7 +33,6 @@ public class ResponseCache{
     public ClientResponse getLastRead(List<String> list, ClientResponse response) {
 
         for (List<String> key : this.cacheMap.keySet()) {
-
             if (list.equals(key)) {
                 System.out.println("Response outdated.\nRetrieving last stable entry from cache...");
                 return this.cacheMap.get(key);

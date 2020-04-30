@@ -23,9 +23,23 @@ public class ServerRequestHandler {
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
 
+    private boolean logCleanable = true;
+
 
     public ServerRequestHandler(Integer replicaNumber) {
         this.replicaNumber = replicaNumber;
+    }
+
+    //handler to missing gossip for replicas which are currently down
+    //log cannot be erased to recover from fault when replica becomes available again
+    public void missedGossipHandler() {
+        logCleanable = false;
+    }
+
+    //handler to successful gossip
+    //log can be erased to
+    public void successfulGossipHandler() {
+        logCleanable = true;
     }
 
     //respond to an update request by the client
@@ -71,7 +85,7 @@ public class ServerRequestHandler {
 
     public synchronized void cleanUpdateLog() {
 
-        this.updateLog.clear();
+        if (logCleanable) this.updateLog.clear();
     }
 
     //apply updates to the replica

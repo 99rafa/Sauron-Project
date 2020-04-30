@@ -28,6 +28,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     private int replicaNumber;
 
+
     public SiloServiceImp(Integer repN) {
         this.serverRequestHandler = new ServerRequestHandler(repN);
         this.replicaNumber = repN;
@@ -498,6 +499,16 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     public GossipRequest buildGossipRequest() {
         return this.serverRequestHandler.buildGossipRequest();
+    }
+
+    //handler to missing gossip for replicas that are currently down
+    public void missedGossipHandler() {
+        this.serverRequestHandler.missedGossipHandler();
+    }
+
+    //handler to successful gossip
+    public void successfulGossipHandler() {
+        this.serverRequestHandler.successfulGossipHandler();
     }
 
     //checks if a happens before b

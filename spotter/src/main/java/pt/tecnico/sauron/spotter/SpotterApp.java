@@ -5,7 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
-import pt.tecnico.sauron.silo.client.requests.NoServersAvailableException;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
