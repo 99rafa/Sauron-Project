@@ -444,15 +444,30 @@ public class SiloFrontend implements AutoCloseable {
 
 
 
-    //display TS map in order
+    //display TS map in order and converted to friendly presentation
     private void convertTimestamp(Map<Integer,Integer> timestamp) {
 
-        // Copy all data from hashMap into TreeMap
-        TreeMap<Integer, Integer> sortedTS = new TreeMap<>(timestamp);
+        ZKNaming zkNaming = new ZKNaming(this.host, this.port);
+        ArrayList<ZKRecord> recs = null;
+        try {
+            recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
+        } catch (ZKNamingException e) {
+            e.printStackTrace();
+        }
+        List<Integer> replicaNumbers = new ArrayList<>();
+
+        for (ZKRecord path: recs) {
+            String[] segments = path.getPath().split("/");
+            String rep = segments[segments.length - 1];
+
+            replicaNumbers.add(Integer.parseInt(rep));
+        }
+        Collections.sort(replicaNumbers);
 
         System.out.print("Response with TS: ");
-        for(Map.Entry<Integer,Integer> entry : sortedTS.entrySet()) {
-            System.out.print( "Rep " + entry.getKey() +" -> " + entry.getValue() + "; ");
+        for(Integer replica :replicaNumbers) {
+            if (timestamp.get(replica) == null) System.out.print( "Rep " + replica + " -> 0; ");
+            else System.out.print( "Rep " + replica +" -> " + timestamp.get(replica) + "; ");
         }
         System.out.println();
 

@@ -84,6 +84,7 @@ public class ServerRequestHandler {
 
     //apply updates to the replica
     public synchronized void updateReplicaState(LogRecord logRecord) {
+
         mergeTS(this.valueTS, logRecord.getTimestamp());
         this.executedOpsTable.add(logRecord.getId());
 

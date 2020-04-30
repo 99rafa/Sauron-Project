@@ -49,19 +49,9 @@ public class PingIT extends BaseIT {
 
     @Test
     public void pingOKTest() {
-        PingResponse response = frontend.ctrlPing("friend");
-        assertEquals("Hello friend!\nThe server is running!", response.getOutputText());
+        PingResponse response = frontend.ctrlPing();
+        assertEquals("Hello!\nThe server is running!", response.getOutputText());
     }
 
-    @Test
-    public void emptyPingTest() {
-
-        assertEquals(
-                INVALID_ARGUMENT.getCode(),
-                assertThrows(
-                        StatusRuntimeException.class, () -> frontend.ctrlPing(""))
-                        .getStatus()
-                        .getCode());
-    }
 
 }

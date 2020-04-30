@@ -218,12 +218,11 @@ public class SpotterApp {
 
     //Verifies the user's command
     private static boolean checkCommand(String[] args) {
-        if (args.length < 3) {
+        if (args.length < 2) {
 
             if (args.length == 1 && (args[0].equals("exit") || args[0].equals("help") ||
-                    args[0].equals("init") || args[0].equals("clear"))) return true;
+                    args[0].equals("init") || args[0].equals("clear") || args[0].equals("ping"))) return true;
 
-            else return args.length == 2 && args[0].equals("ping");
         }
 
         if (args.length > 3) return false;
