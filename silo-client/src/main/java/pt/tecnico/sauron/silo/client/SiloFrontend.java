@@ -456,6 +456,8 @@ public class SiloFrontend implements AutoCloseable {
         return isBefore;
     }
 
+
+    //converts map timestamp into int array
     private int[] convertTimestamp(Map<Integer,Integer> timestamp) {
         try {
             ZKNaming zkNaming = new ZKNaming(this.host, this.port);
