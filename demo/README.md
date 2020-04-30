@@ -387,7 +387,7 @@ init -> init
 -----------------------------
 ```
 
-### 2.9. *help*
+### 2.10. *help*
 
 To exit spotter client, just type
 
