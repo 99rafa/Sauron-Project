@@ -28,12 +28,12 @@ The command definition to run a silo-server is this:
 ```bash
 $ ./target/appassembler/bin/silo-server <zkhost> <zkport> <i> <host> <port> <timeBetweenGossips>*
 ```
-*zkhost* = zooKeeper host\
-*zkport* = zookeeper port\
-*i* = number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...\
-*host* = server host\ 
-*port* = server port\
-*timeBetweenGossips* = period between messagens sent from one replica to the others
+**zkhost** = zooKeeper host\
+**zkport** = zookeeper port\
+**i** = number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...\
+**host** = server host\ 
+**port** = server port\
+**timeBetweenGossips** = period between messagens sent from one replica to the others
 
 On the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
@@ -55,12 +55,12 @@ Command definition:
  $ ./target/appassembler/bin/eye <zkhost> <zkport> <cameraName> <latitude> <longitude> <i>*
  ``` 
  
-zkhost = zooKeeper host\
-zkport = zookeeper port\
-cameraName = name of the camera which will be registered in the server\
-latitude = latitude of the camera\
-longitude = longitude of the camera\
-i = number of the replica the client will try to connect to
+**zkhost** = zooKeeper host\
+**zkport** = zookeeper port\
+**cameraName** = name of the camera which will be registered in the server\
+**latitude** = latitude of the camera\
+**longitude** = longitude of the camera\
+**i** = number of the replica the client will try to connect to
  
  To use the eye client, go to the ```/A31-Sauron/eye``` directory and run, for example:
 ```bash
@@ -93,9 +93,9 @@ Command definition:
 $ ./target/appassembler/bin/spotter <zkhost> <zport> <i>*
 ``` 
 
-zkhost = zooKeeper host\
-zkport = zookeeper port\
-i = number of the replica the client will try to connect to
+**zkhost** = zooKeeper host\
+**zkport** = zookeeper port\
+**i** = number of the replica the client will try to connect to
  
 
 To use the spotter client, go to the ```/A31-Sauron/spotter``` directory and run, for example:
