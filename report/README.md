@@ -15,8 +15,9 @@ Distributed Systems 2019-2020, 2nd semester
 | 89538  | Rafael Alexandre  | <https://github.com/99rafa>          | <mailto:rafael.alexandre@tecnico.ulisboa.pt> |
 
 
-![Afonso Paredes](alice.png) ![Pedro Nunes](bob.png) ![Rafael Alexandre](charlie.png)
-
+Afonso Paredes             |  Pedro Nunes              |  Rafael Alexandre
+:-------------------------:|:-------------------------:|:-------------------------:
+<img src="https://cdn.discordapp.com/attachments/690606370101264539/705488145478713384/afonso.png" height="100" width="100" />  |  <img src="https://cdn.discordapp.com/attachments/690606370101264539/705492917573124127/unknown.png" height="100" width="100"/>  | <img src="https://cdn.discordapp.com/attachments/690606370101264539/705493092815601694/unknown.png" height="100" width="100"/>
 
 ## 1st part improvements
 
