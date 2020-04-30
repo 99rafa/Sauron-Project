@@ -2,9 +2,10 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.tecnico.sauron.silo.grpc.ObservationMessage;
-import pt.tecnico.sauron.silo.grpc.TraceRequest;
 import pt.tecnico.sauron.silo.grpc.TraceResponse;
+import pt.tecnico.sauron.silo.grpc.TrackRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ public class TraceIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -179,7 +180,7 @@ public class TraceIT extends BaseIT {
         String id = "12AA12";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
+        TrackRequest.newBuilder().setType(type).setId(id).build();
 
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(

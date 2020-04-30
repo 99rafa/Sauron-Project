@@ -2,8 +2,9 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.TrackMatchRequest;
-import pt.tecnico.sauron.silo.grpc.TrackMatchResponse;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.grpc.TraceResponse;
+import pt.tecnico.sauron.silo.grpc.TrackRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class TrackMatchIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -110,7 +111,7 @@ public class TrackMatchIT extends BaseIT {
         String type = "CAR";
         String subId = "12*";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
+        TraceResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
 
@@ -133,7 +134,7 @@ public class TrackMatchIT extends BaseIT {
         String type = "PERSON";
         String subId = "15*";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
+        TraceResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
 
@@ -155,7 +156,7 @@ public class TrackMatchIT extends BaseIT {
         String subId = "12*12";
 
 
-        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
+        TraceResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
         assertEquals("12AR12", response.getObservationList().get(0).getId());
@@ -177,7 +178,7 @@ public class TrackMatchIT extends BaseIT {
         String type = "CAR";
         String subId = "12DL12";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
+        TraceResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(1, response.getObservationList().size());
         assertEquals("12DL12", response.getObservationList().get(0).getId());
@@ -235,7 +236,7 @@ public class TrackMatchIT extends BaseIT {
         String subId = "13*";
 
 
-        TrackMatchRequest request = TrackMatchRequest.newBuilder().setSubId(subId).build();
+        TrackRequest.newBuilder().setId(subId).build();
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
@@ -251,7 +252,7 @@ public class TrackMatchIT extends BaseIT {
         String type = "CAR";
 
 
-        TrackMatchRequest request = TrackMatchRequest.newBuilder().setType(type).build();
+        TrackRequest.newBuilder().setType(type).build();
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(

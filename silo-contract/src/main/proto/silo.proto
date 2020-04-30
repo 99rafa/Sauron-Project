@@ -13,6 +13,7 @@ message ObservationMessage {
     string id = 2;
     string datetime = 3;
     string camName = 4;
+    CamInfoResponse cords = 5;
 }
 
 //cam_join silo operation
@@ -24,7 +25,11 @@ message CamJoinRequest {
 
 }
 
-message CamJoinResponse {
+message EmptyRequest {
+
+}
+
+message UpdateResponse {
 
 }
 
@@ -36,24 +41,17 @@ message ClientRequest {
     CamInfoRequest camInfoRequest = 4;
     ReportRequest reportRequest = 5;
     TrackRequest trackRequest = 6;
-    TrackMatchRequest trackMatchRequest = 7;
-    TraceRequest traceRequest = 8;
-    PingRequest pingRequest = 9;
-    InitRequest initRequest = 10;
-    ClearRequest clearRequest = 11;
+    PingRequest pingRequest = 7;
+    EmptyRequest emptyRequest = 8;
 }
 
 message ClientResponse {
     map<int32, int32> responseTS = 1;
-    CamJoinResponse camJoinResponse = 2;
+    UpdateResponse updateResponse = 2;
     CamInfoResponse camInfoResponse = 3;
-    ReportResponse reportResponse = 4;
-    TrackResponse trackResponse = 5;
-    TrackMatchResponse trackMatchResponse = 6;
-    TraceResponse traceResponse = 7;
-    PingResponse pingResponse = 8;
-    InitResponse initResponse = 9;
-    ClearResponse clearResponse = 10;
+    TrackResponse trackResponse = 4;
+    TraceResponse traceResponse = 5;
+    PingResponse pingResponse = 6;
 
 }
 
@@ -75,10 +73,6 @@ message ReportRequest {
     repeated ObservationMessage observation = 2;
 }
 
-message ReportResponse {
-
-}
-
 //track silo operation
 
 message TrackRequest {
@@ -88,24 +82,6 @@ message TrackRequest {
 
 message TrackResponse {
     ObservationMessage observation = 1;
-}
-
-//trackMatch silo operation
-
-message TrackMatchRequest {
-    string type = 1;
-    string subId = 2;
-}
-
-message TrackMatchResponse {
-    repeated ObservationMessage observation = 1;
-}
-
-//trace silo operation
-
-message TraceRequest {
-    string type = 1;
-    string id = 2;
 }
 
 message TraceResponse {
@@ -120,22 +96,6 @@ message PingResponse {
     string outputText = 1;
 }
 
-message ClearRequest {
-
-}
-
-message ClearResponse {
-
-}
-
-message InitRequest {
-
-}
-
-message InitResponse {
-
-}
-
 enum ServerStatus {
     RUNNING = 0;
     DOWN = 1;
@@ -144,10 +104,6 @@ enum ServerStatus {
 message GossipRequest {
     repeated LogRecordsRequest log = 1;
     map<int32, int32> repTs = 2;
-}
-
-message GossipResponse {
-
 }
 
 message LogRecordsRequest {
@@ -174,6 +130,6 @@ service SiloOperationsService {
     rpc ctrlPing (ClientRequest) returns (ClientResponse);
     rpc ctrlClear (ClientRequest) returns (ClientResponse);
     rpc ctrlInit (ClientRequest) returns (ClientResponse);
-    rpc gossip (GossipRequest) returns (GossipResponse);
+    rpc gossip (GossipRequest) returns (UpdateResponse);
 
 }

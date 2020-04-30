@@ -1,7 +1,11 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
+import pt.tecnico.sauron.silo.grpc.ObservationMessage;
+import pt.tecnico.sauron.silo.grpc.TraceResponse;
+import pt.tecnico.sauron.silo.grpc.TrackResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -17,7 +21,7 @@ public class SiloIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -150,7 +154,7 @@ public class SiloIT extends BaseIT {
 
     @Test
     public void trackMatch() {
-        TrackMatchResponse response = frontend.trackMatchObj("PERSON", "1*");
+        TraceResponse response = frontend.trackMatchObj("PERSON", "1*");
         List<ObservationMessage> obsv = response.getObservationList();
 
         ObservationMessage obs1 = obsv.get(0);

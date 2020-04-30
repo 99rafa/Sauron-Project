@@ -130,7 +130,7 @@ public class SiloFrontend implements AutoCloseable {
     }
 
 
-    public CamJoinResponse camJoin(String camName, double latitude, double longitude) {
+    public UpdateResponse camJoin(String camName, double latitude, double longitude) {
 
         //Builds request and saves it in case of lost connection
         CamJoin request = new CamJoin();
@@ -146,7 +146,7 @@ public class SiloFrontend implements AutoCloseable {
         System.out.println("Frontend received answer with TS " + (Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
-        return response.getCamJoinResponse();
+        return response.getUpdateResponse();
     }
 
     public CamInfoResponse getCamInfo(String camName) {
@@ -181,7 +181,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getCamInfoResponse();
     }
 
-    public ReportResponse reportObs(String camName, List<List<String>> observations) {
+    public UpdateResponse reportObs(String camName, List<List<String>> observations) {
 
 
         //Builds request and saves it in case of lost connection
@@ -197,7 +197,7 @@ public class SiloFrontend implements AutoCloseable {
 
         System.out.println("Frontend received answer with TS " + (Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
-        return response.getReportResponse();
+        return response.getUpdateResponse();
     }
 
 
@@ -234,7 +234,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getTrackResponse();
     }
 
-    public TrackMatchResponse trackMatchObj(String type, String id) {
+    public TraceResponse trackMatchObj(String type, String id) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -257,13 +257,13 @@ public class SiloFrontend implements AutoCloseable {
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc, response).getTrackMatchResponse();
+            return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
 
-        return response.getTrackMatchResponse();
+        return response.getTraceResponse();
     }
 
     public TraceResponse traceObj(String type, String id) {
@@ -321,7 +321,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getPingResponse();
     }
 
-    public ClearResponse ctrlClear() {
+    public UpdateResponse ctrlClear() {
 
         //Builds request and saves it in case of lost connection
         Clear request = new Clear();
@@ -336,11 +336,11 @@ public class SiloFrontend implements AutoCloseable {
         System.out.println("Frontend received answer with TS " + (Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
 
-        return response.getClearResponse();
+        return response.getUpdateResponse();
     }
 
 
-    public InitResponse ctrlInit() {
+    public UpdateResponse ctrlInit() {
 
         //Builds request and saves it in case of lost connection
         Init request = new Init();
@@ -355,7 +355,7 @@ public class SiloFrontend implements AutoCloseable {
 
         System.out.println("Frontend received answer with TS " + (Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
 
-        return response.getInitResponse();
+        return response.getUpdateResponse();
 
     }
 

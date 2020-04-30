@@ -64,7 +64,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
-    public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
+    public void gossip(GossipRequest request, StreamObserver<UpdateResponse> responseObserver) {
         System.out.println("Gossip message Received");
         List<LogRecord> stableUpdates;
         //Build gossip object
@@ -88,7 +88,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         runUpdates(stableUpdates);
 
         // Send a single response through the stream.
-        responseObserver.onNext(GossipResponse.newBuilder().build());
+        responseObserver.onNext(UpdateResponse.newBuilder().build());
         // Notify the client that the operation has been completed.
         responseObserver.onCompleted();
     }
@@ -124,8 +124,8 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 return;
 
             //Builds response
-            CamJoinResponse response = CamJoinResponse.newBuilder().build();
-            ClientResponse clientResponse = ClientResponse.newBuilder().setCamJoinResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            UpdateResponse response = UpdateResponse.newBuilder().build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setUpdateResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
@@ -186,9 +186,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                 return;
 
             //Builds response
-            ReportResponse response = ReportResponse.newBuilder().build();
+            UpdateResponse response = UpdateResponse.newBuilder().build();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setReportResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setUpdateResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
 
             // Send a single response through the stream.
@@ -239,7 +239,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     public void track(ClientRequest request, StreamObserver<ClientResponse> responseObserver) {
         try {
 
-
             String type = request.getTrackRequest().getType();
             checkType(type);
 
@@ -248,6 +247,10 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             Observation result;
 
             result = silo.trackObject(type, id);
+            Camera camera = silo.getCameraByName(result.getCamName());
+
+
+            CamInfoResponse camInfo = CamInfoResponse.newBuilder().setLatitude(camera.getLat()).setLongitude(camera.getLog()).build();
 
             //Build Observation Message
             ObservationMessage observationMessage = ObservationMessage.newBuilder()
@@ -255,6 +258,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
                     .setType(result.getType())
                     .setDatetime(result.getDateTime().format(Silo.formatter))
                     .setCamName(result.getCamName())
+                    .setCords(camInfo)
                     .build();
 
             TrackResponse response = TrackResponse.newBuilder()
@@ -272,10 +276,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (InvalidIdException |
+        } catch (CameraNameNullException |
+                InvalidIdException |
                 InvalidTypeException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch (NoSuchObjectException e) {
+        } catch (NoSuchObjectException | NoSuchCameraNameException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -288,34 +293,39 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
         try {
 
 
-            String type = request.getTrackMatchRequest().getType();
+            String type = request.getTrackRequest().getType();
             checkType(type);
 
-            String id = request.getTrackMatchRequest().getSubId();
+            String id = request.getTrackRequest().getId();
             List<Observation> result;
-            TrackMatchResponse.Builder builder = TrackMatchResponse.newBuilder();
+            TraceResponse.Builder builder = TraceResponse.newBuilder();
 
 
             result = silo.trackMatchObject(type, id);
 
             for (Observation o : result) {
+                //Find camera for each observation
+                Camera camera = silo.getCameraByName(o.getCamName());
+                CamInfoResponse camInfo = CamInfoResponse.newBuilder().setLatitude(camera.getLat()).setLongitude(camera.getLog()).build();
+
                 //Build Observation Message
                 ObservationMessage observationMessage = ObservationMessage.newBuilder()
                         .setId(o.getId())
                         .setType(o.getType())
                         .setDatetime(o.getDateTime().format(Silo.formatter))
                         .setCamName(o.getCamName())
+                        .setCords(camInfo)
                         .build();
 
                 builder.addObservation(observationMessage);
             }
 
 
-            TrackMatchResponse response = builder.build();
+            TraceResponse response = builder.build();
 
             System.out.println("Sending most recent observations of objects with partialid:" + id + " and type:" + type + "...");
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTrackMatchResponse(response).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).setTraceResponse(response).build();
 
 
             // Send a single response through the stream.
@@ -324,10 +334,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (InvalidTypeException |
+        } catch (CameraNameNullException |
+                InvalidTypeException |
                 InvalidIdException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch (NoSuchObjectException e) {
+        } catch (NoSuchObjectException | NoSuchCameraNameException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -339,22 +350,26 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
         try {
 
-            String type = request.getTraceRequest().getType();
+            String type = request.getTrackRequest().getType();
             checkType(type);
 
-            String id = request.getTraceRequest().getId();
+            String id = request.getTrackRequest().getId();
             List<Observation> result;
             TraceResponse.Builder builder = TraceResponse.newBuilder();
 
             result = silo.traceObject(type, id);
 
             for (Observation o : result) {
+                //Find camera for each observation
+                Camera camera = silo.getCameraByName(o.getCamName());
+                CamInfoResponse camInfo = CamInfoResponse.newBuilder().setLatitude(camera.getLat()).setLongitude(camera.getLog()).build();
                 //Build Observation Message
                 ObservationMessage observationMessage = ObservationMessage.newBuilder()
                         .setId(o.getId())
                         .setType(o.getType())
                         .setDatetime(o.getDateTime().format(Silo.formatter))
                         .setCamName(o.getCamName())
+                        .setCords(camInfo)
                         .build();
 
                 builder.addObservation(observationMessage);
@@ -374,10 +389,11 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             // Notify the client that the operation has been completed.
             responseObserver.onCompleted();
 
-        } catch (InvalidIdException |
+        } catch (CameraNameNullException |
+                InvalidIdException |
                 InvalidTypeException e) {
             responseObserver.onError(INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-        } catch (NoSuchObjectException e) {
+        } catch (NoSuchObjectException | NoSuchCameraNameException e) {
             responseObserver.onError(NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
 
@@ -424,12 +440,12 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //silo.clearData();
-            ClearResponse response = ClearResponse.newBuilder().build();
+            UpdateResponse response = UpdateResponse.newBuilder().build();
 
             //Clears server info
             ctrlClearAux();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setClearResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setUpdateResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
@@ -459,9 +475,9 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
             ctrlInitAux();
 
-            InitResponse response = InitResponse.newBuilder().build();
+            UpdateResponse response = UpdateResponse.newBuilder().build();
 
-            ClientResponse clientResponse = ClientResponse.newBuilder().setInitResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
+            ClientResponse clientResponse = ClientResponse.newBuilder().setUpdateResponse(response).putAllResponseTS(logRecord.getTimestamp()).build();
 
             // Send a single response through the stream.
             responseObserver.onNext(clientResponse);
