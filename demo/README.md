@@ -91,7 +91,7 @@ $ ./target/appassembler/bin/eye localhost 2181 Lisboa 32.737613 15.303164 < ../d
 $ ./target/appassembler/bin/spotter <zkhost> <zport>
 ``` 
 
-### 2.6 *open a client eye*
+### 2.7 *open a client eye*
 
  ```bash
  $ ./target/appassembler/bin/eye <zkhost> <zkport> <cameraName> <latitude> <longitude>
