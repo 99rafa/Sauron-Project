@@ -28,8 +28,12 @@ The command definition to run a silo-server is this:
 ```bash
 $ ./target/appassembler/bin/silo-server <zkhost> <zkport> <i> <host> <port> <timeBetweenGossips>*
 ```
-
-The argument *i* represents the number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...
+zkhost = zooKeeper host
+zkport = zookeeper port
+i = number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...
+host = server host 
+port = server port
+timeBetweenGossips = period between messagens sent from one replica to the others
 
 On the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
@@ -50,6 +54,13 @@ Command definition:
  ```bash
  $ ./target/appassembler/bin/eye <zkhost> <zkport> <cameraName> <latitude> <longitude> <i>*
  ``` 
+ 
+zkhost = zooKeeper host
+zkport = zookeeper port
+cameraName = name of the camera which will be registered in the server
+latitude = latitude of the camera
+longitude = longitude of the camera
+i = number of the replica the client will try to connect to
  
  To use the eye client, go to the ```/A31-Sauron/eye``` directory and run, for example:
 ```bash
@@ -81,6 +92,11 @@ Command definition:
 ```bash
 $ ./target/appassembler/bin/spotter <zkhost> <zport> <i>*
 ``` 
+
+zkhost = zooKeeper host
+zkport = zookeeper port
+i = number of the replica the client will try to connect to
+ 
 
 To use the spotter client, go to the ```/A31-Sauron/spotter``` directory and run, for example:
 ```bash
@@ -149,14 +165,15 @@ The id is invalid for the given type PERSON
 ``` 
 
 2.1.3 - Testing invalid id for car:
-
-
-It will return 2 observations of the camera named Tagus:
-
 ```bash
-> car,00AA00,2020-04-21 11:55:12,Tagus,38.737613,9.303164
-> car,00AA00,2020-04-21 11:55:07,Tagus,38.737613,9.303164
+> car,11AAAAA
+```
+
+Returns an exception as well. The car id must a pair of letters and 2 pairs of numbers
+```bash
+The id is invalid for the given type CAR
 ``` 
+
 
 
 ### 2.3. *track*
