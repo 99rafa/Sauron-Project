@@ -40,7 +40,7 @@ and then, for example:
 $ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
 ```
 
-That will start the server, and *silo* will have the address *localhost* and the port as *8081*.
+That will start the server on the address *localhost* with the port *8081*, with the zkhost as *localhost* with the zkport  *2181* and becomes the replica number *1*.
 
 
 ### 1.3. *Eye*
@@ -69,13 +69,13 @@ $ ./target/appassembler/bin/spotter <zkhost> <zport>
 ``` 
 
 
-## 2. Commands
+## 2. *Spotter* Commands
 
 ### 2.1 *spot*
 
 ```bash
 > spot <type> <id>
-``` 
+```
 
 ### 2.2 *trail*
  
@@ -99,6 +99,12 @@ $ ./target/appassembler/bin/spotter <zkhost> <zport>
 
 ```bash
 > init
+```
+
+###  2.6 *help*
+
+```bash
+> help
 ```
 
 ## 3. Operations tests
