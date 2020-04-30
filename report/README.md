@@ -35,6 +35,8 @@ _(que faltas são toleradas, que faltas não são toleradas)_
 
 _(Figura da solução de tolerância a faltas)_
 
+<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="500" width="650" />
+
 _(Breve explicação da solução, suportada pela figura anterior)_
 
 
