@@ -53,5 +53,4 @@ public class PingIT extends BaseIT {
         assertEquals("Hello!\nThe server is running!", response.getOutputText());
     }
 
-
 }
