@@ -29,11 +29,13 @@ The command definition to run a silo-server is this:
 $ ./target/appassembler/bin/silo-server <zkhost> <zkport> <i> <host> <port> <timeBetweenGossips>*
 ```
 
+The argument *i* represents the number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...
+
 On the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
 $ mvn install
 ``` 
-and then,
+and then, for example:
 ```bash
 $ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
 ```
@@ -43,6 +45,11 @@ That will start the server, and *silo* will have the address *localhost* and the
 
 ### 1.3. *Eye*
 
+Command definition:
+ 
+ ```bash
+ $ ./target/appassembler/bin/eye <zkhost> <zkport> <cameraName> <latitude> <longitude>
+ ``` 
 
 We will now regist 3 cameras and their observations. Each camera will have its own entry file with some observations already defined. To do that, go to the ```/A31-Sauron/eye``` directory and run the command:
 
@@ -52,6 +59,15 @@ $ ./target/appassembler/bin/eye localhost 2181 Alameda 30.303164 10.737613 < ../
 $ ./target/appassembler/bin/eye localhost 2181 Lisboa 32.737613 15.303164 < ../demo/e3.txt
 
 ```
+
+### 1.4. *Spotter*
+
+Command definition:
+
+```bash
+$ ./target/appassembler/bin/spotter <zkhost> <zport>
+``` 
+
 
 ## 2. Commands
 
@@ -84,18 +100,6 @@ $ ./target/appassembler/bin/eye localhost 2181 Lisboa 32.737613 15.303164 < ../d
 ```bash
 > init
 ```
-
-### 2.6 *open a client spotter*
-
-```bash
-$ ./target/appassembler/bin/spotter <zkhost> <zport>
-``` 
-
-### 2.7 *open a client eye*
-
- ```bash
- $ ./target/appassembler/bin/eye <zkhost> <zkport> <cameraName> <latitude> <longitude>
- ``` 
 
 ## 3. Operations tests
 
