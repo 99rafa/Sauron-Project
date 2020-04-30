@@ -43,7 +43,7 @@ public class ServerGossipGateway extends InvalidCoordinatesException implements 
 
     public void gossip(GossipRequest request) {
         for (Map.Entry<String,SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stub : this.stubs.entrySet()) {
-            System.out.println("Contacting replica "+  stub.getKey() + " at " + target + stub.getKey() + " sending updates");
+            System.out.println("Contacting replica "+  stub.getKey() + " at " + target + " sending updates");
             stub.getValue().gossip(request);
         }
     }

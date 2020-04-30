@@ -24,6 +24,7 @@ public class SiloFrontend implements AutoCloseable {
     private Map<Integer, Integer> prevTS = new HashMap<>();
     private String target;
     private String repN;
+    private boolean isStatic = false;
 
     private SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub stub;
 
@@ -32,6 +33,8 @@ public class SiloFrontend implements AutoCloseable {
         this.host = zooHost;
         this.port = zooPort;
         this.target = getServerTarget(zooHost, zooPort, repN);
+
+        if (!repN.equals("")) this.isStatic = true;
 
         this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
 
@@ -51,6 +54,8 @@ public class SiloFrontend implements AutoCloseable {
         this.port = zooPort;
         this.prevTS = preTS;
         this.target = getServerTarget(zooHost, zooPort, repN);
+
+        if (repN.equals("")) this.isStatic = true;
 
         this.channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
@@ -75,6 +80,8 @@ public class SiloFrontend implements AutoCloseable {
                 this.channel.shutdownNow();
 
                 this.target = getServerTarget(this.host, this.port, "");
+
+                System.out.println(isStatic);
 
 
                 this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
@@ -299,14 +306,8 @@ public class SiloFrontend implements AutoCloseable {
         Ping request = new Ping(serviceDesc);
         //Builds grpc request
         request.buildRequest(inputCommand, this.prevTS, getUUID());
-        this.previousRequest = request;
 
-        ClientResponse response = this.previousRequest.runRequest(this.stub);
-
-        if (happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc, response);
-        else
-            return this.responseCache.getLastRead(serviceDesc, response).getPingResponse();
+        ClientResponse response = request.runRequest(this.stub);
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -359,8 +360,8 @@ public class SiloFrontend implements AutoCloseable {
         ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
 
-        if (recs.size() == 0) throw new NoServersAvailableException();
-        if (recs.size() == attempts.size()) throw new NoServersAvailableException();
+        if (recs.size() == 0 || recs.size() == attempts.size() || this.isStatic) throw new NoServersAvailableException();
+
         if (repN.equals("")){
 
             path = recs.get(random.nextInt(recs.size())).getPath();
