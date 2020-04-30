@@ -46,6 +46,8 @@ $ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
 
 That will start the server on the address *localhost* with the port *8081*, with the zkhost as *localhost* with the zkport  *2181* and becomes the replica number *1*.
 
+To close the server, just hit the **enter** button.
+
 
 ### 1.3. *Eye*
 
@@ -84,6 +86,8 @@ $ ./target/appassembler/bin/eye localhost 2181 Alameda 30.303164 10.737613 < ../
 $ ./target/appassembler/bin/eye localhost 2181 Lisboa 32.737613 15.303164 < ../demo/e3.txt
 
 ```
+
+To close the server, just hit **CTRL+C** .
 
 ### 1.4. *Spotter*
 
@@ -325,7 +329,7 @@ car,00AA00,2020-04-21 12:42:51,Tagus,38.737613,9.303164
 To run ping command, just type
 
 ```bash
-> ping <message>
+> ping
 ```
 
 which will return the following:
@@ -382,6 +386,15 @@ clear -> clear
 init -> init
 -----------------------------
 ```
+
+### 2.9. *help*
+
+To exit spotter client, just type
+
+```bash
+> exit
+```
+
 ----
 ## 3. Closing Remarks
  For more information, contact one of the team members.
