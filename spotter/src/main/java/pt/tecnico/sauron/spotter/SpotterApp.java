@@ -4,8 +4,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
@@ -68,9 +68,7 @@ public class SpotterApp {
                             break;
                         case "ping": {
 
-                            final String name = spotterTokens[1];
-
-                            PingResponse response = siloFrontend.ctrlPing(name);
+                            PingResponse response = siloFrontend.ctrlPing();
                             System.out.println(response.getOutputText());
                             break;
                         }
@@ -111,7 +109,7 @@ public class SpotterApp {
 
                                 if (id.contains("*")) {
 
-                                    TrackMatchResponse response = siloFrontend.trackMatchObj(t, id);
+                                    TraceResponse response = siloFrontend.trackMatchObj(t, id);
                                     trackMatchResponseToString(response, siloFrontend);
 
                                 } else {
@@ -144,7 +142,7 @@ public class SpotterApp {
                         checkResponse(response, siloFrontend);
 
 
-                    }else
+                    } else
                         System.out.println(e.getStatus().getDescription());
 
                 }
@@ -161,14 +159,14 @@ public class SpotterApp {
     }
 
     //Prints the responses to the trail command
-    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend)  {
+    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend) {
 
         List<ObservationMessage> observationList = response.getObservationList();
         printResponses(observationList, siloFrontend);
     }
 
     //Prints the responses to the spot * command
-    private static void trackMatchResponseToString(TrackMatchResponse response, SiloFrontend siloFrontend) {
+    private static void trackMatchResponseToString(TraceResponse response, SiloFrontend siloFrontend) {
 
         List<ObservationMessage> observationList = response.getObservationList();
         printResponses(observationList, siloFrontend);
@@ -176,18 +174,17 @@ public class SpotterApp {
 
     //Prints the responses to the spot command
     private static void trackResponseToString(TrackResponse response, SiloFrontend siloFrontend) {
-        CamInfoResponse camResponse = siloFrontend.getCamInfo(response.getObservation().getCamName());
 
         if (response.getObservation().getType().equals("CAR")) {
             System.out.println("car" + "," +
                     response.getObservation().getId() + "," + response.getObservation().getDatetime() +
-                    "," + response.getObservation().getCamName() + "," + camResponse.getLatitude() + "," +
-                    camResponse.getLongitude());
+                    "," + response.getObservation().getCamName() + "," + response.getObservation().getCords().getLatitude() + "," +
+                    response.getObservation().getCords().getLongitude());
         } else if (response.getObservation().getType().equals("PERSON")) {
             System.out.println("person" + "," +
                     response.getObservation().getId() + "," + response.getObservation().getDatetime() +
-                    "," + response.getObservation().getCamName() + "," + camResponse.getLatitude() + "," +
-                    camResponse.getLongitude());
+                    "," + response.getObservation().getCamName() + "," + response.getObservation().getCords().getLatitude() + "," +
+                    response.getObservation().getCords().getLongitude());
         }
 
     }
@@ -198,18 +195,16 @@ public class SpotterApp {
         for (ObservationMessage om : observationList) {
             if (om.getType().equals("CAR")) {
 
-                CamInfoResponse camResponse = siloFrontend.getCamInfo(om.getCamName());
 
                 System.out.println("car" + "," +
                         om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +
-                        camResponse.getLatitude() + "," + camResponse.getLongitude());
+                        om.getCords().getLatitude() + "," + om.getCords().getLongitude());
             } else if (om.getType().equals("PERSON")) {
 
-                CamInfoResponse camResponse = siloFrontend.getCamInfo(om.getCamName());
 
                 System.out.println("person" + "," +
                         om.getId() + "," + om.getDatetime() + "," + om.getCamName() + "," +
-                        camResponse.getLatitude() + "," + camResponse.getLongitude());
+                        om.getCords().getLatitude() + "," + om.getCords().getLongitude());
             }
         }
     }
@@ -246,11 +241,11 @@ public class SpotterApp {
         } else if (response.getTraceResponse() != null) {
             traceResponseToString(response.getTraceResponse(), frontend);
 
-        } else if (response.getTrackMatchResponse() != null) {
-            trackMatchResponseToString(response.getTrackMatchResponse(), frontend);
-        } else if (response.getInitResponse() != null) {
+        } else if (response.getTraceResponse() != null) {
+            trackMatchResponseToString(response.getTraceResponse(), frontend);
+        } else if (response.getUpdateResponse() != null) {
             System.out.println("Nothing to be configured!");
-        } else if (response.getClearResponse() != null) {
+        } else if (response.getUpdateResponse() != null) {
             System.out.println("System is now empty!");
         }
 

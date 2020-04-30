@@ -19,7 +19,7 @@ import java.util.Map;
 public class ServerGossipGateway extends InvalidCoordinatesException implements AutoCloseable {
 
     private List<ManagedChannel> channels = new ArrayList<>();
-    private Map<String,SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stubs = new HashMap<>();
+    private Map<String, SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stubs = new HashMap<>();
 
     public ServerGossipGateway(String zooHost, String zooPort, String repN) throws ZKNamingException {
 
@@ -32,22 +32,22 @@ public class ServerGossipGateway extends InvalidCoordinatesException implements 
 
             ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
             this.channels.add(channel);
-            this.stubs.put(target,SiloOperationsServiceGrpc.newBlockingStub(channel));
+            this.stubs.put(target, SiloOperationsServiceGrpc.newBlockingStub(channel));
         }
 
     }
 
     public boolean gossip(GossipRequest request) {
         boolean missedGossip = false;
-        for (Map.Entry<String,SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stub : this.stubs.entrySet()) {
-            System.out.println("Contacting replica at "+  stub.getKey() + " sending updates...");
+        for (Map.Entry<String, SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stub : this.stubs.entrySet()) {
+            System.out.println("Contacting replica at " + stub.getKey() + " sending updates...");
             try {
                 stub.getValue().gossip(request);
                 System.out.println("Contact with replica at "+ stub.getKey() + " successful");
             }
             catch (StatusRuntimeException e) {
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
-                    System.out.println("Caught exception while contacting replica at "+  stub.getKey() + ".Skipping...");
+                    System.out.println("Caught exception while contacting replica at " + stub.getKey() + ".Skipping...");
                     missedGossip = true;
                 }
             }

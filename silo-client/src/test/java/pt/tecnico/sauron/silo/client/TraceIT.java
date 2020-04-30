@@ -2,7 +2,10 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.grpc.ObservationMessage;
+import pt.tecnico.sauron.silo.grpc.TraceResponse;
+import pt.tecnico.sauron.silo.grpc.TrackRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.time.LocalDateTime;
@@ -22,7 +25,7 @@ public class TraceIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -45,7 +48,7 @@ public class TraceIT extends BaseIT {
         String date4 = "2010-09-12 12:12:12";
 
         frontend.camJoin(camName1, 13.3, 51.2);
-        frontend.camJoin(camName2, 15.3,53.2);
+        frontend.camJoin(camName2, 15.3, 53.2);
 
         List<List<String>> observations1 = new ArrayList<>();
         List<List<String>> observations2 = new ArrayList<>();
@@ -79,9 +82,9 @@ public class TraceIT extends BaseIT {
         observations4.add(observationMessage4);
 
         frontend.reportObs(camName1, observations1);
-        frontend.reportObs(camName2,observations2);
-        frontend.reportObs(camName1,observations3);
-        frontend.reportObs(camName2,observations4);
+        frontend.reportObs(camName2, observations2);
+        frontend.reportObs(camName1, observations3);
+        frontend.reportObs(camName2, observations4);
 
     }
 
@@ -112,7 +115,7 @@ public class TraceIT extends BaseIT {
         LocalDateTime dt1 = null, dt2;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        TraceResponse response = frontend.traceObj(type,id);
+        TraceResponse response = frontend.traceObj(type, id);
 
         for (ObservationMessage o : response.getObservationList()) {
             assertEquals("CAR", o.getType());
@@ -138,7 +141,7 @@ public class TraceIT extends BaseIT {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-        TraceResponse response = frontend.traceObj(type,id);
+        TraceResponse response = frontend.traceObj(type, id);
 
         for (ObservationMessage o : response.getObservationList()) {
             assertEquals("PERSON", o.getType());
@@ -177,11 +180,11 @@ public class TraceIT extends BaseIT {
         String id = "12AA12";
 
 
-        TraceRequest request = TraceRequest.newBuilder().setType(type).setId(id).build();
+        TrackRequest.newBuilder().setType(type).setId(id).build();
 
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(type,id))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type, id))
                         .getStatus()
                         .getCode());
 
@@ -227,7 +230,7 @@ public class TraceIT extends BaseIT {
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.traceObj(type,id))
+                        StatusRuntimeException.class, () -> frontend.traceObj(type, id))
                         .getStatus()
                         .getCode());
 

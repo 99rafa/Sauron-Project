@@ -2,10 +2,8 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.CamInfoRequest;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
-import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import static io.grpc.Status.NOT_FOUND;
@@ -18,7 +16,7 @@ public class CamInfoIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }

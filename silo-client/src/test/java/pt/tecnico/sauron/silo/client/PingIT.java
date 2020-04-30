@@ -2,8 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
-import pt.tecnico.sauron.silo.grpc.PingRequest;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.tecnico.sauron.silo.grpc.PingResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
@@ -19,7 +18,7 @@ public class PingIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }

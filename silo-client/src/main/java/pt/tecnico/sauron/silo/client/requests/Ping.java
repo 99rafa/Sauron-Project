@@ -2,7 +2,7 @@ package pt.tecnico.sauron.silo.client.requests;
 
 import pt.tecnico.sauron.silo.grpc.ClientRequest;
 import pt.tecnico.sauron.silo.grpc.ClientResponse;
-import pt.tecnico.sauron.silo.grpc.PingRequest;
+import pt.tecnico.sauron.silo.grpc.EmptyRequest;
 import pt.tecnico.sauron.silo.grpc.SiloOperationsServiceGrpc;
 
 import java.util.List;
@@ -22,10 +22,10 @@ public class Ping extends Request {
     }
 
 
-    public void buildRequest(String inputCommand, Map<Integer, Integer> prevTs, String opId) {
+    public void buildRequest(Map<Integer, Integer> prevTs, String opId) {
         ClientRequest request = ClientRequest.newBuilder()
-                .setPingRequest(
-                        PingRequest.newBuilder().setInputCommand(inputCommand).build()
+                .setEmptyRequest(
+                        EmptyRequest.newBuilder().build()
                 )
                 .putAllPrevTS(prevTs)
                 .setOpId(opId).build();

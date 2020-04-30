@@ -42,9 +42,10 @@ public class SiloFrontend implements AutoCloseable {
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
-        try{
-            ctrlPing("Checking server availability");//PING
-        } catch (StatusRuntimeException e){
+        try {
+            ctrlPing();//PING
+            System.out.println("Connected to replica " + this.repN + " at " + this.target);
+        } catch (StatusRuntimeException e) {
             renewConnection();
         }
     }
@@ -63,9 +64,11 @@ public class SiloFrontend implements AutoCloseable {
         // Create a blocking stub.
         this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
-        try{
-            ctrlPing("Checking server availability");//PING
-        } catch (StatusRuntimeException e){
+        try {
+            ctrlPing();//PING
+            System.out.println("Connected to replica " + this.repN + " at " + this.target);
+
+        } catch (StatusRuntimeException e) {
             renewConnection();
         }
 
@@ -73,10 +76,10 @@ public class SiloFrontend implements AutoCloseable {
 
     //when a replica crashes, frontend reconnects to a random other replica
     public void renewConnection() throws ZKNamingException, NoServersAvailableException {
-        System.err.println("Replica " + getRepN() + " at " + getTarget() +" is down");
-        System.out.println("Trying to reconnect to another replica" );
+        System.err.println("Replica " + getRepN() + " at " + getTarget() + " is down");
+        System.out.println("Trying to reconnect to another replica");
 
-        while(true){
+        while (true) {
             try {
                 this.channel.shutdownNow();
 
@@ -88,11 +91,11 @@ public class SiloFrontend implements AutoCloseable {
                 // Create a blocking stub.
                 this.stub = SiloOperationsServiceGrpc.newBlockingStub(channel);
 
-                ctrlPing("Checking server availability");//PING
+                ctrlPing();//PING
                 break;
-            } catch (RuntimeException e){
-                System.err.println("Replica " + getRepN() + " at " + getTarget() +" is down");
-                System.out.println("Trying to reconnect to another replica" );
+            } catch (RuntimeException e) {
+                System.err.println("Replica " + getRepN() + " at " + getTarget() + " is down");
+                System.out.println("Trying to reconnect to another replica");
             }
         }
         System.out.println("Reconnected to replica " + this.repN + " at " + this.target);
@@ -100,7 +103,7 @@ public class SiloFrontend implements AutoCloseable {
 
     }
 
-    public ClientResponse runPreviousCommand(){
+    public ClientResponse runPreviousCommand() {
 
         //Run previous command
         ClientResponse response = this.previousRequest.runRequest(stub);
@@ -119,7 +122,6 @@ public class SiloFrontend implements AutoCloseable {
         mergeTS(response.getResponseTSMap());
 
 
-
         this.attempts.clear();
         this.attempts.add(this.currentPath);
 
@@ -128,7 +130,7 @@ public class SiloFrontend implements AutoCloseable {
     }
 
 
-    public CamJoinResponse camJoin(String camName, double latitude, double longitude) {
+    public UpdateResponse camJoin(String camName, double latitude, double longitude) {
 
         //Builds request and saves it in case of lost connection
         CamJoin request = new CamJoin();
@@ -143,7 +145,8 @@ public class SiloFrontend implements AutoCloseable {
 
         convertTimestamp(response.getResponseTSMap());
 
-        return response.getCamJoinResponse();
+
+        return response.getUpdateResponse();
     }
 
     public CamInfoResponse getCamInfo(String camName) {
@@ -174,11 +177,10 @@ public class SiloFrontend implements AutoCloseable {
         mergeTS(response.getResponseTSMap());
 
 
-
         return response.getCamInfoResponse();
     }
 
-    public ReportResponse reportObs(String camName, List<List<String>> observations) {
+    public UpdateResponse reportObs(String camName, List<List<String>> observations) {
 
 
         //Builds request and saves it in case of lost connection
@@ -193,7 +195,9 @@ public class SiloFrontend implements AutoCloseable {
         mergeTS(response.getResponseTSMap());
 
         convertTimestamp(response.getResponseTSMap());
-        return response.getReportResponse();
+
+        return response.getUpdateResponse();
+
     }
 
 
@@ -229,7 +233,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getTrackResponse();
     }
 
-    public TrackMatchResponse trackMatchObj(String type, String id)  {
+    public TraceResponse trackMatchObj(String type, String id) {
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -251,14 +255,13 @@ public class SiloFrontend implements AutoCloseable {
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc, response).getTrackMatchResponse();
+            return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
 
-
-        return response.getTrackMatchResponse();
+        return response.getTraceResponse();
     }
 
     public TraceResponse traceObj(String type, String id) {
@@ -282,32 +285,29 @@ public class SiloFrontend implements AutoCloseable {
         //Send response in cache if received response is not updated
 
         if (happensBefore(response.getResponseTSMap())) {
-            System.out.println(serviceDesc);
+
             this.responseCache.addEntry(serviceDesc, response);
-        }
-        else
+        } else
             return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
 
-
         return response.getTraceResponse();
     }
 
 
-    public PingResponse ctrlPing(String inputCommand)  {
+    public PingResponse ctrlPing() {
 
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("Ping");
-        serviceDesc.add(inputCommand);
 
         //Builds request and saves it in case of lost connection
         Ping request = new Ping(serviceDesc);
         //Builds grpc request
-        request.buildRequest(inputCommand, this.prevTS, getUUID());
+        request.buildRequest(this.prevTS, getUUID());
 
         ClientResponse response = request.runRequest(this.stub);
 
@@ -317,7 +317,7 @@ public class SiloFrontend implements AutoCloseable {
         return response.getPingResponse();
     }
 
-    public ClearResponse ctrlClear()  {
+    public UpdateResponse ctrlClear() {
 
         //Builds request and saves it in case of lost connection
         Clear request = new Clear();
@@ -331,11 +331,11 @@ public class SiloFrontend implements AutoCloseable {
 
         convertTimestamp(response.getResponseTSMap());
 
-        return response.getClearResponse();
+        return response.getUpdateResponse();
     }
 
 
-    public InitResponse ctrlInit() {
+    public UpdateResponse ctrlInit() {
 
         //Builds request and saves it in case of lost connection
         Init request = new Init();
@@ -350,7 +350,7 @@ public class SiloFrontend implements AutoCloseable {
 
         convertTimestamp(response.getResponseTSMap());
 
-        return response.getInitResponse();
+        return response.getUpdateResponse();
 
     }
 
@@ -361,29 +361,25 @@ public class SiloFrontend implements AutoCloseable {
         ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
 
-        if (recs.size() == 0 || recs.size() == attempts.size() || this.isStatic) throw new NoServersAvailableException();
+        if (recs.size() == 0 || recs.size() == attempts.size() || this.isStatic)
+            throw new NoServersAvailableException();
 
-        if (repN.equals("")){
+        if (repN.equals("")) {
 
             path = recs.get(random.nextInt(recs.size())).getPath();
-            while(attempts.contains(path)) {
+            while (attempts.contains(path)) {
                 path = recs.get(random.nextInt(recs.size())).getPath();
             }
-        }
-
-        else
+        } else
             path = "/grpc/sauron/silo/" + repN;
 
         this.attempts.add(path);
         this.currentPath = path;
 
-        //this.instance = ;
-
-        System.out.println(path);
 
         String[] segments = path.split("/");
 
-        this.repN = segments[segments.length-1];
+        this.repN = segments[segments.length - 1];
 
 
         // lookup
@@ -445,6 +441,7 @@ public class SiloFrontend implements AutoCloseable {
         }
         return isBefore;
     }
+
 
 
     //display TS map in order

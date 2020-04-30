@@ -1,7 +1,11 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.grpc.CamInfoResponse;
+import pt.tecnico.sauron.silo.grpc.ObservationMessage;
+import pt.tecnico.sauron.silo.grpc.TraceResponse;
+import pt.tecnico.sauron.silo.grpc.TrackResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -17,7 +21,7 @@ public class SiloIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -34,8 +38,8 @@ public class SiloIT extends BaseIT {
         double lg2 = 55.5;
 
 
-        frontend.camJoin(n1,la1,lg1);
-        frontend.camJoin(n2,la2,lg2);
+        frontend.camJoin(n1, la1, lg1);
+        frontend.camJoin(n2, la2, lg2);
 
         String date1 = "1999-02-12 12:12:12";
         String date2 = "2000-02-12 12:12:12";
@@ -132,7 +136,7 @@ public class SiloIT extends BaseIT {
     @Test
     public void track() {
 
-        TrackResponse response = frontend.trackObj("PERSON","1" );
+        TrackResponse response = frontend.trackObj("PERSON", "1");
         ObservationMessage obs = response.getObservation();
         String cam = obs.getCamName();
         String t = obs.getType();
@@ -150,7 +154,7 @@ public class SiloIT extends BaseIT {
 
     @Test
     public void trackMatch() {
-        TrackMatchResponse response = frontend.trackMatchObj("PERSON", "1*");
+        TraceResponse response = frontend.trackMatchObj("PERSON", "1*");
         List<ObservationMessage> obsv = response.getObservationList();
 
         ObservationMessage obs1 = obsv.get(0);

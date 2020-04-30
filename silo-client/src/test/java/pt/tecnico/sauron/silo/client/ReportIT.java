@@ -2,7 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class ReportIT extends BaseIT {
     static {
         try {
             frontend = new SiloFrontend("localhost", "2181", "");
-        } catch (ZKNamingException e) {
+        } catch (ZKNamingException | NoServersAvailableException e) {
             e.printStackTrace();
         }
     }
@@ -29,7 +29,7 @@ public class ReportIT extends BaseIT {
     // one-time initialization and clean-up
     @BeforeAll
     public static void oneTimeSetUp() {
-        frontend.camJoin("Vale das Mos",12.2,12.2);
+        frontend.camJoin("Vale das Mos", 12.2, 12.2);
     }
 
     @AfterAll
@@ -58,27 +58,27 @@ public class ReportIT extends BaseIT {
         List<List<String>> observations = new ArrayList<>();
 
 
-       List<String> observationMessage1 = new ArrayList<>();
-       observationMessage1.add(person);
-       observationMessage1.add("123");
-       observationMessage1.add(date);
+        List<String> observationMessage1 = new ArrayList<>();
+        observationMessage1.add(person);
+        observationMessage1.add("123");
+        observationMessage1.add(date);
 
-       List<String> observationMessage2 = new ArrayList<>();
-       observationMessage2.add(car);
-       observationMessage2.add("8709OA");
-       observationMessage2.add(date);
+        List<String> observationMessage2 = new ArrayList<>();
+        observationMessage2.add(car);
+        observationMessage2.add("8709OA");
+        observationMessage2.add(date);
 
-       List<String> observationMessage3 = new ArrayList<>();
-       observationMessage3.add(car);
-       observationMessage3.add("1212AO");
-       observationMessage3.add(date);
+        List<String> observationMessage3 = new ArrayList<>();
+        observationMessage3.add(car);
+        observationMessage3.add("1212AO");
+        observationMessage3.add(date);
 
 
-       observations.add(observationMessage1);
-       observations.add(observationMessage2);
-       observations.add(observationMessage3);
+        observations.add(observationMessage1);
+        observations.add(observationMessage2);
+        observations.add(observationMessage3);
 
-       frontend.reportObs(camName,observations);
+        frontend.reportObs(camName, observations);
 
 
     }
@@ -92,7 +92,6 @@ public class ReportIT extends BaseIT {
 
         List<List<String>> observations1 = new ArrayList<>();
         List<List<String>> observations2 = new ArrayList<>();
-
 
 
         List<String> observationMessage1 = new ArrayList<>();
@@ -113,14 +112,14 @@ public class ReportIT extends BaseIT {
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName, observations1))
                         .getStatus()
                         .getCode());
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations2))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName, observations2))
                         .getStatus()
                         .getCode());
 
@@ -143,11 +142,10 @@ public class ReportIT extends BaseIT {
         observations1.add(observationMessage1);
 
 
-
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName, observations1))
                         .getStatus()
                         .getCode());
     }
@@ -171,7 +169,7 @@ public class ReportIT extends BaseIT {
         assertEquals(
                 NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.reportObs(camName,observations1))
+                        StatusRuntimeException.class, () -> frontend.reportObs(camName, observations1))
                         .getStatus()
                         .getCode());
     }
