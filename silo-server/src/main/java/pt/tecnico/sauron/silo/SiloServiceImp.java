@@ -120,7 +120,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //implements domain logic
-            if(!camJoinAux(request, responseObserver))
+            if (!camJoinAux(request, responseObserver))
                 return;
 
             //Builds response
@@ -182,7 +182,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
 
             //Implements domain logic
-            if(!reportAux(request, responseObserver))
+            if (!reportAux(request, responseObserver))
                 return;
 
             //Builds response

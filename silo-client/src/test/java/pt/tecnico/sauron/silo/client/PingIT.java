@@ -2,8 +2,6 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
-import pt.tecnico.sauron.silo.grpc.PingRequest;
 import pt.tecnico.sauron.silo.grpc.PingResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 

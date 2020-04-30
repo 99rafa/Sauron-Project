@@ -4,8 +4,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.tecnico.sauron.silo.client.SiloFrontend;
 import pt.tecnico.sauron.silo.grpc.*;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
@@ -144,7 +144,7 @@ public class SpotterApp {
                         checkResponse(response, siloFrontend);
 
 
-                    }else
+                    } else
                         System.out.println(e.getStatus().getDescription());
 
                 }
@@ -161,7 +161,7 @@ public class SpotterApp {
     }
 
     //Prints the responses to the trail command
-    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend)  {
+    private static void traceResponseToString(TraceResponse response, SiloFrontend siloFrontend) {
 
         List<ObservationMessage> observationList = response.getObservationList();
         printResponses(observationList, siloFrontend);

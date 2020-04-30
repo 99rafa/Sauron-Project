@@ -34,8 +34,8 @@ public class SiloIT extends BaseIT {
         double lg2 = 55.5;
 
 
-        frontend.camJoin(n1,la1,lg1);
-        frontend.camJoin(n2,la2,lg2);
+        frontend.camJoin(n1, la1, lg1);
+        frontend.camJoin(n2, la2, lg2);
 
         String date1 = "1999-02-12 12:12:12";
         String date2 = "2000-02-12 12:12:12";
@@ -132,7 +132,7 @@ public class SiloIT extends BaseIT {
     @Test
     public void track() {
 
-        TrackResponse response = frontend.trackObj("PERSON","1" );
+        TrackResponse response = frontend.trackObj("PERSON", "1");
         ObservationMessage obs = response.getObservation();
         String cam = obs.getCamName();
         String t = obs.getType();

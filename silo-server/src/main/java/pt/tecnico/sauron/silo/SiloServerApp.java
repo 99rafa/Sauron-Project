@@ -3,8 +3,6 @@ package pt.tecnico.sauron.silo;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.api.ServerGossipGateway;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;

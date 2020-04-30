@@ -2,9 +2,6 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
-import pt.tecnico.sauron.silo.grpc.CamJoinResponse;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import static io.grpc.Status.ALREADY_EXISTS;
@@ -52,7 +49,7 @@ public class CamJoinIT extends BaseIT {
     public void joinNonUniqueCamera() {
         String camName = "Vale das Mos";
 
-        frontend.camJoin(camName,13.3,51.2);
+        frontend.camJoin(camName, 13.3, 51.2);
 
     }
 
@@ -63,13 +60,13 @@ public class CamJoinIT extends BaseIT {
         double lat2 = 11.2;
         double log = 31.2;
 
-        frontend.camJoin(camName,lat1,log);
+        frontend.camJoin(camName, lat1, log);
 
 
         assertEquals(
                 ALREADY_EXISTS.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat2,log))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat2, log))
                         .getStatus()
                         .getCode());
 
@@ -83,7 +80,7 @@ public class CamJoinIT extends BaseIT {
 
         frontend.camJoin(camName, lat, log);
 
-        frontend.camJoin(camName,lat,log);
+        frontend.camJoin(camName, lat, log);
     }
 
 
@@ -96,7 +93,7 @@ public class CamJoinIT extends BaseIT {
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName,lat,log))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat, log))
                         .getStatus()
                         .getCode());
     }
@@ -110,7 +107,7 @@ public class CamJoinIT extends BaseIT {
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName,lat,log))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat, log))
                         .getStatus()
                         .getCode());
     }
@@ -124,33 +121,33 @@ public class CamJoinIT extends BaseIT {
         double lat2 = 100.0;
         double lat = 13.2;
         double log = 31.2;
-;
+        ;
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName,lat,log1))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat, log1))
                         .getStatus()
                         .getCode());
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName,lat,log2))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat, log2))
                         .getStatus()
                         .getCode());
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat1,log))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat1, log))
                         .getStatus()
                         .getCode());
 
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.camJoin(camName,lat2,log))
+                        StatusRuntimeException.class, () -> frontend.camJoin(camName, lat2, log))
                         .getStatus()
                         .getCode());
 

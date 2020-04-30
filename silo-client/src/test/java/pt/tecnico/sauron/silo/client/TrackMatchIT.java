@@ -2,7 +2,8 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.grpc.TrackMatchRequest;
+import pt.tecnico.sauron.silo.grpc.TrackMatchResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class TrackMatchIT extends BaseIT {
 
 
         frontend.camJoin(camName1, 13.3, 51.2);
-        frontend.camJoin(camName2, 15.3,53.2);
+        frontend.camJoin(camName2, 15.3, 53.2);
 
         List<List<String>> observations1 = new ArrayList<>();
         List<List<String>> observations2 = new ArrayList<>();
@@ -80,9 +81,9 @@ public class TrackMatchIT extends BaseIT {
         observations4.add(observationMessage4);
 
         frontend.reportObs(camName1, observations1);
-        frontend.reportObs(camName2,observations2);
-        frontend.reportObs(camName1,observations3);
-        frontend.reportObs(camName2,observations4);
+        frontend.reportObs(camName2, observations2);
+        frontend.reportObs(camName1, observations3);
+        frontend.reportObs(camName2, observations4);
     }
 
     @AfterAll
@@ -109,16 +110,16 @@ public class TrackMatchIT extends BaseIT {
         String type = "CAR";
         String subId = "12*";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type,subId);
+        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
 
-        assertEquals("12AR12",response.getObservationList().get(0).getId());
+        assertEquals("12AR12", response.getObservationList().get(0).getId());
         assertEquals("Alcobaca", response.getObservationList().get(0).getCamName());
         assertEquals("CAR", response.getObservationList().get(0).getType());
         assertEquals("2020-03-12 12:12:12", response.getObservationList().get(0).getDatetime());
 
-        assertEquals("12DL12",response.getObservationList().get(1).getId());
+        assertEquals("12DL12", response.getObservationList().get(1).getId());
         assertEquals("Vale das Mos", response.getObservationList().get(1).getCamName());
         assertEquals("CAR", response.getObservationList().get(1).getType());
         assertEquals("1999-03-12 12:12:12", response.getObservationList().get(1).getDatetime());
@@ -132,16 +133,16 @@ public class TrackMatchIT extends BaseIT {
         String type = "PERSON";
         String subId = "15*";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type,subId);
+        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
 
-        assertEquals("151212",response.getObservationList().get(0).getId());
+        assertEquals("151212", response.getObservationList().get(0).getId());
         assertEquals("Vale das Mos", response.getObservationList().get(0).getCamName());
         assertEquals("PERSON", response.getObservationList().get(0).getType());
         assertEquals("2015-09-12 12:12:12", response.getObservationList().get(0).getDatetime());
 
-        assertEquals("1512345",response.getObservationList().get(1).getId());
+        assertEquals("1512345", response.getObservationList().get(1).getId());
         assertEquals("Alcobaca", response.getObservationList().get(1).getCamName());
         assertEquals("PERSON", response.getObservationList().get(1).getType());
         assertEquals("2010-09-12 12:12:12", response.getObservationList().get(1).getDatetime());
@@ -154,15 +155,15 @@ public class TrackMatchIT extends BaseIT {
         String subId = "12*12";
 
 
-        TrackMatchResponse response = frontend.trackMatchObj(type,subId);
+        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(2, response.getObservationList().size());
-        assertEquals("12AR12",response.getObservationList().get(0).getId());
+        assertEquals("12AR12", response.getObservationList().get(0).getId());
         assertEquals("Alcobaca", response.getObservationList().get(0).getCamName());
         assertEquals("CAR", response.getObservationList().get(0).getType());
         assertEquals("2020-03-12 12:12:12", response.getObservationList().get(0).getDatetime());
 
-        assertEquals("12DL12",response.getObservationList().get(1).getId());
+        assertEquals("12DL12", response.getObservationList().get(1).getId());
         assertEquals("Vale das Mos", response.getObservationList().get(1).getCamName());
         assertEquals("CAR", response.getObservationList().get(1).getType());
         assertEquals("1999-03-12 12:12:12", response.getObservationList().get(1).getDatetime());
@@ -176,7 +177,7 @@ public class TrackMatchIT extends BaseIT {
         String type = "CAR";
         String subId = "12DL12";
 
-        TrackMatchResponse response = frontend.trackMatchObj(type,subId);
+        TrackMatchResponse response = frontend.trackMatchObj(type, subId);
 
         assertEquals(1, response.getObservationList().size());
         assertEquals("12DL12", response.getObservationList().get(0).getId());
@@ -192,10 +193,9 @@ public class TrackMatchIT extends BaseIT {
         String subId = "13*";
 
 
-
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type,subId))
+                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type, subId))
                         .getStatus()
                         .getCode());
 
@@ -210,7 +210,7 @@ public class TrackMatchIT extends BaseIT {
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type,subId))
+                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type, subId))
                         .getStatus()
                         .getCode());
     }
@@ -224,7 +224,7 @@ public class TrackMatchIT extends BaseIT {
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type,subId))
+                        StatusRuntimeException.class, () -> frontend.trackMatchObj(type, subId))
                         .getStatus()
                         .getCode());
     }

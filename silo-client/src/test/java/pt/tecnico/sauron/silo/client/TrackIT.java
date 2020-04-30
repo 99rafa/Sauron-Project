@@ -2,7 +2,7 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
+import pt.tecnico.sauron.silo.grpc.TrackResponse;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class TrackIT extends BaseIT {
 
 
         frontend.camJoin(camName1, 13.3, 51.2);
-        frontend.camJoin(camName2, 15.3,53.2);
+        frontend.camJoin(camName2, 15.3, 53.2);
 
         List<List<String>> observations1 = new ArrayList<>();
         List<List<String>> observations2 = new ArrayList<>();
@@ -78,9 +78,9 @@ public class TrackIT extends BaseIT {
         observations4.add(observationMessage4);
 
         frontend.reportObs(camName1, observations1);
-        frontend.reportObs(camName2,observations2);
-        frontend.reportObs(camName1,observations3);
-        frontend.reportObs(camName2,observations4);
+        frontend.reportObs(camName2, observations2);
+        frontend.reportObs(camName1, observations3);
+        frontend.reportObs(camName2, observations4);
 
     }
 
@@ -108,7 +108,7 @@ public class TrackIT extends BaseIT {
         String type = "CAR";
         String id = "12AR12";
 
-        TrackResponse response = frontend.trackObj(type,id);
+        TrackResponse response = frontend.trackObj(type, id);
 
         assertEquals("CAR", response.getObservation().getType());
         assertEquals(id, response.getObservation().getId());
@@ -123,7 +123,7 @@ public class TrackIT extends BaseIT {
         String id = "151217";
 
 
-        TrackResponse response = frontend.trackObj(type,id);
+        TrackResponse response = frontend.trackObj(type, id);
 
         assertEquals("PERSON", response.getObservation().getType());
         assertEquals(id, response.getObservation().getId());
@@ -140,7 +140,7 @@ public class TrackIT extends BaseIT {
 
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackObj(type,id))
+                        StatusRuntimeException.class, () -> frontend.trackObj(type, id))
                         .getStatus()
                         .getCode());
 
@@ -155,7 +155,7 @@ public class TrackIT extends BaseIT {
 
         assertEquals(NOT_FOUND.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackObj(type,id))
+                        StatusRuntimeException.class, () -> frontend.trackObj(type, id))
                         .getStatus()
                         .getCode());
 
@@ -169,7 +169,7 @@ public class TrackIT extends BaseIT {
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackObj("",id))
+                        StatusRuntimeException.class, () -> frontend.trackObj("", id))
                         .getStatus()
                         .getCode());
 
@@ -183,7 +183,7 @@ public class TrackIT extends BaseIT {
 
         assertEquals(INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackObj(type,""))
+                        StatusRuntimeException.class, () -> frontend.trackObj(type, ""))
                         .getStatus()
                         .getCode());
 
@@ -199,7 +199,7 @@ public class TrackIT extends BaseIT {
         assertEquals(
                 INVALID_ARGUMENT.getCode(),
                 assertThrows(
-                        StatusRuntimeException.class, () -> frontend.trackObj(type,id))
+                        StatusRuntimeException.class, () -> frontend.trackObj(type, id))
                         .getStatus()
                         .getCode());
 

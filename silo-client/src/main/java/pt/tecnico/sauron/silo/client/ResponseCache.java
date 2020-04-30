@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResponseCache{
+public class ResponseCache {
 
     private int limit = 20;
 

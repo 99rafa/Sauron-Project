@@ -1,8 +1,6 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.ClearRequest;
-import pt.tecnico.sauron.silo.grpc.InitRequest;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 public class InitIT extends BaseIT {
