@@ -82,8 +82,6 @@ public class SiloFrontend implements AutoCloseable {
 
                 this.target = getServerTarget(this.host, this.port, "");
 
-                System.out.println(isStatic);
-
 
                 this.channel = ManagedChannelBuilder.forTarget(this.target).usePlaintext().build();
 
@@ -107,8 +105,7 @@ public class SiloFrontend implements AutoCloseable {
         //Run previous command
         ClientResponse response = this.previousRequest.runRequest(stub);
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
         if (this.previousRequest.isQuery()) {
@@ -144,8 +141,7 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         return response.getCamJoinResponse();
     }
@@ -166,8 +162,7 @@ public class SiloFrontend implements AutoCloseable {
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
         if (happensBefore(response.getResponseTSMap()))
@@ -197,8 +192,7 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
         return response.getReportResponse();
     }
 
@@ -220,8 +214,7 @@ public class SiloFrontend implements AutoCloseable {
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
         if (happensBefore(response.getResponseTSMap()))
@@ -252,8 +245,7 @@ public class SiloFrontend implements AutoCloseable {
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
         if (happensBefore(response.getResponseTSMap()))
@@ -285,8 +277,7 @@ public class SiloFrontend implements AutoCloseable {
 
         ClientResponse response = this.previousRequest.runRequest(this.stub);
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
 
@@ -338,8 +329,7 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
-
+        convertTimestamp(response.getResponseTSMap());
 
         return response.getClearResponse();
     }
@@ -358,7 +348,7 @@ public class SiloFrontend implements AutoCloseable {
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
 
-        System.out.println("Frontend received answer with TS " +(Arrays.toString(convertTimestamp(response.getResponseTSMap()))));
+        convertTimestamp(response.getResponseTSMap());
 
         return response.getInitResponse();
 
@@ -457,24 +447,18 @@ public class SiloFrontend implements AutoCloseable {
     }
 
 
-    //converts map timestamp into int array
-    private int[] convertTimestamp(Map<Integer,Integer> timestamp) {
-        try {
-            ZKNaming zkNaming = new ZKNaming(this.host, this.port);
-            int numberOfReplicas = (new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"))).size();
+    //display TS map in order
+    private void convertTimestamp(Map<Integer,Integer> timestamp) {
 
-            int[] timestampArray = new int[numberOfReplicas];
+        // Copy all data from hashMap into TreeMap
+        TreeMap<Integer, Integer> sortedTS = new TreeMap<>(timestamp);
 
-            for (Map.Entry<Integer, Integer> entry : timestamp.entrySet())
-                timestampArray[entry.getKey() - 1] = entry.getValue();
-
-            return timestampArray;
+        System.out.print("Response with TS: ");
+        for(Map.Entry<Integer,Integer> entry : sortedTS.entrySet()) {
+            System.out.print( "Rep " + entry.getKey() +" -> " + entry.getValue() + "; ");
         }
-        catch (ZKNamingException e) {
-            System.err.println("Server could not be found or no servers available");
-        }
+        System.out.println();
 
-        return null;
     }
 
     @Override

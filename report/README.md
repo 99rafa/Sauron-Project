@@ -15,7 +15,7 @@ Distributed Systems 2019-2020, 2nd semester
 | 89538  | Rafael Alexandre  | <https://github.com/99rafa>          | <mailto:rafael.alexandre@tecnico.ulisboa.pt> |
 
 
-![Alice](alice.png) ![Bob](bob.png) ![Charlie](charlie.png)
+![Afonso Paredes](alice.png) ![Pedro Nunes](bob.png) ![Rafael Alexandre](charlie.png)
 
 
 ## 1st part improvements
@@ -44,12 +44,11 @@ _(Explicação do protocolo)_
 _(descrição das trocas de mensagens)_
 
 
-## Implemention options
+## Implementation options
 
 _(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
 
 
-
-## Final considerations
+## Closing remaks
 
 _(Algo mais a dizer?)_

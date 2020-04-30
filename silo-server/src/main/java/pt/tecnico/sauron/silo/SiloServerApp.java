@@ -102,8 +102,8 @@ public class SiloServerApp {
                             if (finalZkNaming.listRecords("/grpc/sauron/silo").size() > 1) {
                                 System.out.println("Replica " + repN + " initiating gossip…");
                                 missedGossip = gateway.gossip(impl.buildGossipRequest());
-                                if (missedGossip) impl.missedGossipHandler();
-                                else impl.successfulGossipHandler();
+                                //if there are no missed gossips, we can erase de update log
+                                if (!missedGossip) impl.successfulGossipHandler();
                                 gateway.close();
 
                             }

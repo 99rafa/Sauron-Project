@@ -43,6 +43,7 @@ public class ServerGossipGateway extends InvalidCoordinatesException implements 
             System.out.println("Contacting replica at "+  stub.getKey() + " sending updates...");
             try {
                 stub.getValue().gossip(request);
+                System.out.println("Contact with replica at "+ stub.getKey() + " successful");
             }
             catch (StatusRuntimeException e) {
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {

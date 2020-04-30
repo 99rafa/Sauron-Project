@@ -23,30 +23,24 @@ public class ServerRequestHandler {
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
 
-    private boolean logCleanable = true;
-
 
     public ServerRequestHandler(Integer replicaNumber) {
         this.replicaNumber = replicaNumber;
     }
 
-    //handler to missing gossip for replicas which are currently down
-    //log cannot be erased to recover from fault when replica becomes available again
-    public void missedGossipHandler() {
-        logCleanable = false;
-    }
 
     //handler to successful gossip
-    //log can be erased to
+    //log can be erased
     public void successfulGossipHandler() {
-        logCleanable = true;
+        //clear update log after sending a gossip to all the replicas containing the update log
+        cleanUpdateLog();
     }
 
     //respond to an update request by the client
     public synchronized LogRecord processUpdateRequest(String op, ClientRequest request, StreamObserver<ClientResponse> responseObserver) throws DuplicateOperationException {
 
 
-        //Sends Exception when operation Id is in the executed operations--> Protects duplicate requests
+        //Sends Exception when operation Id is in the executed operations --> Protects duplicate requests
         if (isInExecutedUpdates(request.getOpId())) {
             throw new DuplicateOperationException();
         }
@@ -85,7 +79,7 @@ public class ServerRequestHandler {
 
     public synchronized void cleanUpdateLog() {
 
-        if (logCleanable) this.updateLog.clear();
+        this.updateLog.clear();
     }
 
     //apply updates to the replica
@@ -146,50 +140,11 @@ public class ServerRequestHandler {
             gRequest.addLog(lrRequest);
         }
 
-        //clear update log after sending a gossip to all the replicas containing the update log
-        cleanUpdateLog();
-
         return gRequest.build();
-    }
-
-    public Integer getReplicaNumber() {
-        return replicaNumber;
-    }
-
-    public void setReplicaNumber(Integer replicaNumber) {
-        this.replicaNumber = replicaNumber;
-    }
-
-    public Map<Integer, Integer> getReplicaTS() {
-        return replicaTS;
-    }
-
-    public void setReplicaTS(Map<Integer, Integer> replicaTS) {
-        this.replicaTS = replicaTS;
-    }
-
-    public List<LogRecord> getUpdateLog() {
-        return updateLog;
-    }
-
-    public void setUpdateLog(List<LogRecord> updateLog) {
-        this.updateLog = updateLog;
     }
 
     public Map<Integer, Integer> getValueTS() {
         return valueTS;
-    }
-
-    public void setValueTS(Map<Integer, Integer> valueTS) {
-        this.valueTS = valueTS;
-    }
-
-    public List<String> getExecutedOpsTable() {
-        return executedOpsTable;
-    }
-
-    public void setExecutedOpsTable(List<String> executedOpsTable) {
-        this.executedOpsTable = executedOpsTable;
     }
 
     //checks if a happens before b
@@ -201,6 +156,7 @@ public class ServerRequestHandler {
         }
         return true;
     }
+
 
     private int happensBeforeInteger(Map<Integer, Integer> a, Map<Integer, Integer> b) {
 

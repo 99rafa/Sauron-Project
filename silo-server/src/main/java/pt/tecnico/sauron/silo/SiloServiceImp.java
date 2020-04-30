@@ -394,7 +394,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             return;
         }
 
-        String output = "Hello " + inputText + "!\n" + "The server is running!";
+        String output = "Hello!\n" + "The server is running!";
         PingResponse response = PingResponse.newBuilder().setOutputText(output).build();
         System.out.println("Ping request received");
 
@@ -499,11 +499,6 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
 
     public GossipRequest buildGossipRequest() {
         return this.serverRequestHandler.buildGossipRequest();
-    }
-
-    //handler to missing gossip for replicas that are currently down
-    public void missedGossipHandler() {
-        this.serverRequestHandler.missedGossipHandler();
     }
 
     //handler to successful gossip
