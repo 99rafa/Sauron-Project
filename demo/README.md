@@ -400,7 +400,7 @@ To exit spotter client, just type
 As it was explained in section 1.2, we can start a replica by going to the /A31-Sauron/silo-server directory and typing, for example,
 
 ```bash
-> $ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
+$ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
 ```
 
 which will start the replica 1 on port 8081
