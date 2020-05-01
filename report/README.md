@@ -35,7 +35,21 @@ Improvements made to the 1st part of the project are as follows:
 ## Fault model
 _(que faltas são toleradas, que faltas não são toleradas)_
 
-<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="600" width="775" />
+<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="600" width="775"/>
+
+First of all, we initiate the communications by starting 3 silo servers (silo 1, silo 2 and silo 3). 
+Then, we run client eye 1. After that, silo 1 initiates gossip communication with every one of other silos and
+silos 2 and 3 receive gossip messages with updates. At instant 3, silo 1 goes down
+and becomes unavailable for communication. Spotter 1 tries to query silo 1 unsuccessfully and
+looks for another one to communicate, finding silo 2 which it queries with the same request 
+and instant 5. The response is updated so the result is presented to the client which saves it in
+the cache. At instant 7, silo 2 sends gossips to the other silos being only successful in 
+communicating with replica 3. After that, eye 2 sends an update to silo 3 and spotter 2 
+queries silo 3 for that same update. The spotter once again presents the response and saves it in 
+the cache. Then, it sends the same query but silo 3 has just become unavailable which makes the 
+spotter 2 reconnect to silo 2 and re-send the query. As there were no gossips from silo 3 to silo 2 in 
+bettwen [U,8] and [Q,13], the response [R,14] is outdated which makes spotter 2 go to the cache to retrieve the 
+last stable response. 
 
 ## Solution
 
@@ -54,25 +68,24 @@ _(Solution diagram of fault tolerance)_
 
 _(Breve explicação da solução, suportada pela figura anterior)_
 
-First of all, we initiate the communications by starting 3 silo servers (silo 1, silo 2 and silo 3), 
-every one of each with timestamps [0,0,0]. Then, we run client eye 1 which sends an update
-to silo 1. The update is then given a timestamp, increasing silo 1's timestamp field by 1 ([1,0,0]).
-The update is applied and inserted in the updateLog. After that, silo 1 initiates gossip 
-communication with every one of other silos, sending its updates. The updates go throught and
-silo 1's update log is cleaned. Silos 2 and 3 receive gossip messages with the update which
-are inserted into their own logs and applied by order of timestamps. At instant 3, silo 1 goes down
-and becomes unavailable for communication. Spotter 1 tries to query silo 1 unsuccessfully and
-looks for another one to communicate, finding silo 2 which it queries with the same request 
-and instant 5. The response is updated so the result is presented to the client which saves it in
-the cache. At instant 7, silo 2 sends gossips to the other silos being only successful in 
-communicating with replica 3. After that, eye 2 sends an update to silo 3 and spotter 2 
-queries silo 3 for that same update. After checking the timestamp of the update against the client's
-own timestamp, the spotter once again presents the response and saves it in the cache. Then, 
-it sends the same query but silo 3 has just become unavailable which makes the spotter 2 reconnect
-to silo 2 and re-send the query. As there were no gossips from silo 3 to silo 2 in bettwen [U,8] and
-[Q,13], the response [R,14] is outdated which makes spotter 2 go to the cache to retrieve the 
-last stable response. This was possible because the timestamp sent to the client in [R,14] 
-was previous to its own timestamp.
+
+#### Consistency over efficiency 
+We decided to implement a system where each server could send a gossip message to every other server and, even though it is less
+efficient, it makes the system much more consistent.
+
+#### A cache for every client
+Every single client has its own cache, which enables that each outdated message that a client receives, will not be read. On the other hand, it will be shown the last updated message read by that same client, instead of showing up the message returned by the server.
+
+#### "Wake-up gossip"
+ As soon as a gossip message is sent by a server, that same gossip will cleanup the update log. However, the server produces a list of replica's ids which he couldn't send in the gossip message (due to being unnavailable, for instance) and saves it until it is possible to send all the gossip messages with success. This type of gossip could be called a "wake-up gossip", since its job is to re-send a gossip message to a server that was unnavailable in the gossip message sent before. This implementation allows that repeated information is not sent to the replicas that already received updates, sending only those updates to the replicas that did not receive this information.
+ 
+#### Reconnecting
+When clients make a request to an unavailable server, they connect to an available replica and make the request again.
+ 
+#### No more repeated requests
+We implemented an execution table that prevents the server to process repeated requests. There is a randomly generated unique ID for each request that distiguishes them.
+
+**Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trail and TrackMessage had a similar requeste message; etc...
 
 
 ## Replication protocol
