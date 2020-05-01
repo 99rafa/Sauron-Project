@@ -43,7 +43,7 @@ _(Solution diagram of fault tolerance)_
 
 <img src="https://cdn.discordapp.com/attachments/690606370101264539/705798887255834624/unknown.png" height="600" width="800" />
 <img src="https://cdn.discordapp.com/attachments/690606370101264539/705799065622937651/unknown.png" height="600" width="800" />
-<img src="https://cdn.discordapp.com/attachments/690606370101264539/705799401096085564/unknown.png" height="600" width="800" />
+<img src="https://cdn.discordapp.com/attachments/690606370101264539/705799401096085564/unknown.png" height="600" width="900" />
 
 
 _(Breve explicação da solução, suportada pela figura anterior)_
