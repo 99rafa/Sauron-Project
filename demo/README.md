@@ -33,7 +33,7 @@ $ ./target/appassembler/bin/silo-server <zkhost> <zkport> <i> <host> <port> <tim
 **i** = number of the server's replica. For example, if *i* = 1, the server port that will be used is 8081. If *i* = 2, the server port that will be used is 8082, and so on...\
 **host** = server host\ 
 **port** = server port\
-**timeBetweenGossips** = period between messagens sent from one replica to the others
+**timeBetweenGossips** = period between messagens sent from one replica to the others (in milliseconds)
 
 On the same terminal, go to the ```/A31-Sauron/silo-server``` directory and run the command:
 ```bash
