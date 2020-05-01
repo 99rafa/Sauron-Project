@@ -87,6 +87,17 @@ last stable response.
 ##Implementation options
 
 
+## Replication protocol
+
+_(Explicação do protocolo)_
+
+_(descrição das trocas de mensagens)_
+
+
+## Implementation options
+
+_(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
+
 #### Consistency over efficiency 
 We decided to implement a system where each server could send a gossip message to every other server and, even though it is less
 efficient, it makes the system much more consistent.
@@ -95,7 +106,7 @@ efficient, it makes the system much more consistent.
 Every single client has its own cache, which enables that each outdated message that a client receives, will not be read. On the other hand, it will be shown the last updated message read by that same client, instead of showing up the message returned by the server.
 
 #### "Wake-up gossip"
- As soon as a gossip message is sent by a server, that same gossip will cleanup the update log. However, the server produces a list of replica's ids which he couldn't send in the gossip message (due to being unnavailable, for instance) and saves it until it is possible to send all the gossip messages with success. This type of gossip could be called a "wake-up gossip", since its job is to re-send a gossip message to a server that was unnavailable in the gossip message sent before. This implementation allows that repeated information is not sent to the replicas that already received updates, sending only those updates to the replicas that did not receive this information.
+ As soon as a gossip message is sent by a server, that same server will cleanup the update log. However, the server produces a list of replica's ids which it couldn't send in the gossip message (due to being unnavailable, for instance) and saves it until it is possible to send all the gossip messages with success. This type of gossip could be called a "wake-up gossip", since its job is to re-send a gossip message to a server that was unnavailable in the gossip message sent before. This implementation allows that repeated information is not sent to the replicas that already received updates, sending only those updates to the replicas that did not receive this information.
  
 #### Reconnecting
 When clients make a request to an unavailable server, they connect to an available replica and make the request again.
@@ -104,7 +115,6 @@ When clients make a request to an unavailable server, they connect to an availab
 We implemented an execution table that prevents the server to process repeated requests. There is a randomly generated unique ID for each request that distiguishes them.
 
 **Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trail and TrackMessage had a similar requeste message; etc...
-
 
 ## Closing remarks
 
