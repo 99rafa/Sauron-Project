@@ -42,13 +42,13 @@ _(que faltas são toleradas, que faltas não são toleradas)_
 _(Solution diagram of fault tolerance)_
 
 
-### Communication between replicas
+### Diagram 1: Communication between replicas
 <img src="https://cdn.discordapp.com/attachments/690606370101264539/705798887255834624/unknown.png" height="600" width="800" />
 
-### Eye client - Silo Server Communication
+### Diagram 2: Eye client - Silo Server Communication
 <img src="https://cdn.discordapp.com/attachments/690606370101264539/705799065622937651/unknown.png" height="600" width="800" />
 
-### Spotter client - Silo Server Communication
+### Diagram 3: Spotter client - Silo Server Communication
 <img src="https://cdn.discordapp.com/attachments/690606370101264539/705799401096085564/unknown.png" height="600" width="900" />
 
 
