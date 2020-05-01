@@ -69,6 +69,17 @@ _(Solution diagram of fault tolerance)_
 _(Breve explicação da solução, suportada pela figura anterior)_
 
 
+## Replication protocol
+
+_(Explicação do protocolo)_
+
+_(descrição das trocas de mensagens)_
+
+
+## Implementation options
+
+_(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
+
 #### Consistency over efficiency 
 We decided to implement a system where each server could send a gossip message to every other server and, even though it is less
 efficient, it makes the system much more consistent.
@@ -86,19 +97,6 @@ When clients make a request to an unavailable server, they connect to an availab
 We implemented an execution table that prevents the server to process repeated requests. There is a randomly generated unique ID for each request that distiguishes them.
 
 **Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trail and TrackMessage had a similar requeste message; etc...
-
-
-## Replication protocol
-
-_(Explicação do protocolo)_
-
-_(descrição das trocas de mensagens)_
-
-
-## Implementation options
-
-_(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
-
 
 ## Closing remarks
 
