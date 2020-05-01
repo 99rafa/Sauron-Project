@@ -35,12 +35,16 @@ Improvements made to the 1st part of the project are as follows:
 ## Fault model
 _(que faltas são toleradas, que faltas não são toleradas)_
 
+<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="600" width="775" />
 
 ## Solution
 
 _(Solution diagram of fault tolerance)_
 
-<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="600" width="775" />
+<img src="https://cdn.discordapp.com/attachments/690606370101264539/705798887255834624/unknown.png" height="600" width="800" />
+<img src="https://cdn.discordapp.com/attachments/690606370101264539/705799065622937651/unknown.png" height="600" width="800" />
+<img src="https://cdn.discordapp.com/attachments/690606370101264539/705799401096085564/unknown.png" height="600" width="800" />
+
 
 _(Breve explicação da solução, suportada pela figura anterior)_
 
