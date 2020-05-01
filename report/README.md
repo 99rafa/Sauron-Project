@@ -62,25 +62,48 @@ On the other hand, there are several faults from which our solution does not rec
 * F7. Replicas disconnected to the server and reconnected, having lost all previous acquired information.
     * i.e. *a replica `r1` receives updates from an eye client and, after a while, goes down. When it reconnects, all the information stored before was lost so, it will no longer be able to have a consistent state as their peer replicas.*
 
+
 ## Solution
 
-_(Solution diagram of fault tolerance)_
+The course of action of our solution and its most relevant use cases can be described through the following diagram,
+<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="600" width="775"/>
 
-<img src="https://media.discordapp.net/attachments/690606370101264539/705557079535911013/Untitled_Diagram1.png" height="500" width="650" />
+First of all, the communication is initiated by starting 3 silo servers (silo 1, silo 2 and silo 3). 
+Then, we run client eye 1. After that, silo 1 initiates gossip communication with every one of other silos and
+silos 2 and 3 receive gossip messages with updates. At instant 3, silo 1 goes down
+and becomes unavailable for communication. Spotter 1 tries to query silo 1 unsuccessfully and
+looks for another one to communicate, finding silo 2 which it queries with the same request 
+and instant 5. The response is updated so the result is presented to the client which saves it in
+the cache. At instant 7, silo 2 sends gossips to the other silos being only successful in 
+communicating with replica 3. After that, eye 2 sends an update to silo 3 and spotter 2 
+queries silo 3 for that same update. The spotter once again presents the response and saves it in 
+the cache. Then, it sends the same query but silo 3 has just become unavailable which makes the 
+spotter 2 reconnect to silo 2 and re-send the query. As there were no gossips from silo 3 to silo 2 in 
+bettwen [U,8] and [Q,13], the response [R,14] is outdated which makes spotter 2 go to the cache to retrieve the 
+last stable response. 
 
-_(Breve explicação da solução, suportada pela figura anterior)_
+## Replication Protocol
+
+##Implementation options
 
 
-## Replication protocol
+#### Consistency over efficiency 
+We decided to implement a system where each server could send a gossip message to every other server and, even though it is less
+efficient, it makes the system much more consistent.
 
-_(Explicação do protocolo)_
+#### A cache for every client
+Every single client has its own cache, which enables that each outdated message that a client receives, will not be read. On the other hand, it will be shown the last updated message read by that same client, instead of showing up the message returned by the server.
 
-_(descrição das trocas de mensagens)_
+#### "Wake-up gossip"
+ As soon as a gossip message is sent by a server, that same gossip will cleanup the update log. However, the server produces a list of replica's ids which he couldn't send in the gossip message (due to being unnavailable, for instance) and saves it until it is possible to send all the gossip messages with success. This type of gossip could be called a "wake-up gossip", since its job is to re-send a gossip message to a server that was unnavailable in the gossip message sent before. This implementation allows that repeated information is not sent to the replicas that already received updates, sending only those updates to the replicas that did not receive this information.
+ 
+#### Reconnecting
+When clients make a request to an unavailable server, they connect to an available replica and make the request again.
+ 
+#### No more repeated requests
+We implemented an execution table that prevents the server to process repeated requests. There is a randomly generated unique ID for each request that distiguishes them.
 
-
-## Implementation options
-
-_(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
+**Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trail and TrackMessage had a similar requeste message; etc...
 
 
 ## Closing remarks
