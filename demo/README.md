@@ -158,7 +158,7 @@ Returns an exception. It happens because type of the object is neither car nor p
 Caught exception with description: The camera name must be unique
 ``` 
 
-2.1.2 - Testing invalid id for person:
+2.2.2 - Testing invalid id for person:
 ```bash
 > person,1A
 ```
@@ -168,7 +168,7 @@ Returns an exception as well. The person id must a number
 The id is invalid for the given type PERSON
 ``` 
 
-2.1.3 - Testing invalid id for car:
+2.2.3 - Testing invalid id for car:
 ```bash
 > car,11AAAAA
 ```
@@ -397,13 +397,93 @@ To exit spotter client, just type
 
 ## 3. Replication and fault tolerance
 
-As it was explained in section 1.2, we can start a replica by going to the /A31-Sauron/silo-server directory and typing, for example,
+### 3.1 *Gossip messages*
+
+For this demonstration, go to the /A31-Sauron/silo-server directory and start 2 servers like this. (For more info see section 1.2)
 
 ```bash
 $ ./target/appassembler/bin/silo-server localhost 2181 1 localhost 8081
+$ ./target/appassembler/bin/silo-server localhost 2181 2 localhost 8082
+```
+This will start 2 servers with a default 30 seconds of time between gossips. (to set a different time insert another argument in the executable command in miliseconds)
+
+now go to the /A31-Sauron/silo-server directory and start the "eye" client. (For more info see section 1.3)
+
+```bash
+$ ./target/appassembler/bin/eye localhost 2181 Lisboa 12.1 12.1
 ```
 
-which will start the replica 1 on port 8081
+This will connect to a random replica from the 2 started above, and will display the following message.
+
+```bash
+Connected to replica 1 at localhost:8081
+```
+or
+```bash
+Connected to replica 2 at localhost:8082
+```
+depending on which it connected to.
+
+Next, insert some observations
+
+```bash
+person,1
+car,11AA11
+person,2
+```
+
+Now, after waiting for the replica to send a gossip, the updates will be made on the other replica.
+
+It will appear the followng message on the the other replica 
+
+```bash
+STH
+STH
+STH
+```
+
+
+### 3.2 *Replica unavailability*
+
+3.2.1 - Client sends request to an unavailable replica
+
+For this demo, stop the server (*ctrl-c*) which the client is connected to, and try to make update in the "eye" client, for example.
+
+```bash
+person,5
+car,AO1212
+person,6
+```
+
+The client will then see that the current replica is down and connect to another replica, since there is only on left it will connect to replica nº2. After it connects, the client will run the update it was supposed to make on the unavailable server.
+
+It will appear the following messages confirming the updates 
+
+```bash
+STH
+STH
+STH
+```
+
+3.2.2 - Server sending gossip to an unavailable replica
+
+Now, start another replica as follows
+```bash
+$ ./target/appassembler/bin/silo-server localhost 2181 3 localhost 8083
+```
+
+After waiting for client nº2 to send a gossip, it will appear a message confirming that it skipped the unavailble replica (nº1) like so
+
+```bash
+
+```
+
+### 3.3 *Client Cache*
+
+
+
+
+
 
 ----
 ## 4. Closing Remarks
