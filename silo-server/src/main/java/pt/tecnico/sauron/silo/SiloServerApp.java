@@ -8,9 +8,7 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
-import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import static java.lang.System.exit;
 
@@ -95,13 +93,13 @@ public class SiloServerApp {
                     public void run() {
 
                         try {
-                            boolean missedGossip;
+                            List<String> missedGossips = new ArrayList<>();
                             ServerGossipGateway gateway = new ServerGossipGateway(zooHost, zooPort, args[2]);
                             if (finalZkNaming.listRecords("/grpc/sauron/silo").size() > 1) {
                                 System.out.println("Replica " + repN + " initiating gossip…");
-                                missedGossip = gateway.gossip(impl.buildGossipRequest());
+                                missedGossips = gateway.gossip(impl.buildGossipRequest(),impl.getBackupGossip(),impl.getMissingReplicas());
                                 //if there are no missed gossips, we can erase de update log
-                                if (!missedGossip) impl.successfulGossipHandler();
+                                impl.gossipHandler(missedGossips);
                                 gateway.close();
 
                             }

@@ -23,6 +23,12 @@ public class ServerRequestHandler {
 
     private List<String> executedOpsTable = new CopyOnWriteArrayList<>();
 
+    //replicas down on previous gossip
+    private List<String> missingReplicas = new CopyOnWriteArrayList<>();
+
+    //log sent to replicas previously down
+    private GossipRequest.Builder backupGossip = GossipRequest.newBuilder();
+
 
     public ServerRequestHandler(Integer replicaNumber) {
         this.replicaNumber = replicaNumber;
@@ -32,8 +38,16 @@ public class ServerRequestHandler {
     //handler to successful gossip
     //log can be erased
     public void successfulGossipHandler() {
-        //clear update log after sending a gossip to all the replicas containing the update log
+        //clear backUp log after sending a gossip to all the replicas containing the update log
+        cleanBackupGossip();
         cleanUpdateLog();
+        this.missingReplicas.clear();
+    }
+
+    public void missedGossipHandler(List<String> missingReplicas) {
+        //clear backUp log after sending a gossip to all the replicas containing the update log
+        cleanUpdateLog();
+        this.missingReplicas = missingReplicas;
     }
 
     //respond to an update request by the client
@@ -82,6 +96,11 @@ public class ServerRequestHandler {
         this.updateLog.clear();
     }
 
+    public synchronized void cleanBackupGossip() {
+
+        this.backupGossip.clear();
+    }
+
     //apply updates to the replica
     public synchronized void updateReplicaState(LogRecord logRecord) {
 
@@ -94,7 +113,7 @@ public class ServerRequestHandler {
     public synchronized void mergeIncomingLog(GossipMessage g) {
         for (LogRecord r : g.getLog()) {
 
-            if (happensBefore(this.replicaTS, r.getTimestamp()) && !this.replicaTS.equals(r.getTimestamp()))
+            if (!happensBefore(r.getTimestamp(),this.replicaTS) && !this.replicaTS.equals(r.getTimestamp()))
                 this.updateLog.add(r);
         }
         mergeTS(this.replicaTS, g.getRepTs());
@@ -139,13 +158,23 @@ public class ServerRequestHandler {
                     .putAllPrevTS(lr.getPrevTS())
                     .putAllTimestamp(lr.getTimestamp()).build();
             gRequest.addLog(lrRequest);
-        }
 
+            this.backupGossip.addLog(lrRequest);
+        }
+        this.backupGossip.putAllRepTs(this.replicaTS);
         return gRequest.build();
     }
 
     public Map<Integer, Integer> getValueTS() {
         return valueTS;
+    }
+
+    public List<String> getMissingReplicas() {
+        return missingReplicas;
+    }
+
+    public GossipRequest.Builder getBackupGossip() {
+        return backupGossip;
     }
 
     //checks if a happens before b

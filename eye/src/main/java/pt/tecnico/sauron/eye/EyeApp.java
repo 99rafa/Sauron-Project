@@ -156,9 +156,15 @@ public class EyeApp {
 
                     siloFrontend.renewConnection();
 
-                    siloFrontend.camJoin(camName, lat, log);
+                    try {
 
-                    siloFrontend.runPreviousCommand();
+                        siloFrontend.camJoin(camName, lat, log);
+
+                        siloFrontend.runPreviousCommand();
+                    }
+                    catch(StatusRuntimeException s) {
+                        System.out.println(s.getStatus().getDescription());
+                    }
 
                 } else
                     System.out.println(e.getStatus().getDescription());

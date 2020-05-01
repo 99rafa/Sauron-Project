@@ -33,8 +33,34 @@ Improvements made to the 1st part of the project are as follows:
 - [Correct Synchronization of shared variables](https://github.com/tecnico-distsys/A31-Sauron/commit/a0d94a62e0efbb3681c137ab293f38f8d504f6a9)
  
 ## Fault model
-_(que faltas são toleradas, que faltas não são toleradas)_
 
+In which concerns faults our solution is capable of dealing with, we must highlight the following ones:
+
+**On the server side,**
+* F1. Query information that has been inserted in a different replica (project topic 2.2).
+    * i.e. *for example, an eye client `e1` sends an update to a replica `r1`. If a spotter client `s1` queries replica `r2` for the information updated in `r1`, `r2` returns the given update to `s1`.*
+
+* F2. Recover from replicas unavailable for a period of time and making them catch the other ones, regarding the updates they currently have, given the fault was transient.
+    * i.e. *for example, a replica `r1` becomes unavailable for some time and, then, when it is operational again, other replicas send `r1` the updates it has missed out.*
+
+**On the client side,**
+* F3. Connect to a different replica when the current one is down.
+    * i.e. *for example, an eye client `e1` is connected to a replica `r1`. When, sending a request to the server, `e1` notices that the connection has died, the client tries to set up a new connection to another replica `r2`. When it does, `e1` re-sends the previous request.*
+
+* F4. Outdated view when spotter client queries a different replica for the same information (project topic 3.3).
+    * i.e. *for example, a spotter client `s1` is connected to an updated replica `r1`, querying it for the trace path `t1` of a person. Then, `r1` goes down, so the procedure is triggered and `s1` 
+    reconnects to replica `r2` ( which is yet to receive the update for that person). Spotter `s1` makes the same request as before. However, this time it receives a trace path `t2`,previous to `t1`. So, `s1` presents `t1` in the terminal.*
+
+On the other hand, there are several faults from which our solution does not recover, being the major ones:
+
+* F5. Zookeeper server being unavailable
+    * i.e. *the solution was built assuming the name server Zookeeper is always operational.*
+
+* F6. Replicas disconnected to the server without sending their updates to the rest of the graph.
+    * i.e. *a replica `r1` receives updates from an eye client and immediately disconnects not having spread the previous updates. Due to the fact that the information was only stored on `r1`, the updates are lost.*
+
+* F7. Replicas disconnected to the server and reconnected, having lost all previous acquired information.
+    * i.e. *a replica `r1` receives updates from an eye client and, after a while, goes down. When it reconnects, all the information stored before was lost so, it will no longer be able to have a consistent state as their peer replicas.*
 
 ## Solution
 
@@ -59,4 +85,4 @@ _(Descrição de opções de implementação, incluindo otimizações e melhoria
 
 ## Closing remarks
 
-_(Algo mais a dizer?)_
+As a final statement, it is important to underline that, by performing minor modifications to the code, it would be possible to convert our solution into a more robust one in which concerns the probable casual dependencies between updates of a real application.

@@ -37,22 +37,26 @@ public class ServerGossipGateway extends InvalidCoordinatesException implements 
 
     }
 
-    public boolean gossip(GossipRequest request) {
-        boolean missedGossip = false;
+    public List<String> gossip(GossipRequest request, GossipRequest backUp, List<String> missingReps) {
+        List<String> unavailable = new ArrayList<>();
+
         for (Map.Entry<String, SiloOperationsServiceGrpc.SiloOperationsServiceBlockingStub> stub : this.stubs.entrySet()) {
             System.out.println("Contacting replica at " + stub.getKey() + " sending updates...");
             try {
-                stub.getValue().gossip(request);
+                if (missingReps.contains(stub.getKey())) {
+                    stub.getValue().gossip(backUp);
+                }
+                else stub.getValue().gossip(request);
                 System.out.println("Contact with replica at "+ stub.getKey() + " successful");
             }
             catch (StatusRuntimeException e) {
                 if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
                     System.out.println("Caught exception while contacting replica at " + stub.getKey() + ".Skipping...");
-                    missedGossip = true;
+                    unavailable.add(stub.getKey());
                 }
             }
         }
-        return missedGossip;
+        return unavailable;
     }
 
 

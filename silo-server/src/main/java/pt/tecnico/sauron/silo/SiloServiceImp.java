@@ -511,18 +511,23 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     //handler to successful gossip
-    public void successfulGossipHandler() {
-        this.serverRequestHandler.successfulGossipHandler();
+    public void gossipHandler(List<String> missedReplicas) {
+
+        System.out.println(missedReplicas.size());
+        if (missedReplicas.size() == 0)
+            this.serverRequestHandler.successfulGossipHandler();
+
+        else
+            this.serverRequestHandler.missedGossipHandler(missedReplicas);
+
     }
 
-    //checks if a happens before b
-    private boolean happensBefore(Map<Integer, Integer> a, Map<Integer, Integer> b) {
+    List<String> getMissingReplicas() {
+        return this.serverRequestHandler.getMissingReplicas();
+    }
 
-        for (Map.Entry<Integer, Integer> entryA : a.entrySet()) {
-            Integer valueB = b.getOrDefault(entryA.getKey(), 0);
-            if (entryA.getValue() > valueB) return false;
-        }
-        return true;
+    public GossipRequest getBackupGossip() {
+        return this.serverRequestHandler.getBackupGossip().build();
     }
 
 }

@@ -137,9 +137,16 @@ public class SpotterApp {
 
                         siloFrontend.renewConnection();
 
-                        ClientResponse response = siloFrontend.runPreviousCommand();
+                        try {
 
-                        checkResponse(response, siloFrontend);
+                            ClientResponse response = siloFrontend.runPreviousCommand();
+
+                            checkResponse(response, siloFrontend);
+                        }
+                        catch (StatusRuntimeException s) {
+                            //catch exception of request when request is re-sent because the previous replica went down
+                            System.out.println(s.getStatus().getDescription());
+                        }
 
 
                     } else
