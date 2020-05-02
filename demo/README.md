@@ -475,12 +475,57 @@ $ ./target/appassembler/bin/silo-server localhost 2181 3 localhost 8083
 After waiting for client nº2 to send a gossip, it will appear a message confirming that it skipped the unavailble replica (nº1) like so
 
 ```bash
-
+STH
+STH
+STH
 ```
 
 ### 3.3 *Client Cache*
 
+For this demo, go to the /A31-Sauron/spotter directory and start a spotter as follows
 
+```bash
+$ ./target/appassembler/bin/eye localhost 2181 2
+```
+
+This will connect a spotter client to replica nº2
+
+Next, go to the eye client and add yet another observation.
+
+```bash
+person,10
+```
+
+Next, go to the spotter client and query for that observation as follows.
+
+```bash
+spot person 10
+```
+
+This will safe the request in cache and display the response as follows.
+
+```bash
+STH
+STH
+STH
+```
+
+
+Now, before the replica nº2 sends a gossip, stop the replica nº2 (*ctrl-c*)
+
+Finally, go to the spotter and query the server as follows
+
+```bash
+spot person 10
+```
+
+This will make the client migrate to replica nº3 and make the same query, but because that replica is outdated, the client will instead resort to its cache and display the previous response to that request instead of the response the server gave. Like so
+
+```bash
+STH
+STH 
+STH
+```
 
 
 
