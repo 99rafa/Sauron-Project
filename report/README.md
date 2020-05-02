@@ -125,7 +125,7 @@ When clients make a request to an unavailable server, they connect to an availab
 #### No more repeated requests
 We implemented an execution table that prevents the server to process repeated requests. There is a randomly generated unique ID for each request that distiguishes them.
 
-**Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trail and TrackMessage had a similar requeste message; etc...
+**Minor details:** We compressed messages in proto because there was a lot of repeated messages. For instance: every update had an empty response; Track, Trace and TrackMatch had a similar requeste message; etc...
 
 ## Closing remarks
 
