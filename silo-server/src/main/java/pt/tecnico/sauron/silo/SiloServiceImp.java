@@ -513,7 +513,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     //handler to successful gossip
     public void gossipHandler(List<String> missedReplicas) {
 
-        System.out.println(missedReplicas.size());
+
         if (missedReplicas.size() == 0)
             this.serverRequestHandler.successfulGossipHandler();
 

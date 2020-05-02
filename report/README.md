@@ -57,7 +57,7 @@ On the other hand, there are several faults from which our solution does not rec
     * i.e. *the solution was built assuming the name server Zookeeper is always operational.*
 
 * F6. Replicas disconnected to the server without sending their updates to the rest of the graph.
-    * i.e. *a replica `r1` receives updates from an eye client and immediately disconnects not having spread the previous updates. Due to the fact that the information was only stored on `r1`, the updates are lost.*
+    * i.e. *a replica `r1` receives updates from an eye client and immediately disconnects not having spread the previous updates. In fact,  the information was only stored on `r1`, so the updates are lost.*
 
 * F7. Replicas disconnected to the server and reconnected, having lost all previous acquired information.
     * i.e. *a replica `r1` receives updates from an eye client and, after a while, goes down. When it reconnects, all the information stored before was lost so, it will no longer be able to have a consistent state as their peer replicas.*
@@ -82,21 +82,32 @@ spotter 2 reconnect to silo 2 and re-send the query. As there were no gossips fr
 bettwen [U,8] and [Q,13], the response [R,14] is outdated which makes spotter 2 go to the cache to retrieve the 
 last stable response. 
 
-## Replication Protocol
-
-##Implementation options
-
 
 ## Replication protocol
 
-_(Explicação do protocolo)_
+####Overall
+In this project, we implement a variation of the *gossip architecture* protocol. More specifically, the solution implemented is not concerned about much of the causal dependencies' problem of the original algorithm.\
+In order to keep track of the updates made throughout the graph of replicas, there is a timestamp structure which saves the current state of the given replica. 
 
+####Interaction Client-Server
+When a client sends a request to a replica, it checks if the replica is operational. If not, it then tries to connect to another replica and, when successful, re-sends the request.\
+\
+**Note:** If the client is started with a given replica number to contact to, it exits if that replica is currently unavailable.\
+\
+Regarding eye requests ( updates ), the server receives the request and assigns a unique timestamp to identify the update, including it in the update log ( used for *gossipping* ) . It then applies the update, merging the update timestamp with replica's own timestamp.
+Afterwards, it sends a response back to the client which merges the response timestamp with its timestamp, so that the client knows its current state.
+\
+Regarding spotter requests ( queries ), the server receives the request and immediately gathers the information queried, sending it to the client.
+The frontend intercepts the information to check if the response timestamp is updated ( which means `query TS > client TS` ).
+* If the condition is met, the response is stored in the `responses' cache` to later inconsistent queries. And the response is presented to the client.
+* If the condition is not met, frontend reaches the ``responses' cache`` to get the last stable response, which is returned to the client.
+
+
+####Interaction Server-Server ( *Gossip* )
 _(descrição das trocas de mensagens)_
 
 
 ## Implementation options
-
-_(Descrição de opções de implementação, incluindo otimizações e melhorias introduzidas)_
 
 #### Consistency over efficiency 
 We decided to implement a system where each server could send a gossip message to every other server and, even though it is less
@@ -118,4 +129,4 @@ We implemented an execution table that prevents the server to process repeated r
 
 ## Closing remarks
 
-As a final statement, it is important to underline that, by performing minor modifications to the code, it would be possible to convert our solution into a more robust one in which concerns the probable casual dependencies between updates of a real application.
+As a final statement, it is important to underline that, by performing minor modifications to the code, it would be possible to convert our solution into a more robust one in which concerns the probable causal dependencies between updates of a real application.
