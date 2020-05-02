@@ -85,11 +85,11 @@ last stable response.
 
 ## Replication protocol
 
-####Overall
+#### Overall
 In this project, we implement a variation of the *gossip architecture* protocol. More specifically, the solution implemented is not concerned about much of the causal dependencies' problem of the original algorithm.\
 In order to keep track of the updates made throughout the graph of replicas, there is a timestamp structure which saves the current state of the given replica. 
 
-####Interaction Client-Server
+#### Interaction Client-Server
 When a client sends a request to a replica, it checks if the replica is operational. If not, it then tries to connect to another replica and, when successful, re-sends the request.\
 \
 **Note:** If the client is started with a given replica number to contact to, it exits if that replica is currently unavailable.\
@@ -103,7 +103,7 @@ The frontend intercepts the information to check if the response timestamp is up
 * If the condition is not met, frontend reaches the ``responses' cache`` to get the last stable response, which is returned to the client.
 
 
-####Interaction Server-Server ( *Gossip* )
+#### Interaction Server-Server ( *Gossip* )
 In our implementation, each replica sends a gossip to all available replicas. Each gossip contains all the updates in the log records. The log records list is cleared after each gossip, stopping 2 problems: Sending too much repeated information; Overcharging each replica with way too much memory for the log records. But, because of clearing the log records after each gossip, the problem of replicas that may be down during a certain gossip losing information arises. We solved this problem by keeping a list of unavailable replica Id's in each replica. This list is updated after each gossip. And also, each replica keeps a special gossip message ("wakeup gossip"), containing every update since the last succesful gossip (no replicas were down on the gossip). This will allow to send that "wakeup gossip", that contains all the information that is known to not have been sent, to replicas that were down on the last gossip, and send the updates on the log records (which are much less, due to them being regularly cleared) to all the replicas that were previously available and are available at the momment. In short, this makes it so that the server only sends large amounts of information in gossips to replicas that it knows dont have certain updates, instead of sending everything to all the replicas.
 
 
