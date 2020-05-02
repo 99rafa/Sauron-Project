@@ -17,6 +17,7 @@ public class SiloFrontend implements AutoCloseable {
 
     private String currentPath;
     private List<String> attempts = new ArrayList<>();
+    private Integer previousAvailableServers = -1;
     private ResponseCache responseCache = new ResponseCache();
     private Request previousRequest;
     private ManagedChannel channel;
@@ -106,16 +107,27 @@ public class SiloFrontend implements AutoCloseable {
     public ClientResponse runPreviousCommand() {
 
         //Run previous command
-        ClientResponse response = this.previousRequest.runRequest(stub);
+        ClientResponse response;
 
-        convertTimestamp(response.getResponseTSMap());
 
         //Send response in cache if received response is not updated
         if (this.previousRequest.isQuery()) {
-            if (happensBefore(response.getResponseTSMap()))
-                this.responseCache.addEntry(this.previousRequest.getFunctionAndArgs(), response);
-            else
-                return this.responseCache.getLastRead(this.previousRequest.getFunctionAndArgs(), response);
+            Map<Integer,Integer> responseTS = getResponseTimestamp();
+
+            convertTimestamp(responseTS);
+
+            if (!happensBefore(responseTS)) {
+                //Send response in cache if received response is not updated
+                ClientResponse cacheResponse = this.responseCache.getLastRead(this.previousRequest.getFunctionAndArgs());
+                if (cacheResponse != null) return cacheResponse;
+            }
+
+            response = this.previousRequest.runRequest(this.stub);
+            this.responseCache.addEntry(this.previousRequest.getFunctionAndArgs(), response);
+        }
+        else  {
+            response = this.previousRequest.runRequest(stub);
+            convertTimestamp(response.getResponseTSMap());
         }
 
         //Merge Timestamps
@@ -171,7 +183,7 @@ public class SiloFrontend implements AutoCloseable {
         if (happensBefore(response.getResponseTSMap()))
             this.responseCache.addEntry(serviceDesc, response);
         else
-            return this.responseCache.getLastRead(serviceDesc, response).getCamInfoResponse();
+            return this.responseCache.getLastRead(serviceDesc).getCamInfoResponse();
 
         //Merge Timestamps
         mergeTS(response.getResponseTSMap());
@@ -203,6 +215,8 @@ public class SiloFrontend implements AutoCloseable {
 
     public TrackResponse trackObj(String type, String id) {
 
+        ClientResponse response;
+
         //Entry for response cache -> function name, args...
         List<String> serviceDesc = new ArrayList<>();
         serviceDesc.add("TrackObject");
@@ -216,24 +230,29 @@ public class SiloFrontend implements AutoCloseable {
         ClientRequest cliRequest = request.getRequest();
         this.previousRequest = request;
 
-        ClientResponse response = this.previousRequest.runRequest(this.stub);
+        Map<Integer,Integer> responseTS = getResponseTimestamp();
 
-        convertTimestamp(response.getResponseTSMap());
+        convertTimestamp(responseTS);
 
-        //Send response in cache if received response is not updated
-        if (happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc, response);
-        else
-            return this.responseCache.getLastRead(serviceDesc, response).getTrackResponse();
+        if (!happensBefore(responseTS)) {
+            //Send response in cache if received response is not updated
+            ClientResponse cacheResponse = this.responseCache.getLastRead(serviceDesc);
+            if (cacheResponse != null) return cacheResponse.getTrackResponse();
+        }
+
+        response = this.previousRequest.runRequest(this.stub);
+        this.responseCache.addEntry(serviceDesc, response);
 
         //Merge Timestamps
-        mergeTS(response.getResponseTSMap());
+        mergeTS(responseTS);
 
 
         return response.getTrackResponse();
     }
 
     public TraceResponse trackMatchObj(String type, String id) {
+
+        ClientResponse response;
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -247,24 +266,29 @@ public class SiloFrontend implements AutoCloseable {
         request.buildRequest(type, id, this.prevTS, getUUID());
         this.previousRequest = request;
 
-        ClientResponse response = this.previousRequest.runRequest(this.stub);
+        Map<Integer,Integer> responseTS = getResponseTimestamp();
 
-        convertTimestamp(response.getResponseTSMap());
+        convertTimestamp(responseTS);
 
-        //Send response in cache if received response is not updated
-        if (happensBefore(response.getResponseTSMap()))
-            this.responseCache.addEntry(serviceDesc, response);
-        else
-            return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
+        if (!happensBefore(responseTS)) {
+            //Send response in cache if received response is not updated
+            ClientResponse cacheResponse = this.responseCache.getLastRead(serviceDesc);
+            if (cacheResponse != null) return cacheResponse.getTraceResponse();
+        }
+
+        response = this.previousRequest.runRequest(this.stub);
+        this.responseCache.addEntry(serviceDesc, response);
 
         //Merge Timestamps
-        mergeTS(response.getResponseTSMap());
+        mergeTS(responseTS);
 
 
         return response.getTraceResponse();
     }
 
     public TraceResponse traceObj(String type, String id) {
+
+        ClientResponse response;
 
         //Entry for response cache -> funtion name, args...
         List<String> serviceDesc = new ArrayList<>();
@@ -278,20 +302,20 @@ public class SiloFrontend implements AutoCloseable {
         request.buildRequest(type, id, this.prevTS, getUUID());
         this.previousRequest = request;
 
-        ClientResponse response = this.previousRequest.runRequest(this.stub);
+        Map<Integer,Integer> responseTS = getResponseTimestamp();
 
-        convertTimestamp(response.getResponseTSMap());
+        convertTimestamp(responseTS);
 
-        //Send response in cache if received response is not updated
+        if (!happensBefore(responseTS)) {
+            //Send response in cache if received response is not updated
+            ClientResponse cacheResponse = this.responseCache.getLastRead(serviceDesc);
+            if (cacheResponse != null) return cacheResponse.getTraceResponse();
+        }
 
-        if (happensBefore(response.getResponseTSMap())) {
-
-            this.responseCache.addEntry(serviceDesc, response);
-        } else
-            return this.responseCache.getLastRead(serviceDesc, response).getTraceResponse();
-
+        response = this.previousRequest.runRequest(this.stub);
+        this.responseCache.addEntry(serviceDesc, response);
         //Merge Timestamps
-        mergeTS(response.getResponseTSMap());
+        mergeTS(responseTS);
 
 
         return response.getTraceResponse();
@@ -360,6 +384,10 @@ public class SiloFrontend implements AutoCloseable {
         String path;
         ZKNaming zkNaming = new ZKNaming(zooHost, zooPort);
         ArrayList<ZKRecord> recs = new ArrayList<>(zkNaming.listRecords("/grpc/sauron/silo"));
+
+        if (this.previousAvailableServers != -1 && this.previousAvailableServers != recs.size()) this.attempts.clear();
+
+        this.previousAvailableServers = recs.size();
 
         if (recs.size() == 0 || recs.size() == attempts.size() || this.isStatic)
             throw new NoServersAvailableException();
@@ -471,6 +499,11 @@ public class SiloFrontend implements AutoCloseable {
         }
         System.out.println();
 
+    }
+
+    public Map<Integer,Integer> getResponseTimestamp() {
+        EmptyRequest emptyRequest = EmptyRequest.newBuilder().build();
+        return this.stub.timestamp(emptyRequest).getResponseTSMap();
     }
 
     @Override

@@ -161,6 +161,8 @@ public class EyeApp {
                         siloFrontend.camJoin(camName, lat, log);
 
                         siloFrontend.runPreviousCommand();
+
+                        System.out.println("Observations successfully saved!");
                     }
                     catch(StatusRuntimeException s) {
                         System.out.println(s.getStatus().getDescription());

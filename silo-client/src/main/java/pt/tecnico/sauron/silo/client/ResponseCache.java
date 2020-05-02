@@ -30,7 +30,7 @@ public class ResponseCache {
 
 
     // get last read response because request was not updated
-    public ClientResponse getLastRead(List<String> list, ClientResponse response) {
+    public ClientResponse getLastRead(List<String> list) {
 
         for (List<String> key : this.cacheMap.keySet()) {
             if (list.equals(key)) {
@@ -38,6 +38,6 @@ public class ResponseCache {
                 return this.cacheMap.get(key);
             }
         }
-        return response;
+        return null;
     }
 }

@@ -419,12 +419,13 @@ This will connect to a random replica from the 2 started above, and will display
 Connected to replica 1 at localhost:8081
 ```
 or
+
 ```bash
 Connected to replica 2 at localhost:8082
 ```
 depending on which it connected to.
 
-Next, insert some observations
+Next, insert some observations,
 
 ```bash
 person,1
@@ -432,16 +433,25 @@ car,11AA11
 person,2
 ```
 
-Now, after waiting for the replica to send a gossip, the updates will be made on the other replica.
-
-It will appear the followng message on the the other replica 
+Now, after waiting for the replica to send a gossip, it will appear on the sending replica terminal,
 
 ```bash
-STH
-STH
-STH
+Replica 1 initiating gossip…
+Contacting replica at localhost:8082 sending updates...
+Contact with replica at localhost:8082 successful
 ```
 
+Then, the updates will be made on the other replicas,
+
+It will appear the following message on the  replica 2,
+
+```bash
+Gossip message Received
+Added observation for object id:1 and Type:PERSON on <timestamp> in camera Lisboa
+Added observation for object id:11AA11 and Type:CAR on <timestamp> in camera Lisboa
+Added observation for object id:2 and Type:PERSON on <timestamp> in camera Lisboa
+
+```
 
 ### 3.2 *Replica unavailability*
 
@@ -455,14 +465,18 @@ car,AO1212
 person,6
 ```
 
-The client will then see that the current replica is down and connect to another replica, since there is only on left it will connect to replica nº2. After it connects, the client will run the update it was supposed to make on the unavailable server.
+The client will then see that the current replica is down and connect to another replica, since there is only on left it will connect to replica 2. After it connects, the client will run the update it was supposed to make on the unavailable server.
 
-It will appear the following messages confirming the updates 
+It will appear the following messages reconnecting and saving the reports,
 
 ```bash
-STH
-STH
-STH
+Sending observation for id 5 of type PERSON... 
+Sending observation for id AO1212 of type CAR... 
+Sending observation for id 6 of type PERSON... 
+Replica 1 at localhost:8081 is down
+Trying to reconnect to another replica
+Reconnected to replica 2 at localhost:8082
+Observations successfully saved!
 ```
 
 3.2.2 - Server sending gossip to an unavailable replica
@@ -472,12 +486,12 @@ Now, start another replica as follows
 $ ./target/appassembler/bin/silo-server localhost 2181 3 localhost 8083
 ```
 
-After waiting for client nº2 to send a gossip, it will appear a message confirming that it skipped the unavailble replica (nº1) like so
+After waiting for client 2 to send a gossip, it will appear a message confirming that it skipped the unavailble replica (nº1) like so
 
 ```bash
-STH
-STH
-STH
+Replica 2 initiating gossip…
+Contacting replica at localhost:8081 sending updates...
+Caught exception while contacting replica at localhost:8081.Skipping...
 ```
 
 ### 3.3 *Client Cache*
@@ -485,10 +499,10 @@ STH
 For this demo, go to the /A31-Sauron/spotter directory and start a spotter as follows
 
 ```bash
-$ ./target/appassembler/bin/eye localhost 2181 2
+$ ./target/appassembler/bin/eye localhost 2181
 ```
 
-This will connect a spotter client to replica nº2
+This will connect a spotter client to replica 1
 
 Next, go to the eye client and add yet another observation.
 
@@ -502,16 +516,14 @@ Next, go to the spotter client and query for that observation as follows.
 spot person 10
 ```
 
-This will safe the request in cache and display the response as follows.
+This will save the request in cache and display the response as follows.
 
 ```bash
-STH
-STH
-STH
+person,10,<timestamp>,Lisboa,12.1,12.1
 ```
 
 
-Now, before the replica nº2 sends a gossip, stop the replica nº2 (*ctrl-c*)
+Now, before the replica 2 sends a gossip, stop the replica 2 (*ctrl-c*)
 
 Finally, go to the spotter and query the server as follows
 
@@ -519,15 +531,23 @@ Finally, go to the spotter and query the server as follows
 spot person 10
 ```
 
-This will make the client migrate to replica nº3 and make the same query, but because that replica is outdated, the client will instead resort to its cache and display the previous response to that request instead of the response the server gave. Like so
+This will make the client migrate to replica 3 and make the same query, but because that replica is outdated, the client will instead resort to its cache and display the previous response to that request instead of the response the server gave. Like so
+
+
+Spotter migrating to replica 3
 
 ```bash
-STH
-STH 
-STH
+Replica 2 at localhost:8082 is down
+Trying to reconnect to another replica
+Reconnected to replica 3 at localhost:8083
 ```
 
-
+Spotter displaying updated info from cache
+```bash
+Response outdated.
+Retrieving last stable entry from cache...
+person,10,2020-05-02 03:14:04,Lisboa,12.1,12.1
+```
 
 
 ----

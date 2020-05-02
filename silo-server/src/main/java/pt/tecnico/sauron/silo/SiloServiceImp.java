@@ -64,6 +64,17 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
     }
 
     @Override
+    public void timestamp(EmptyRequest request, StreamObserver<TimestampResponse> responseObserver) {
+
+        TimestampResponse response = TimestampResponse.newBuilder().putAllResponseTS(this.serverRequestHandler.getValueTS()).build();
+
+        // Send a single response through the stream.
+        responseObserver.onNext(response);
+        // Notify the client that the operation has been completed.
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void gossip(GossipRequest request, StreamObserver<UpdateResponse> responseObserver) {
         System.out.println("Gossip message Received");
         List<LogRecord> stableUpdates;
@@ -264,6 +275,7 @@ public class SiloServiceImp extends SiloOperationsServiceGrpc.SiloOperationsServ
             TrackResponse response = TrackResponse.newBuilder()
                     .setObservation(observationMessage)
                     .build();
+
 
             System.out.println("Sending most recent observation of object with id:" + id + " and type:" + type + "...");
 
