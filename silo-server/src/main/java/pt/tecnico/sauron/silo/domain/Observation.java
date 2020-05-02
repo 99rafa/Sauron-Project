@@ -1,17 +1,15 @@
 package pt.tecnico.sauron.silo.domain;
 
-import com.google.protobuf.DoubleValue;
-import pt.tecnico.sauron.silo.exceptions.ErrorMessage;
-import pt.tecnico.sauron.silo.exceptions.SiloException;
-import pt.tecnico.sauron.silo.grpc.Type;
+
+import pt.tecnico.sauron.silo.exceptions.InvalidDateException;
+import pt.tecnico.sauron.silo.exceptions.InvalidIdException;
+
 
 import java.time.LocalDateTime;
 
-import static java.lang.Integer.parseInt;
-
 public class Observation implements Comparable<Observation> {
 
-    private Type type;
+    private String type;
 
     private LocalDateTime dateTime;
 
@@ -22,12 +20,13 @@ public class Observation implements Comparable<Observation> {
     public Observation() {
     }
 
-    public Observation(Type type, String id, LocalDateTime dateTime,String camName) {
+    public Observation(String type, String id, LocalDateTime dateTime, String camName) throws InvalidDateException, InvalidIdException {
 
-        checkType(type);
         this.type = type;
+        //Checks if valid date
         checkDate(dateTime);
         this.dateTime = dateTime;
+        //Checks if valid Id
         checkId(id);
         this.id = id;
         this.camName = camName;
@@ -50,11 +49,11 @@ public class Observation implements Comparable<Observation> {
         this.dateTime = dateTime;
     }
 
-    public synchronized Type getType() {
+    public String getType() {
         return type;
     }
 
-    public synchronized void setType(Type type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -66,51 +65,51 @@ public class Observation implements Comparable<Observation> {
         this.id = id;
     }
 
-    private void checkType(Type type) {
-        if (type == null)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_TYPE);
-        else if (type == Type.UNRECOGNIZED)
-            throw new SiloException(ErrorMessage.OBJECT_INVALID_TYPE);
-
-    }
-
-    private void checkDate(LocalDateTime date) {
+    private void checkDate(LocalDateTime date) throws InvalidDateException {
+        //Null date
         if (date == null)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_DATE);
+            throw new InvalidDateException();
 
         //Observation Date is in the future (This Ain't Back to the Future)
         if (date.isAfter(LocalDateTime.now())) {
-            throw new SiloException(ErrorMessage.OBSERVATION_INVALID_DATE, date.format(Silo.formatter));
+            throw new InvalidDateException(date.format(Silo.formatter));
         }
     }
 
-    private void checkId(String id) {
+    private void checkId(String id) throws InvalidIdException {
+        //Null or empty ID
         if (id == null || id.strip().length() == 0)
-            throw new SiloException(ErrorMessage.OBSERVATION_NULL_ID);
-        if (this.type == Type.PERSON) {
+            throw new InvalidIdException();
+
+        //Checks person id
+        if (this.type.equals("PERSON")) {
             if (!isNumber(id))
-                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID, type.toString());
+                throw new InvalidIdException(this.type);
         }
-        if (this.type == Type.CAR) {
+        //Checks car Id
+        if (this.type.equals("CAR")) {
             if (!isCarId(id))
-                throw new SiloException(ErrorMessage.OBSERVATION_INVALID_ID, type.toString());
+                throw new InvalidIdException(this.type);
         }
     }
 
-
+    //Checks if it is a valid car id
     private boolean isCarId(String id) {
         String g1;
         String g2;
         String g3;
 
+        //Car plate length is 6
         if (id.length() != 6)
             return false;
 
+        //Brakes full id in 3 sub groups
         g1 = id.substring(0, 2);
         g2 = id.substring(2, 4);
         g3 = id.substring(4, 6);
 
 
+        //Checks if it matches the portuguese plate format
         if (containsOnlyCapitalLetters(g1)) {
             return isNumber(g2) && isNumber(g3);
         }
@@ -123,9 +122,10 @@ public class Observation implements Comparable<Observation> {
         return false;
     }
 
+    //Checks if string is a number
     private boolean isNumber(String s) {
         try {
-            Double.parseDouble(s);
+            Long.parseLong(s);
         } catch (NumberFormatException e) {
             return false;
         }
@@ -133,6 +133,7 @@ public class Observation implements Comparable<Observation> {
     }
 
 
+    //Checks if string only contains capital letters
     private boolean containsOnlyCapitalLetters(String s) {
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) < 'A' || s.charAt(i) > 'Z')
@@ -157,4 +158,5 @@ public class Observation implements Comparable<Observation> {
     }
 
     public int customSort(Observation observation) { return this.getId().compareTo(observation.getId());}
+
 }

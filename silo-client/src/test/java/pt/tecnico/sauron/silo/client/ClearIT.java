@@ -1,33 +1,38 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.grpc.*;
-
-import static org.junit.Assert.assertEquals;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 public class ClearIT extends BaseIT {
 
-    static SiloFrontend frontend = new SiloFrontend("localhost", 8080);
+    static SiloFrontend frontend;
+
+    static {
+        try {
+            frontend = new SiloFrontend("localhost", "2181", "");
+        } catch (ZKNamingException | NoServersAvailableException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     // one-time initialization and clean-up
     @BeforeAll
-    public static void oneTimeSetUp(){
+    public static void oneTimeSetUp() {
 
     }
 
     @AfterAll
     public static void oneTimeTearDown() {
-        ClearRequest clearRequest = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(clearRequest);
+        frontend.ctrlClear();
     }
 
     // initialization and clean-up for each test
 
     @BeforeEach
     public void setUp() {
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
     }
 
     @AfterEach
@@ -37,7 +42,6 @@ public class ClearIT extends BaseIT {
 
     @Test
     public void clearTest() {
-        ClearRequest request = ClearRequest.newBuilder().build();
-        frontend.ctrlClear(request);
+        frontend.ctrlClear();
     }
 }

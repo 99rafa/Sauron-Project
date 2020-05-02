@@ -2,12 +2,11 @@ package pt.tecnico.sauron.eye;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import pt.tecnico.sauron.silo.client.Exceptions.NoServersAvailableException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
-import pt.tecnico.sauron.silo.grpc.CamJoinRequest;
-import pt.tecnico.sauron.silo.grpc.ObservationMessage;
-import pt.tecnico.sauron.silo.grpc.ReportRequest;
-import pt.tecnico.sauron.silo.grpc.Type;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -20,161 +19,185 @@ import java.util.Scanner;
 
 public class EyeApp {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		try {
-			System.out.println(EyeApp.class.getSimpleName());
-			System.out.println("> Eye client started");
-			try {
-				// check arguments
-				if (args.length < 5) {
-					throw new IOException();
+        try {
+            System.out.println(EyeApp.class.getSimpleName());
+            System.out.println("> Eye client started");
+            try {
+                // check arguments
+                if (args.length < 5) {
+                    throw new IOException();
 
-				} else if (args.length > 5) {
-					throw new IOException();
-				}
+                } else if (args.length > 6) {
+                    throw new IOException();
+                }
 
+                final String host = args[0];
+                final String port = args[1];
 
-				final String host = args[0];
-				final int port = Integer.parseInt(args[1]);
+                final String camName = args[2];
+                final double latitude = Double.parseDouble(args[3]);
+                final double longitude = Double.parseDouble(args[4]);
+                final String repN;
 
-				final String camName = args[2];
-				final double latitude = Double.parseDouble(args[3]);
-				final double longitude = Double.parseDouble(args[4]);
+                if (args.length == 6)
+                    repN = args[5];
+                else
+                    repN = "";
 
-				final String target = host + ":" + port;
-				final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+                final String target = host + ":" + port;
+                final ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
 
-				SiloFrontend siloFrontend = new SiloFrontend(host, port);
-				
+                SiloFrontend siloFrontend = new SiloFrontend(host, port, repN);
 
-				CamJoinRequest request = CamJoinRequest.newBuilder().setCamName(camName)
-						.setLatitude(latitude).setLongitude(longitude).build();
-				siloFrontend.camJoin(request);
-
-
-				processInputData(siloFrontend, camName);
-
-				channel.shutdownNow();
-
-				siloFrontend.close();
-
-			} catch (InterruptedException e) {
-
-				System.out.println("Caught exception with description: Timeout interrupted");
-
-			} catch (IOException e) {
-
-				System.out.println("Caught exception with description: Argument(s) missing or more than expected!");
-
-			} catch (StatusRuntimeException e) {
-
-				System.out.println("Caught exception with description: " +
-						e.getStatus().getDescription());
-
-			}
-		} finally {
-			System.out.println("> Client Closing");
-		}
-
-	}
-
-	private static void processInputData(SiloFrontend siloFrontend, String camName) throws InterruptedException {
-
-		 Scanner scanner;
-		 List<ObservationMessage.Builder> observations = new ArrayList<>();
-
-		 scanner = new Scanner(System.in);
-		 String[] observationLine;
+                siloFrontend.camJoin(camName, latitude, longitude);
 
 
-		 while (scanner.hasNextLine()) {
+                processInputData(siloFrontend, camName, latitude, longitude);
 
-			 try {
+                channel.shutdownNow();
 
-				 observationLine = scanner.nextLine().split(",");
+                siloFrontend.close();
 
+            } catch (InterruptedException e) {
 
-				 //when line is empty, do a reportRequest with the observation to this point
-				 if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
+                System.err.println("Timeout interrupted");
 
-					 saveGivenObservations(siloFrontend, camName, observations);
+            } catch (IOException e) {
 
-				 } //do nothing when there is a comment line
-				 else if (observationLine[0].startsWith("#")) { }
+                System.err.println("Argument(s) missing or more than expected!");
 
-				 else {
+            } catch (StatusRuntimeException e) {
 
-					 //first token is first substring before the comma
-					 String firstToken = observationLine[0];
+                System.out.println("Caught exception with description: " +
+                        e.getStatus().getDescription());
 
-					 //observations to be added
-					 if (firstToken.equals("car") && observationLine.length == 2) {
+            } catch (ZKNamingException | NoServersAvailableException e) {
+                System.err.println("Server could not be found or no servers available at the moment");
+            }
+        } finally {
+            System.out.println("> Client Closing");
+        }
 
+    }
 
-						 String id = observationLine[1];
+    private static void processInputData(SiloFrontend siloFrontend, String camName, double lat, double log) throws InterruptedException, ZKNamingException, NoServersAvailableException {
 
-						 observations.add(ObservationMessage.newBuilder().setType(Type.CAR)
-								 .setId(id));
+        Scanner scanner;
+        List<List<String>> observations = new ArrayList<>();
 
-					 } else if (firstToken.equals("person") && observationLine.length == 2) {
-
-						 String id = observationLine[1];
-
-						 observations.add(ObservationMessage.newBuilder().setType(Type.PERSON)
-								 .setId(id));
-
-					 }
-					 //timeout when line starts with zzz
-					 else if ((firstToken).equals("zzz") && observationLine.length == 2) {
-
-						 int timeout = Integer.parseInt(observationLine[1].trim());
-
-						 System.out.println("Client paused...");
-						 Thread.sleep(timeout);
-						 System.out.println("Client resumed...");
+        scanner = new Scanner(System.in);
+        String[] observationLine;
 
 
-					 } else {
-						 throw new IOException();
-					 }
-				 }
-			 } catch (StatusRuntimeException e) {
+        while (scanner.hasNextLine()) {
 
-				 observations.clear();
+            try {
 
-				 System.out.println("Caught exception with description: " +
-						 e.getStatus().getDescription());
+                observationLine = scanner.nextLine().split(",");
 
-			 } catch (IOException e) {
 
-				 System.out.println("Caught exception with description: Invalid input");
+                //when line is empty, do a reportRequest with the observation to this point
+                if (observationLine[0].isEmpty() || observationLine[0].isBlank()) {
 
-			 }
-		 }
+                    //does not send request if there's nothing to add to silo server
+                    if (observations.size() == 0) throw new IOException();
 
-		saveGivenObservations(siloFrontend, camName, observations);
+                    else saveGivenObservations(siloFrontend, camName, observations);
 
-		scanner.close();
-	}
+                } //do nothing when there is a comment line
+                else if (observationLine[0].startsWith("#")) {
+                } else {
 
-	private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<ObservationMessage.Builder> observations) {
-		ReportRequest.Builder builder = ReportRequest.newBuilder().setCamName(camName);
+                    //first token is first substring before the comma
+                    String firstToken = observationLine[0];
 
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date date = new Date();
+                    //observations to be added
+                    if (firstToken.equals("car") && observationLine.length == 2) {
 
-		for (ObservationMessage.Builder om : observations) {
-			System.out.println("Sending observation for id "+ om.getId() +
-					" of type " + om.getType().toString() + "... ");
-			om.setDatetime(dateFormat.format(date)).build();
-			builder.addObservation(om).build();
-		}
 
-		ReportRequest request = builder.build();
-		siloFrontend.reportObs(request);
-		observations.clear();
-		System.out.println("Observations successfully saved!");
-	}
+                        String id = observationLine[1];
+                        List<String> obs = new ArrayList<>();
+                        obs.add("CAR");
+                        obs.add(id);
+                        observations.add(obs);
+
+                    } else if (firstToken.equals("person") && observationLine.length == 2) {
+
+                        String id = observationLine[1];
+                        List<String> obs = new ArrayList<>();
+                        obs.add("PERSON");
+                        obs.add(id);
+
+                        observations.add(obs);
+
+                    }
+                    //timeout when line starts with zzz
+                    else if ((firstToken).equals("zzz") && observationLine.length == 2) {
+
+                        int timeout = Integer.parseInt(observationLine[1].trim());
+
+                        System.out.println("Client paused...");
+                        Thread.sleep(timeout);
+                        System.out.println("Client resumed...");
+
+
+                    } else {
+                        throw new IOException();
+                    }
+                }
+            } catch (StatusRuntimeException e) {
+                observations.clear();
+
+                //renew server when the previous goes down
+                if (e.getStatus().getCode().equals(Status.Code.UNAVAILABLE)) {
+
+
+                    siloFrontend.renewConnection();
+
+                    try {
+
+                        siloFrontend.camJoin(camName, lat, log);
+
+                        siloFrontend.runPreviousCommand();
+
+                        System.out.println("Observations successfully saved!");
+                    }
+                    catch(StatusRuntimeException s) {
+                        System.out.println(s.getStatus().getDescription());
+                    }
+
+                } else
+                    System.out.println(e.getStatus().getDescription());
+
+            } catch (IOException e) {
+
+                System.err.println("Invalid input");
+
+            }
+        }
+
+        saveGivenObservations(siloFrontend, camName, observations);
+
+        scanner.close();
+    }
+
+    private static void saveGivenObservations(SiloFrontend siloFrontend, String camName, List<List<String>> observations) {
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+
+        for (List<String> om : observations) {
+            System.out.println("Sending observation for id " + om.get(1) +
+                    " of type " + om.get(0) + "... ");
+            om.add(dateFormat.format(date));
+
+        }
+
+        siloFrontend.reportObs(camName, observations);
+        observations.clear();
+        System.out.println("Observations successfully saved!");
+    }
 
 }

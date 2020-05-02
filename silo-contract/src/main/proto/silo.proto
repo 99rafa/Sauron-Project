@@ -8,11 +8,12 @@ package pt.tecnico.sauron.silo.grpc;
 option java_multiple_files = true;
 
 //observation object message
-message ObservationMessage{
-    Type type = 1;
+message ObservationMessage {
+    string type = 1;
     string id = 2;
     string datetime = 3;
     string camName = 4;
+    CamInfoResponse cords = 5;
 }
 
 //cam_join silo operation
@@ -24,7 +25,36 @@ message CamJoinRequest {
 
 }
 
-message CamJoinResponse {
+message EmptyRequest {
+
+}
+
+message TimestampResponse {
+    map<int32, int32> responseTS = 1;
+}
+
+message UpdateResponse {
+
+}
+
+//Client Request operation
+message ClientRequest {
+    string opId = 1;
+    map<int32, int32> prevTS = 2;
+    CamJoinRequest camJoinRequest = 3;
+    CamInfoRequest camInfoRequest = 4;
+    ReportRequest reportRequest = 5;
+    TrackRequest trackRequest = 6;
+    EmptyRequest emptyRequest = 7;
+}
+
+message ClientResponse {
+    map<int32, int32> responseTS = 1;
+    UpdateResponse updateResponse = 2;
+    CamInfoResponse camInfoResponse = 3;
+    TrackResponse trackResponse = 4;
+    TraceResponse traceResponse = 5;
+    PingResponse pingResponse = 6;
 
 }
 
@@ -35,8 +65,8 @@ message CamInfoRequest {
 }
 
 message CamInfoResponse {
-   double latitude = 1;
-   double longitude = 2;
+    double latitude = 1;
+    double longitude = 2;
 }
 
 //report silo operation
@@ -46,71 +76,24 @@ message ReportRequest {
     repeated ObservationMessage observation = 2;
 }
 
-message ReportResponse {
-
-}
-
 //track silo operation
 
 message TrackRequest {
-   Type type = 1;
-   string id = 2;
+    string type = 1;
+    string id = 2;
 }
 
 message TrackResponse {
     ObservationMessage observation = 1;
 }
 
-//trackMatch silo operation
-
-message TrackMatchRequest {
-    Type type = 1;
-    string subId = 2;
-}
-
-message TrackMatchResponse {
-    repeated ObservationMessage observation = 1;
-}
-
-//trace silo operation
-
-message TraceRequest {
-    Type type = 1;
-    string id = 2;
-}
-
 message TraceResponse {
     repeated ObservationMessage observation = 1;
 }
 
-message PingRequest {
-    string inputCommand = 1;
-}
 
 message PingResponse {
     string outputText = 1;
-}
-
-message ClearRequest {
-
-}
-
-message ClearResponse {
-
-}
-
-message InitRequest {
-
-}
-
-message InitResponse {
-
-}
-
-enum Type {
-    PERSON = 0;
-    CAR = 1;
-    UNKNOWN = 2;
 }
 
 enum ServerStatus {
@@ -118,17 +101,36 @@ enum ServerStatus {
     DOWN = 1;
 }
 
+message GossipRequest {
+    repeated LogRecordsRequest log = 1;
+    map<int32, int32> repTs = 2;
+}
 
+message LogRecordsRequest {
+    int32 repN = 1;
+    map<int32, int32> timestamp = 2;
+    map<int32, int32> prevTS = 3;
+    string id = 4;
+    OperationRequest operation = 5;
+}
+
+message OperationRequest {
+    string op = 1;
+    ClientRequest request = 2;
+}
 
 service SiloOperationsService {
     // Define a RPC operation
-    rpc camJoin(CamJoinRequest) returns (CamJoinResponse);
-    rpc camInfo(CamInfoRequest) returns (CamInfoResponse);
-    rpc report(ReportRequest) returns (ReportResponse);
-    rpc track(TrackRequest) returns (TrackResponse);
-    rpc trackMatch(TrackMatchRequest) returns (TrackMatchResponse);
-    rpc trace(TraceRequest) returns (TraceResponse);
-    rpc ctrlPing(PingRequest) returns (PingResponse);
-    rpc ctrlClear(ClearRequest) returns (ClearResponse);
-    rpc ctrlInit(InitRequest) returns (InitResponse);
+    rpc camJoin (ClientRequest) returns (ClientResponse);
+    rpc camInfo (ClientRequest) returns (ClientResponse);
+    rpc report (ClientRequest) returns (ClientResponse);
+    rpc track (ClientRequest) returns (ClientResponse);
+    rpc trackMatch (ClientRequest) returns (ClientResponse);
+    rpc trace (ClientRequest) returns (ClientResponse);
+    rpc ctrlPing (ClientRequest) returns (ClientResponse);
+    rpc ctrlClear (ClientRequest) returns (ClientResponse);
+    rpc ctrlInit (ClientRequest) returns (ClientResponse);
+    rpc gossip (GossipRequest) returns (UpdateResponse);
+    rpc timestamp (EmptyRequest) returns (TimestampResponse);
+
 }
